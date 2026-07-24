@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Responsive Library Management System">
+  <title>Library Management System</title>
+  <link rel="icon" href="/assets/library-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="#dashboard" aria-label="Library Management System dashboard">
+        <span class="brand-mark" aria-hidden="true"><img src="/assets/library-mark.svg" alt=""></span>
+        <span>Library Management</span>
+      </a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation">Menu</button>
+      <nav id="primary-navigation" class="primary-navigation" aria-label="Primary navigation">
+        <a href="#dashboard" data-route="dashboard">Dashboard</a>
+        <a href="#books" data-route="books">Books</a>
+        <a href="#students" data-route="students">Students</a>
+        <a href="#librarians" data-route="librarians">Librarians</a>
+        <a href="#borrow-records" data-route="borrow-records">Borrow records</a>
+        <a href="#profile" data-route="profile">Profile</a>
+        <button class="nav-logout" type="button" data-action="logout">Logout</button>
+      </nav>
+    </header>
+
+    <main id="main-content" tabindex="-1">
+      <section class="page-view" data-page="login" aria-labelledby="login-title">
+        <div class="auth-layout">
+          <div class="auth-card">
+            <img class="auth-brand-mark" src="/assets/library-mark.svg" alt="" aria-hidden="true">
+            <span class="eyebrow">Library Management System</span>
+            <h1 id="login-title">Welcome back</h1>
+            <p>Sign in to access the library workspace.</p>
+            <form id="login-form" novalidate>
+              <label for="login-username">Username</label>
+              <input id="login-username" name="username" autocomplete="username" required>
+              <p class="field-error" data-error-for="username"></p>
+              <label for="login-password">Password</label>
+              <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+              <p class="field-error" data-error-for="password"></p>
+              <button class="button button-primary button-block" type="submit">Sign in</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-view" data-page="dashboard" aria-labelledby="dashboard-title">
+        <div class="page-heading"><div><span class="eyebrow">Overview</span><h1 id="dashboard-title">Dashboard</h1><p>Monitor the library's current activity.</p></div></div>
+        <div class="stat-grid" id="dashboard-stats" aria-live="polite"></div>
+        <div class="dashboard-actions card"><h2>Quick actions</h2><p>Move directly to common library tasks.</p><div class="button-row"><a class="button button-primary" href="#books">Manage books</a><a class="button button-teal" href="#borrow-records">Manage borrow records</a></div></div>
+      </section>
+
+      <section class="page-view" data-page="books" aria-labelledby="books-title">
+        <div class="page-heading"><div><span class="eyebrow">Catalogue</span><h1 id="books-title">Books</h1><p>Manage titles and their current availability.</p></div><button class="button button-primary" type="button" data-open-modal="book">Add new book</button></div>
+        <div class="toolbar"><label class="search-field" for="book-search">Search books<input id="book-search" type="search" placeholder="Title or author"></label></div>
+        <div class="table-card"><table><thead><tr><th>Title</th><th>Author</th><th>ISBN</th><th>Published</th><th>Status</th><th>Actions</th></tr></thead><tbody id="books-table"></tbody></table></div>
+      </section>
+
+      <section class="page-view" data-page="students" aria-labelledby="students-title">
+        <div class="page-heading"><div><span class="eyebrow">People</span><h1 id="students-title">Students</h1><p>Manage student accounts and contact profiles.</p></div><button class="button button-primary" type="button" data-open-modal="student">Add student</button></div>
+        <div class="table-card"><table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Username</th><th>Actions</th></tr></thead><tbody id="students-table"></tbody></table></div>
+      </section>
+
+      <section class="page-view" data-page="librarians" aria-labelledby="librarians-title">
+        <div class="page-heading"><div><span class="eyebrow">People</span><h1 id="librarians-title">Librarians</h1><p>Administrator-only librarian management.</p></div><button class="button button-primary" type="button" data-open-modal="librarian">Add librarian</button></div>
+        <div class="table-card"><table><thead><tr><th>Name</th><th>Age</th><th>Phone</th><th>Username</th><th>Actions</th></tr></thead><tbody id="librarians-table"></tbody></table></div>
+      </section>
+
+      <section class="page-view" data-page="borrow-records" aria-labelledby="records-title">
+        <div class="page-heading"><div><span class="eyebrow">Loans</span><h1 id="records-title">Borrow records</h1><p>Track active and completed library loans.</p></div><button class="button button-teal" type="button" data-open-modal="borrow">Record a borrow</button></div>
+        <div class="table-card"><table><thead><tr><th>Book</th><th>Borrower</th><th>Borrowed</th><th>Returned</th><th>Status</th><th>Actions</th></tr></thead><tbody id="records-table"></tbody></table></div>
+      </section>
+
+      <section class="page-view" data-page="profile" aria-labelledby="profile-title"><div class="page-heading"><div><span class="eyebrow">Account</span><h1 id="profile-title">Profile</h1><p>Your non-sensitive account information.</p></div></div><div id="profile-card" class="card"></div></section>
+    </main>
+    <footer>© 2026 Library Management System</footer>
+  </div>
+  <div id="modal-root" aria-live="polite"></div>
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>

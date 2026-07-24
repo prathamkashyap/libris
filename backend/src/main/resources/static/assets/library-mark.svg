@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Library Management System</title>
+  <defs>
+    <linearGradient id="background" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5B52E8"/>
+      <stop offset=".48" stop-color="#4338CA"/>
+      <stop offset="1" stop-color="#0D9488"/>
+    </linearGradient>
+    <linearGradient id="page" x1="18" y1="17" x2="42" y2="46" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF"/>
+      <stop offset="1" stop-color="#D9F7F2"/>
+    </linearGradient>
+    <linearGradient id="pageShadow" x1="34" y1="20" x2="51" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D7FFF9"/>
+      <stop offset="1" stop-color="#98D9D0"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#211B77" flood-opacity=".35"/>
+    </filter>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#background)"/>
+  <path d="M8 21c5-9 12-12 22-11" stroke="#FFF" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+  <g filter="url(#shadow)">
+    <path d="M14 19.5c0-2.2 1.8-4 4-4h10c3.6 0 6.7 1.5 9 3.9v28.1c-2.3-2.1-5.3-3.3-8.5-3.3H18c-2.2 0-4-1.8-4-4V19.5Z" fill="url(#page)"/>
+    <path d="M37 19.4c2.4-2.4 5.5-3.9 9-3.9h.1c2.2 0 3.9 1.8 3.9 4v20.7c0 2.2-1.8 4-4 4H45.5c-3.2 0-6.2 1.2-8.5 3.3V19.4Z" fill="url(#pageShadow)"/>
+    <path d="M37 19.4v28.1" stroke="#8ACCC3" stroke-width="1.5"/>
+    <path d="M20 24h10M20 29h10M20 34h7M42 24h4M42 29h4M42 34h3" stroke="#4338CA" stroke-opacity=".58" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>

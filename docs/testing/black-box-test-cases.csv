@@ -1,0 +1,15 @@
+Test ID,Module,Role,Action,Expected Result,Status
+BB-01,Authentication,Public,POST /api/auth/login valid credentials,200 and session cookie,PENDING LOCAL MYSQL
+BB-02,Authentication,Public,POST /api/auth/login invalid password,401,PENDING LOCAL MYSQL
+BB-03,Books,Admin,POST /api/books valid JSON,201 and available book,PENDING LOCAL MYSQL
+BB-04,Books,Admin,POST /api/books without title,400 validation error,PENDING LOCAL MYSQL
+BB-05,Books,Admin,GET missing book,404 structured error,PENDING LOCAL MYSQL
+BB-06,Borrow,Admin,POST available book borrow,201 and book unavailable,PENDING LOCAL MYSQL
+BB-07,Borrow,Admin,POST unavailable book borrow,400 BOOK_UNAVAILABLE,PENDING LOCAL MYSQL
+BB-08,Return,Admin,POST active record return,204 and book available,PENDING LOCAL MYSQL
+BB-09,Return,Admin,POST returned record return,400 ALREADY_RETURNED,PENDING LOCAL MYSQL
+BB-10,Authorization,Librarian,Manage librarians,403,PENDING LOCAL MYSQL
+BB-11,Authorization,Student,Mutate books,403,PENDING LOCAL MYSQL
+BB-12,Authentication,Authenticated,Logout then protected request,401,PENDING LOCAL MYSQL
+BB-13,UI,Admin,Create book through modal,Fetch POST then refreshed catalogue,PENDING LOCAL MYSQL
+BB-14,UI,Admin,Return loan through records table,Fetch return then refreshed tables,PENDING LOCAL MYSQL

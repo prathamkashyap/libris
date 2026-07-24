@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Publication-quality engineering report for the Library Management System v1.0.0.">
+  <title>Library Management System — Engineering Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="print.css" media="print">
+</head>
+<body>
+  <a class="skip-link" href="#report">Skip to report</a>
+
+  <header class="topbar no-print">
+    <a class="topbar-brand" href="#cover"><img src="../../backend/src/main/resources/static/assets/library-mark.svg" alt=""> <span>Library Management System</span></a>
+    <span class="topbar-meta">Engineering Report · v1.0.0</span>
+  </header>
+
+  <main id="report">
+    <section class="cover" id="cover">
+      <div class="cover-orbit orbit-one"></div><div class="cover-orbit orbit-two"></div><div class="cover-grid"></div>
+      <div class="cover-content">
+        <div class="cover-kicker"><span></span> SOFTWARE ENGINEERING REPORT</div>
+        <img class="cover-mark" src="../../backend/src/main/resources/static/assets/library-mark.svg" alt="Library Management System logo">
+        <p class="eyebrow light">CAPSTONE DOCUMENTATION · RELEASE v1.0.0</p>
+        <h1>Library<br><em>Management</em><br>System</h1>
+        <p class="cover-lede">A full-stack, responsive library operations platform documented from requirements baseline through security hardening and release preparation.</p>
+        <div class="cover-meta-grid">
+          <div><span>Academic submission</span><strong>University / Course<br><i>To be completed by submitter</i></strong></div>
+          <div><span>Prepared for</span><strong>Technical review<br>&amp; project evaluation</strong></div>
+          <div><span>Release date</span><strong>23 July 2026</strong></div>
+        </div>
+      </div>
+      <div class="cover-stats">
+        <div><b>5</b><span>Core tables</span></div><div><b>7</b><span>API modules</span></div><div><b>6</b><span>Automated tests</span></div><div><b>21</b><span>UI evidence captures</span></div>
+      </div>
+      <div class="cover-footer"><span>SPRING BOOT · MYSQL · VANILLA JAVASCRIPT</span><span>01 / 2026</span></div>
+    </section>
+
+    <section class="frontmatter page-section" id="contents">
+      <div class="section-label">Reader’s guide</div>
+      <h2>Contents</h2>
+      <p class="section-intro">This publication translates the project’s source documentation, source code, tests, and captured interface evidence into a print-ready engineering narrative. The contents below are generated from report sections and remain clickable in the HTML edition.</p>
+      <nav id="toc" class="toc" aria-label="Table of contents"></nav>
+      <aside class="note note-indigo"><span class="note-icon">i</span><div><strong>Evidence policy.</strong> Claims in this report are grounded in the repository. Where full local-MySQL manual evidence remains pending, the report says so rather than treating it as completed.</div></aside>
+    </section>
+
+    <section class="page-section chapter" id="executive-summary" data-toc="Executive Summary">
+      <div class="chapter-number">01</div><div class="section-label">Executive summary</div>
+      <h2>A focused system for reliable library operations.</h2>
+      <div class="two-column lead-columns">
+        <p class="lead">The Library Management System is a responsive web application for operating a small library catalogue: it manages books, student and librarian profiles, borrowing, returns, sessions, and dashboard activity.</p>
+        <p>It was built as a single Spring Boot deployment with a static browser client. The project deliberately balances academic clarity with industry practices: REST contracts, service-layer transactions, DTOs, security boundaries, structured errors, test automation, and release documentation.</p>
+      </div>
+      <div class="summary-strip">
+        <article><span class="mini-icon">⌘</span><h3>Single deployment</h3><p>Frontend assets and REST API are served from one Spring Boot application.</p></article>
+        <article><span class="mini-icon">◈</span><h3>Secure by design</h3><p>BCrypt, server sessions, role controls, and CSRF protection guard state changes.</p></article>
+        <article><span class="mini-icon">✓</span><h3>Verified flows</h3><p>Integration, browser-CSRF, and repository tests cover critical domain paths.</p></article>
+      </div>
+      <div class="stat-row">
+        <div class="stat"><span>Architecture</span><strong>6 layers</strong><small>Browser to MySQL</small></div>
+        <div class="stat"><span>Core entities</span><strong>5 tables</strong><small>Accounts, profiles, books, records</small></div>
+        <div class="stat"><span>Roles</span><strong>3 roles</strong><small>Admin, librarian, student</small></div>
+        <div class="stat"><span>Release</span><strong>v1.0.0</strong><small>Production-ready baseline</small></div>
+      </div>
+    </section>
+
+    <section class="page-section chapter" id="problem-objectives" data-toc="Problem Statement & Objectives">
+      <div class="chapter-number">02</div><div class="section-label">Context and intent</div>
+      <h2>From a visual prototype to a durable operational system.</h2>
+      <div class="split-card">
+        <div class="problem-card"><span class="card-tag">Problem statement</span><h3>Browser-only state cannot operate a library.</h3><p>A UI prototype can demonstrate navigation and form interactions, but it cannot securely manage identities, preserve loan history, enforce availability rules, or provide a trustworthy shared source of data.</p></div>
+        <div class="objective-card"><span class="card-tag">Project objective</span><h3>Build a responsive, maintainable library workflow.</h3><p>Persist the catalogue and people records, process borrow/return transitions safely, protect operations by role, and document each important engineering decision.</p></div>
+      </div>
+      <div class="requirements-grid">
+        <div><h3>Functional scope</h3><ul class="check-list"><li>Login, logout, profile, and session awareness</li><li>Dashboard activity totals</li><li>Books, students, and librarians management</li><li>Borrow and return workflows</li><li>Validation and structured error feedback</li></ul></div>
+        <div><h3>Quality targets</h3><ul class="check-list"><li>Responsive, accessible browser interface</li><li>Layered REST architecture</li><li>Safe password and session handling</li><li>Testable domain rules and persistence constraints</li><li>Clear technical and academic documentation</li></ul></div>
+      </div>
+    </section>
+
+    <section class="page-section chapter timeline-page" id="timeline" data-toc="Development Timeline">
+      <div class="chapter-number">03</div><div class="section-label">Reconstructed development journal</div>
+      <h2>Ten milestones, one coherent delivery path.</h2>
+      <p class="section-intro">Exact daily timestamps are not stored in the codebase. This timeline is therefore reconstructed from the changelog, architecture plan, repository structure, and delivered tests.</p>
+      <ol class="timeline">
+        <li><span>01</span><div><h3>Architecture baseline</h3><p>Requirements, data model options, ADRs, API conventions, and the ten-day plan were frozen before implementation.</p></div></li>
+        <li><span>02</span><div><h3>Responsive frontend shell</h3><p>Login, dashboard, catalogue, people, loans, and profile views established the application’s navigation and visual language.</p></div></li>
+        <li><span>03</span><div><h3>Interaction boundary</h3><p>Reusable modal forms, client feedback, and a shared Fetch helper separated interface behavior from API details.</p></div></li>
+        <li><span>04</span><div><h3>Persistence foundation</h3><p>Spring Boot, JPA entities, repositories, MySQL configuration, auditing, and a local seed account were introduced.</p></div></li>
+        <li><span>05–07</span><div><h3>Domain modules</h3><p>Books CRUD, profile/account operations, borrow/return transactions, snapshots, availability rules, and dashboard counts were implemented.</p></div></li>
+        <li><span>08–09</span><div><h3>Integration and security</h3><p>Frontend demo data was replaced by API calls; Spring Security, sessions, roles, BCrypt, and CSRF were added.</p></div></li>
+        <li><span>10</span><div><h3>Verification and release preparation</h3><p>Automated tests, error response polish, restored SVG branding, documentation organization, and repository hygiene completed v1.0.0.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="page-section chapter" id="technology" data-toc="Technology Stack">
+      <div class="chapter-number">04</div><div class="section-label">Technology selection</div>
+      <h2>Deliberate tools, restrained complexity.</h2>
+      <div class="tech-grid">
+        <article><span class="tech-mark java">J</span><h3>Java 21</h3><p>Language target for the Spring Boot application.</p></article>
+        <article><span class="tech-mark spring">S</span><h3>Spring Boot 3.5</h3><p>Web application runtime and dependency composition.</p></article>
+        <article><span class="tech-mark data">DB</span><h3>JPA + Hibernate</h3><p>Object persistence, mapping, and transactional behavior.</p></article>
+        <article><span class="tech-mark mysql">M</span><h3>MySQL</h3><p>Release database for durable library data.</p></article>
+        <article><span class="tech-mark security">⌁</span><h3>Spring Security</h3><p>Sessions, authentication, roles, CSRF, and JSON security errors.</p></article>
+        <article><span class="tech-mark web">&lt;/&gt;</span><h3>HTML / CSS / JS</h3><p>Framework-free responsive browser interface.</p></article>
+        <article><span class="tech-mark fetch">↗</span><h3>Fetch API</h3><p>Centralized credentials, CSRF, JSON, and error handling.</p></article>
+        <article><span class="tech-mark test">✓</span><h3>JUnit + MockMvc</h3><p>Integration coverage and browser-like security tests.</p></article>
+      </div>
+      <aside class="note note-teal"><span class="note-icon">↗</span><div><strong>Intentional exclusions.</strong> React, Angular, Vue, server-rendered MVC views, JWT, Swagger, Docker, pagination, and categories were considered outside the baseline rather than added speculatively.</div></aside>
+    </section>
+
+    <section class="page-section chapter" id="architecture" data-toc="Architecture & Request Flow">
+      <div class="chapter-number">05</div><div class="section-label">Software architecture</div>
+      <h2>Clear boundaries from browser interaction to persistence.</h2>
+      <div class="architecture-diagram" role="img" aria-label="Browser to MySQL layered architecture">
+        <div class="arch-node browser"><b>Browser</b><small>HTML · CSS · JavaScript</small></div><i>→</i>
+        <div class="arch-node fetch"><b>Fetch API</b><small>credentials + CSRF</small></div><i>→</i>
+        <div class="arch-node controller"><b>Controllers</b><small>DTO HTTP boundary</small></div><i>→</i>
+        <div class="arch-node service"><b>Services</b><small>Rules + transactions</small></div><i>→</i>
+        <div class="arch-node repository"><b>Repositories</b><small>Spring Data JPA</small></div><i>→</i>
+        <div class="arch-node database"><b>MySQL</b><small>Durable state</small></div>
+      </div>
+      <div class="layer-grid">
+        <article><span>01</span><h3>Browser & Fetch</h3><p>Static assets render the UI. A shared request helper attaches credentials, CSRF headers, parses JSON, and preserves field errors.</p></article>
+        <article><span>02</span><h3>Controller & DTOs</h3><p>Controllers map resource routes and expose validated request/response records rather than JPA entities.</p></article>
+        <article><span>03</span><h3>Service & rules</h3><p>Services coordinate transactions, availability changes, uniqueness checks, and business exceptions.</p></article>
+        <article><span>04</span><h3>Repository & data</h3><p>Repositories provide persistence operations while MySQL retains normalized operational data.</p></article>
+      </div>
+      <div class="flow-panel">
+        <div><span class="flow-index">1</span><h4>Action</h4><p>The user submits a form or navigates to protected data.</p></div><span class="flow-arrow">→</span>
+        <div><span class="flow-index">2</span><h4>Security</h4><p>Session, role, and CSRF checks run before the controller.</p></div><span class="flow-arrow">→</span>
+        <div><span class="flow-index">3</span><h4>Domain</h4><p>A service validates rules and performs a transaction.</p></div><span class="flow-arrow">→</span>
+        <div><span class="flow-index">4</span><h4>Feedback</h4><p>A safe DTO or structured error returns to the UI.</p></div>
+      </div>
+    </section>
+
+    <section class="page-section chapter" id="database" data-toc="Database Design">
+      <div class="chapter-number">06</div><div class="section-label">Persistent domain model</div>
+      <h2>Normalized identities, role profiles, and durable loan history.</h2>
+      <div class="erd">
+        <article class="entity account"><h3>accounts</h3><p><b>PK</b> id · <b>UK</b> username</p><p>password_hash · role · enabled</p><footer>Authentication identity</footer></article>
+        <div class="relation vertical"><span>1 : 0..1</span></div>
+        <article class="entity student"><h3>student_profiles</h3><p><b>PK</b> id · <b>FK</b> account_id</p><p>name · email · phone</p><footer>Student information</footer></article>
+        <article class="entity librarian"><h3>librarian_profiles</h3><p><b>PK</b> id · <b>FK</b> account_id</p><p>name · age · phone</p><footer>Librarian information</footer></article>
+        <article class="entity book"><h3>books</h3><p><b>PK</b> id · <b>UK</b> isbn</p><p>title · author · available</p><footer>Catalogue state</footer></article>
+        <div class="relation horizontal"><span>1 : many</span></div>
+        <article class="entity record"><h3>borrow_records</h3><p><b>PK</b> id · <b>FK</b> book_id / student_id</p><p>snapshots · borrow_date · return_date</p><footer>Circulation history</footer></article>
+      </div>
+      <div class="database-rules">
+        <div><b>Identity separation</b><span>Accounts carry credentials and roles; profiles carry role-specific details.</span></div>
+        <div><b>ISBN integrity</b><span>The database unique constraint is retained and service behavior maps duplicates to a clear 409 response.</span></div>
+        <div><b>Audit history</b><span>Borrow records store references plus borrower snapshots, preserving context beyond later profile edits.</span></div>
+        <div><b>Availability rule</b><span>Borrow makes a book unavailable; return restores availability inside transactional service operations.</span></div>
+      </div>
+    </section>
+
+    <section class="page-section chapter" id="modules" data-toc="Module Breakdown">
+      <div class="chapter-number">07</div><div class="section-label">Feature implementation</div>
+      <h2>Modules designed around a real library workflow.</h2>
+      <div class="module-grid">
+        <article><span class="module-icon">⌁</span><h3>Authentication</h3><p>Public login establishes the server session; logout invalidates it; current-user and profile responses remain safe and minimal.</p><small>Routes: <code>/api/auth/*</code>, <code>/api/profile</code></small></article>
+        <article><span class="module-icon">▤</span><h3>Dashboard</h3><p>Read-only totals surface current operational state: people, catalogue, borrowed books, and available books.</p><small>Route: <code>/api/dashboard</code></small></article>
+        <article><span class="module-icon">▥</span><h3>Books</h3><p>Search, create, update, and eligible deletion manage the catalogue while preserving borrow-history integrity.</p><small>Route: <code>/api/books</code></small></article>
+        <article><span class="module-icon">◉</span><h3>Students</h3><p>Transactional account/profile creation supports role-aware student records and contact details.</p><small>Route: <code>/api/students</code></small></article>
+        <article><span class="module-icon">◆</span><h3>Librarians</h3><p>Administrator-only people management keeps higher-privilege account creation behind a role boundary.</p><small>Route: <code>/api/librarians</code></small></article>
+        <article><span class="module-icon">↻</span><h3>Borrow & return</h3><p>Availability checks, record creation, snapshots, return date storage, and duplicate-return protection model circulation explicitly.</p><small>Route: <code>/api/borrow-records</code></small></article>
+      </div>
+      <div class="api-card">
+        <div><span class="card-tag">Representative API contract</span><h3>Clear error semantics for UI feedback.</h3><p>All errors share a structured shape. Field validation errors are delivered in <code>fieldErrors</code>, while conflicts use an intentional HTTP status and readable message.</p></div>
+        <pre><code>POST /api/books
+
+409 Conflict
+{
+  "code": "CONFLICT",
+  "message": "ISBN already exists.",
+  "fieldErrors": []
+}</code></pre>
+      </div>
+    </section>
+
+    <section class="page-section chapter" id="security" data-toc="Authentication, Security & Validation">
+      <div class="chapter-number">08</div><div class="section-label">Protection in depth</div>
+      <h2>Sessions are simple only when their boundaries are explicit.</h2>
+      <div class="security-layout">
+        <div class="security-orbit"><span class="orbit-center">SECURE<br>FLOW</span><span class="orbit-item i1">BCrypt</span><span class="orbit-item i2">Session</span><span class="orbit-item i3">Role checks</span><span class="orbit-item i4">CSRF</span></div>
+        <div class="security-copy"><h3>Authentication design</h3><p>Spring Security uses DAO-based authentication against accounts, BCrypt password hashes, and an HTTP session. The browser client includes credentials on every request.</p><h3>CSRF design</h3><p>The application issues a readable <code>XSRF-TOKEN</code> cookie and forwards it in <code>X-XSRF-TOKEN</code> for unsafe requests. A SPA-aware request handler reconciles this with Spring Security’s masked-token handling.</p><h3>Validation design</h3><p>Jakarta validation runs server-side. The frontend retains the returned field errors and displays them beside matching inputs, avoiding generic feedback when useful detail is available.</p></div>
+      </div>
+      <aside class="note note-amber"><span class="note-icon">!</span><div><strong>Security hardening lesson.</strong> The login route may be public, but it is still a state-changing endpoint. CSRF protection therefore runs before authentication and must be tested with the actual browser cookie/header exchange.</div></aside>
+    </section>
+
+    <section class="page-section chapter" id="challenges" data-toc="Challenges & Solutions">
+      <div class="chapter-number">09</div><div class="section-label">Engineering diary</div>
+      <h2>Issues became improvements when traced to their real boundary.</h2>
+      <div class="challenge-grid">
+        <article><div class="challenge-head"><span>01</span><h3>CSRF login rejection</h3></div><dl><dt>Problem</dt><dd>Valid login attempts returned 403 before authentication.</dd><dt>Cause</dt><dd>The active Spring Security handler expected masked/XOR values while Fetch sent the raw cookie token.</dd><dt>Solution</dt><dd>A SPA-aware CSRF handler accepts the raw header token and preserves XOR handling for form flows.</dd><dt>Verification</dt><dd>Browser-equivalent MockMvc cookie/header test covers CSRF, login, session reuse, logout, and post-logout 401.</dd></dl></article>
+        <article><div class="challenge-head"><span>02</span><h3>Duplicate ISBN response</h3></div><dl><dt>Problem</dt><dd>A duplicate ISBN was reported as an unhelpful 500 error.</dd><dt>Cause</dt><dd>The database constraint exception was not transformed into an application conflict response.</dd><dt>Solution</dt><dd>Service checks and integrity-exception handling return 409 with a meaningful message.</dd><dt>Verification</dt><dd>Integration test asserts the exact conflict code and message.</dd></dl></article>
+        <article><div class="challenge-head"><span>03</span><h3>Generic validation feedback</h3></div><dl><dt>Problem</dt><dd>Invalid email feedback exposed only a generic validation summary.</dd><dt>Cause</dt><dd>Available API field errors were not mapped to modal fields.</dd><dt>Solution</dt><dd>Clear email messages and field-level error rendering were introduced.</dd><dt>Verification</dt><dd>Integration test asserts the email field’s <em>Invalid email address.</em> message.</dd></dl></article>
+        <article><div class="challenge-head"><span>04</span><h3>Responsive density</h3></div><dl><dt>Problem</dt><dd>Desktop navigation and dense data views need a narrow-screen counterpart.</dd><dt>Cause</dt><dd>Tables and horizontal navigation do not naturally fit mobile dimensions.</dd><dt>Solution</dt><dd>Responsive CSS introduces a compact navigation state, stacked dashboard grid, and scroll-safe tables.</dd><dt>Verification</dt><dd>Dedicated mobile captures document authentication, dashboard, validation, ISBN, and circulation states.</dd></dl></article>
+      </div>
+    </section>
+
+    <section class="page-section chapter" id="testing" data-toc="Testing & Verification">
+      <div class="chapter-number">10</div><div class="section-label">Quality evidence</div>
+      <h2>Critical behavior is checked at multiple levels.</h2>
+      <div class="test-summary"><div><span>Total test classes</span><b>3</b><small>Integration, CSRF flow, repository</small></div><div><span>Release execution</span><b>6</b><small>Tests reported passed</small></div><div><span>Manual matrix</span><b>14</b><small>Black-box scenarios retained</small></div><div><span>Evidence images</span><b>21</b><small>Desktop and mobile captures</small></div></div>
+      <div class="table-wrap"><table class="test-table"><thead><tr><th>ID</th><th>Feature</th><th>Input / scenario</th><th>Expected outcome</th><th>Observed evidence</th><th>Status</th></tr></thead><tbody>
+        <tr><td>AT-01</td><td>Authentication</td><td>Valid admin login</td><td>Session established</td><td>Browser-flow MockMvc test</td><td><span class="badge success">PASS</span></td></tr>
+        <tr><td>AT-02</td><td>CSRF</td><td>Cookie + X-XSRF-TOKEN header</td><td>Login reaches authentication</td><td>Raw browser-style exchange</td><td><span class="badge success">PASS</span></td></tr>
+        <tr><td>AT-03</td><td>Authorization</td><td>Unauthenticated / wrong role</td><td>Structured 401 / 403</td><td>MockMvc JSON assertions</td><td><span class="badge success">PASS</span></td></tr>
+        <tr><td>AT-04</td><td>Books</td><td>Create, search, delete with history</td><td>201, query result, conflict guard</td><td>Integration flow</td><td><span class="badge success">PASS</span></td></tr>
+        <tr><td>AT-05</td><td>ISBN</td><td>Create duplicate ISBN</td><td>409 + readable conflict</td><td>Message assertion</td><td><span class="badge success">PASS</span></td></tr>
+        <tr><td>AT-06</td><td>People</td><td>Create student and librarian</td><td>Role/profile records created</td><td>Integration flow</td><td><span class="badge success">PASS</span></td></tr>
+        <tr><td>AT-07</td><td>Validation</td><td>Missing title / invalid email</td><td>400 with field errors</td><td>Field-message assertions</td><td><span class="badge success">PASS</span></td></tr>
+        <tr><td>AT-08</td><td>Borrow / return</td><td>Borrow, duplicate borrow, return, repeat return</td><td>Correct availability and domain errors</td><td>Transactional integration flow</td><td><span class="badge success">PASS</span></td></tr>
+        <tr><td>RT-01</td><td>Repository</td><td>Duplicate ISBN persistence</td><td>Constraint rejection + audit fields</td><td>Repository test</td><td><span class="badge success">PASS</span></td></tr>
+        <tr><td>BB-01…14</td><td>Manual matrix</td><td>Local MySQL + browser scenarios</td><td>Match documented API/UI behavior</td><td>Checklist retained for evidence</td><td><span class="badge pending">TRACKED</span></td></tr>
+      </tbody></table></div>
+      <p class="table-note">Automated tests use H2 in MySQL compatibility mode. The manual black-box matrix is maintained separately for local MySQL and browser execution.</p>
+    </section>
+
+    <section class="page-section chapter screenshots-section" id="interface-evidence" data-toc="Interface Evidence">
+      <div class="chapter-number">11</div><div class="section-label">Visual verification</div>
+      <h2>Interface evidence placed in the context of each workflow.</h2>
+      <div class="figure-section"><div class="figure-title"><span>11.1</span><div><h3>Authentication and dashboard</h3><p>The identity entry point and operational overview establish the visual tone and main navigation.</p></div></div><div class="figure-grid two"><figure><img src="../../screenshots/desktop/authentication.png" alt="Desktop authentication screen"><figcaption><b>Figure 1.</b> Desktop authentication screen.</figcaption></figure><figure><img src="../../screenshots/desktop/dashboard.png" alt="Desktop dashboard"><figcaption><b>Figure 2.</b> Dashboard totals and quick actions.</figcaption></figure></div></div>
+      <div class="figure-section"><div class="figure-title"><span>11.2</span><div><h3>Catalogue and people</h3><p>Catalogue management and the student/librarian workflows use consistent tables, modal forms, actions, and feedback.</p></div></div><div class="figure-grid four"><figure><img src="../../screenshots/desktop/books.png" alt="Books list"><figcaption><b>Figure 3.</b> Books catalogue.</figcaption></figure><figure><img src="../../screenshots/desktop/add_book.png" alt="Add book form"><figcaption><b>Figure 4.</b> Add-book modal.</figcaption></figure><figure><img src="../../screenshots/desktop/students.png" alt="Students list"><figcaption><b>Figure 5.</b> Student management.</figcaption></figure><figure><img src="../../screenshots/desktop/librarians.png" alt="Librarians list"><figcaption><b>Figure 6.</b> Librarian management.</figcaption></figure></div><div class="figure-grid three"><figure><img src="../../screenshots/desktop/book_added.png" alt="Book saved"><figcaption><b>Figure 7.</b> Saved book state.</figcaption></figure><figure><img src="../../screenshots/desktop/add_student.png" alt="Add student form"><figcaption><b>Figure 8.</b> Student creation form.</figcaption></figure><figure><img src="../../screenshots/desktop/add_librarian.png" alt="Add librarian form"><figcaption><b>Figure 9.</b> Librarian creation form.</figcaption></figure></div></div>
+      <div class="figure-section"><div class="figure-title"><span>11.3</span><div><h3>Circulation, profile, and error feedback</h3><p>Borrow history, profile context, logout, duplicate username, and validation evidence demonstrate the wider workflow.</p></div></div><div class="figure-grid four"><figure><img src="../../screenshots/desktop/borrow_records.png" alt="Borrow records"><figcaption><b>Figure 10.</b> Borrow-record listing.</figcaption></figure><figure><img src="../../screenshots/desktop/record_a_borrow.png" alt="Record a borrow"><figcaption><b>Figure 11.</b> Borrow form.</figcaption></figure><figure><img src="../../screenshots/desktop/saved_borrow_record.png" alt="Saved borrow record"><figcaption><b>Figure 12.</b> Borrow saved.</figcaption></figure><figure><img src="../../screenshots/desktop/profile.png" alt="Profile"><figcaption><b>Figure 13.</b> Profile view.</figcaption></figure></div><div class="figure-grid three"><figure><img src="../../screenshots/desktop/duplicate_username.png" alt="Duplicate username feedback"><figcaption><b>Figure 14.</b> Duplicate username feedback.</figcaption></figure><figure><img src="../../screenshots/desktop/invalid_details.png" alt="Validation details"><figcaption><b>Figure 15.</b> Required-field validation.</figcaption></figure><figure><img src="../../screenshots/desktop/logout.png" alt="Logout"><figcaption><b>Figure 16.</b> Logout state.</figcaption></figure></div></div>
+      <div class="figure-section mobile-evidence"><div class="figure-title"><span>11.4</span><div><h3>Responsive mobile evidence</h3><p>Mobile captures document navigation, dashboard density, validation, duplicate ISBN handling, and circulation feedback.</p></div></div><div class="phone-grid"><figure><img src="../../screenshots/mobile/mobile_authentication.png" alt="Mobile authentication"><figcaption><b>Figure 17.</b> Mobile authentication and navigation.</figcaption></figure><figure><img src="../../screenshots/mobile/mobile_dashboard.png" alt="Mobile dashboard"><figcaption><b>Figure 18.</b> Mobile dashboard.</figcaption></figure><figure><img src="../../screenshots/mobile/mobile_duplicate_isbn.png" alt="Mobile duplicate ISBN"><figcaption><b>Figure 19.</b> Duplicate ISBN feedback.</figcaption></figure><figure><img src="../../screenshots/mobile/mobile_validation_failed.png" alt="Mobile validation"><figcaption><b>Figure 20.</b> Mobile validation feedback.</figcaption></figure><figure><img src="../../screenshots/mobile/mobile_failed_request.png" alt="Mobile failed request"><figcaption><b>Figure 21.</b> Mobile error state.</figcaption></figure><figure><img src="../../screenshots/mobile/mobile_borrow_returned.png" alt="Mobile borrow return"><figcaption><b>Figure 22.</b> Mobile borrow/return state.</figcaption></figure></div></div>
+    </section>
+
+    <section class="page-section chapter" id="quality" data-toc="Code Quality & Documentation">
+      <div class="chapter-number">12</div><div class="section-label">Engineering discipline</div>
+      <h2>Quality is designed into both code and communication.</h2>
+      <div class="quality-matrix"><div class="q-head">Practice</div><div class="q-head">Implementation</div><div class="q-head">Value</div><div>Layered architecture</div><div>Controller, service, repository, entity, DTO, security, exception packages</div><div>Traceable responsibility and lower coupling</div><div>DTO contracts</div><div>Request validation and safe response records</div><div>Stable API surface and no entity/hash leakage</div><div>Exception strategy</div><div>Uniform JSON error DTO and named domain exceptions</div><div>Predictable UI feedback and HTTP semantics</div><div>Security</div><div>Sessions, BCrypt, role guards, CSRF, custom 401/403 responses</div><div>Protected operations and consistent browser behavior</div><div>Testing</div><div>MockMvc, H2 compatibility mode, browser-style CSRF test, repository test</div><div>Fast feedback across request lifecycle and persistence</div><div>Documentation</div><div>Architecture, API, setup, testing, changelog, report</div><div>Reviewable engineering rationale and repeatable onboarding</div></div>
+      <div class="doc-stack"><span>README</span><i>→</i><span>Quick orientation</span><i>→</i><span>ARCHITECTURE</span><i>→</i><span>API / SETUP / TESTING</span><i>→</i><span>PROJECT REPORT</span></div>
+    </section>
+
+    <section class="page-section chapter" id="lessons" data-toc="Lessons Learned & Future Scope">
+      <div class="chapter-number">13</div><div class="section-label">Reflection and next steps</div>
+      <h2>Build the smallest complete system—then extend with evidence.</h2>
+      <div class="lessons-grid"><article><span>01</span><h3>Security is a flow</h3><p>Login success depends on session state, CSRF behavior, filter ordering, error handling, and browser request construction—not credentials alone.</p></article><article><span>02</span><h3>Constraints need UX</h3><p>Database integrity is necessary, but users need domain-oriented responses such as a clear ISBN conflict.</p></article><article><span>03</span><h3>Tests should mirror users</h3><p>Security test helpers are valuable, yet a dedicated raw cookie/header test prevented an SPA-specific regression.</p></article><article><span>04</span><h3>Documentation compounds</h3><p>Keeping contracts, decisions, tests, screenshots, and release notes together makes the final report credible and maintainable.</p></article></div>
+      <div class="future-grid"><article><h3>Catalogue scale</h3><p>Pagination, richer search, categories, and physical-copy modelling.</p></article><article><h3>Library services</h3><p>Reservations, overdue processing, fines, notifications, and analytics.</p></article><article><h3>Platform delivery</h3><p>Swagger/OpenAPI, Docker, deployment automation, and operational monitoring.</p></article><article><h3>Client evolution</h3><p>JWT/API-client support only if the same-origin application model no longer fits the project.</p></article></div>
+    </section>
+
+    <section class="page-section chapter release-page" id="release" data-toc="Release Summary">
+      <div class="chapter-number">14</div><div class="section-label">Release statement</div>
+      <h2>v1.0.0 is a complete, documented baseline.</h2>
+      <div class="release-card"><div><span class="release-badge">v1.0.0</span><h3>Library Management System</h3><p>Full-stack library operations with session security, role-aware workflows, responsive UI, structured errors, automated coverage, and organized technical documentation.</p></div><ul><li><span>✓</span> Spring Boot + MySQL backend</li><li><span>✓</span> Spring Security + session CSRF</li><li><span>✓</span> Books, people, borrowing, return</li><li><span>✓</span> Test suite and evidence captures</li><li><span>✓</span> Release documentation package</li></ul></div>
+      <blockquote>“A project report should not merely display the final interface. It should make design intent, constraints, engineering choices, verification evidence, and remaining scope legible to the next reader.”</blockquote>
+      <div class="appendix"><h3>Appendix · Source documents consulted</h3><div class="appendix-grid"><a href="../PROJECT_REPORT.md">Project Report (Markdown source)</a><a href="../ARCHITECTURE.md">Architecture & ADR record</a><a href="../API.md">API contract</a><a href="../SETUP.md">Local setup</a><a href="../TESTING.md">Testing guide</a><a href="../CHANGELOG.md">Changelog</a><a href="../PROJECT_STRUCTURE.md">Project structure</a><a href="../testing/black-box-test-cases.csv">Black-box test matrix</a></div></div>
+    </section>
+  </main>
+
+  <footer class="report-footer"><span>LIBRARY MANAGEMENT SYSTEM · ENGINEERING REPORT</span><span>v1.0.0 · 2026</span></footer>
+
+  <script>
+    const toc = document.getElementById('toc');
+    document.querySelectorAll('[data-toc]').forEach((section, index) => {
+      const link = document.createElement('a');
+      link.href = '#' + section.id;
+      link.innerHTML = `<span>${String(index + 1).padStart(2, '0')}</span>${section.dataset.toc}`;
+      toc.appendChild(link);
+    });
+  </script>
+</body>
+</html>

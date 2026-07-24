@@ -1,0 +1,625 @@
+# Phase 2 — Architecture & Behavior Analysis
+
+> Reverse-engineered from source code on 2026-07-24. Every claim is tagged **Verified**, **Inferred**, or **[UNVERIFIED]** per the confidence protocol.
+
+---
+
+## 1. Architecture and Layering
+
+**Confidence: High**
+
+The system is a **single-deployable Spring Boot 3.5 monolith** following a strict four-layer MVC architecture. No layer violations were detected — controllers never access repositories directly (except `ProfileController`, noted below), services never produce HTTP responses, and repositories contain no business logic.
+
+**Verified:** The layering is `Browser SPA → REST Controllers → Transactional Services → JPA Repositories → MySQL`. (Confirmed in: all controller, service, and repository files.)
+
+| Layer | Responsibility | Implementation |
+|---|---|---|
+| **Presentation** | Single-page application | Vanilla HTML/CSS/JS served from `static/`; hash-based routing in `main.js` |
+| **API** | REST endpoints, request validation, HTTP semantics | 7 `@RestController` classes under `/api/**` |
+| **Service** | Business rules, transactions, DTO mapping | 6 `@Service` classes with `@Transactional` |
+| **Persistence** | Data access | 5 `JpaRepository` interfaces with derived query methods |
+| **Security** | AuthN, AuthZ, CSRF, session | Spring Security 6.5 filter chain + 5 security classes |
+| **Cross-cutting** | Error handling, auditing | `@RestControllerAdvice` + `@MappedSuperclass` auditing |
+
+### Architectural note: ProfileController layer violation
+
+**Verified:** `ProfileController` directly injects `AccountRepository` and queries it without going through a service layer. This is the only controller that bypasses the service layer. (Confirmed in: `ProfileController.java` line 2.)
+
+### Package structure
+
+```
+com.example.lms
+├── config/          (1 class: PasswordConfig)
+├── controller/      (7 controllers)
+├── dto/             (14 record DTOs)
+├── entity/          (5 entities + 1 enum + 1 mapped superclass)
+├── exception/       (3 custom exceptions + 1 handler)
+├── repository/      (5 JPA interfaces)
+├── security/        (5 classes)
+└── service/         (6 services)
+```
+
+```
+Verified Files
+--------------
+LibraryManagementApplication.java
+All 7 controller files
+All 6 service files
+All 5 repository files
+ProfileController.java (layer violation)
+```
+
+---
+
+## 2. Application and Data Workflows
+
+**Confidence: High**
+
+### 2.1 Authentication flow
+
+1. Browser loads `index.html` → `main.js` module graph initializes.
+2. `auth-api.js` calls `GET /api/auth/csrf` to obtain the `XSRF-TOKEN` cookie.
+3. `auth-api.js` calls `GET /api/auth/me` to check for an existing session (silent fail if 401).
+4. User submits login form → `POST /api/auth/login` with username/password JSON + CSRF header.
+5. `AuthService.login()` authenticates via `AuthenticationManager`, creates a `SecurityContext`, stores it in a new HTTP session.
+6. Returns `AuthenticatedUserResponse` (accountId, username, role, displayName).
+7. Frontend sets `currentUser` and loads all data pages in parallel.
+
+**Verified:** (Confirmed in: `AuthController.java`, `AuthService.java`, `auth-api.js`, `main.js` lines 14, 17.)
+
+### 2.2 Logout flow
+
+1. `POST /api/auth/logout` with CSRF header.
+2. `AuthService.logout()` invalidates the session and clears `SecurityContextHolder`.
+3. Frontend nulls `currentUser` and routes to login.
+
+**Verified:** (Confirmed in: `AuthService.java` line 21, `main.js` line 15.)
+
+### 2.3 Book CRUD workflow
+
+1. **List**: `GET /api/books` or `GET /api/books?search=X` → `BookService.list()` → either `findAll()` or `findByTitleContainingIgnoreCaseOrAuthorContainingIgnoreCase()`.
+2. **Create**: `POST /api/books` → validates `BookRequest` → `BookService.create()` checks ISBN uniqueness both via `existsByIsbn` and a catch on `DataIntegrityViolationException` as a fallback → returns `BookResponse` with `201`.
+3. **Update**: `PUT /api/books/{id}` → `BookService.update()` re-checks ISBN uniqueness excluding current ID via `existsByIsbnAndIdNot`.
+4. **Delete**: `DELETE /api/books/{id}` → `BookService.delete()` checks `existsByBookId` on `BorrowRecordRepository` and throws `ConflictException` if history exists.
+
+**Verified:** (Confirmed in: `BookController.java`, `BookService.java`, `BookRepository.java`.)
+
+### 2.4 Student/Librarian CRUD workflow
+
+1. **Create**: Atomically creates an `Account` (with BCrypt-hashed password and assigned role) and a linked profile in a single `@Transactional` method. Checks `existsByUsername` before save.
+2. **Update**: Uses separate `*UpdateRequest` DTOs that **include username but exclude password**. The service re-checks username uniqueness if changed.
+3. **Delete**: Deletes the profile entity. **Inferred:** Cascade deletion of the linked `Account` is not explicitly configured via `CascadeType` — the `@OneToOne` on the profile side has no cascade attribute. Whether the account is orphaned on profile deletion depends on database FK constraints generated by Hibernate.
+
+**Verified (create/update):** (Confirmed in: `StudentService.java`, `LibrarianService.java`, `StudentRequest.java`, `StudentUpdateRequest.java`, `LibrarianRequest.java`, `LibrarianUpdateRequest.java`.)
+
+**[UNVERIFIED]:** Cascade behavior on profile deletion — no explicit `CascadeType` or `orphanRemoval` is set on the `@OneToOne` relationship in `StudentProfile` or `LibrarianProfile`. The `Account` may be orphaned.
+
+### 2.5 Borrow/Return workflow
+
+1. **Borrow**: `POST /api/borrow-records` → `BorrowRecordService.borrow()`:
+   - Looks up `Book` by `bookId` → throws `ResourceNotFoundException` if missing.
+   - Checks `book.isAvailable()` → throws `BusinessRuleException("BOOK_UNAVAILABLE")` if false.
+   - Looks up `StudentProfile` by `studentId` → throws `ResourceNotFoundException` if missing.
+   - Creates `BorrowRecord` with **student profile data snapshot** (name, email, phone from the student, not from the request — the request's borrower fields are overridden).
+   - Marks `book.setAvailable(false)`.
+   - Returns `BorrowRecordResponse` with status `"BORROWED"`.
+
+2. **Return**: `POST /api/borrow-records/{id}/return`:
+   - Looks up record → throws `ResourceNotFoundException` if missing.
+   - Checks if `returnDate` is already set → throws `BusinessRuleException("ALREADY_RETURNED")`.
+   - Sets `returnDate = LocalDate.now()` and restores `book.setAvailable(true)`.
+
+3. **List**: `GET /api/borrow-records?status=BORROWED|RETURNED` → filters by `returnDateIsNull` or `returnDateIsNotNull`.
+
+**Verified:** (Confirmed in: `BorrowRecordController.java`, `BorrowRecordService.java`, `BorrowRecordRepository.java`.)
+
+> **Discrepancy found:** `BorrowRequest` DTO includes `borrowerName`, `borrowerEmail`, `borrowerPhone` fields with `@NotBlank` validation. However, `BorrowRecordService.borrow()` **ignores these fields and uses the student profile's data instead** (lines: `record.setBorrowerName(student.getName())`). The request fields are validated but discarded. This means the API technically requires the client to send borrower details that are always overwritten.
+
+### 2.6 Dashboard workflow
+
+`GET /api/dashboard` → `DashboardService.get()` → aggregates `students.count()`, `librarians.count()`, `books.count()`, `books.countByAvailable(false)`, `books.countByAvailable(true)`.
+
+**Verified:** (Confirmed in: `DashboardController.java`, `DashboardService.java`.)
+
+### 2.7 Profile workflow
+
+`GET /api/profile` → `ProfileController.get()` → queries `AccountRepository.findByUsername()` using the authenticated principal's name → returns `AuthenticatedUserResponse`.
+
+**Verified:** (Confirmed in: `ProfileController.java`.)
+
+```
+Verified Files
+--------------
+AuthController.java, AuthService.java
+BookController.java, BookService.java, BookRepository.java
+StudentController.java, StudentService.java, StudentProfileRepository.java
+LibrarianController.java, LibrarianService.java, LibrarianProfileRepository.java
+BorrowRecordController.java, BorrowRecordService.java, BorrowRecordRepository.java
+DashboardController.java, DashboardService.java
+ProfileController.java, AccountRepository.java
+auth-api.js, main.js, http.js
+BorrowRequest.java
+```
+
+---
+
+## 3. Endpoint Inventory
+
+**Confidence: High**
+
+Every endpoint was extracted from `@RequestMapping`, `@GetMapping`, `@PostMapping`, `@PutMapping`, `@DeleteMapping` annotations in the 7 controller files.
+
+| # | Method | URL | Controller | Auth Required | Roles | Request DTO | Response DTO/Shape | Purpose | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | GET | `/api/auth/csrf` | AuthController | No | Public | — | `CsrfToken` (Spring) | Bootstrap CSRF cookie for SPA | Active |
+| 2 | POST | `/api/auth/login` | AuthController | No | Public | `LoginRequest` | `AuthenticatedUserResponse` | Authenticate and create session | Active |
+| 3 | POST | `/api/auth/logout` | AuthController | Yes | Any authenticated | — | `204 No Content` | Invalidate session | Active |
+| 4 | GET | `/api/auth/me` | AuthController | Yes | Any authenticated | — | `AuthenticatedUserResponse` | Current session identity | Active |
+| 5 | GET | `/api/books` | BookController | Yes | Any authenticated | `?search=` (optional) | `List<BookResponse>` | List/search books | Active |
+| 6 | GET | `/api/books/{id}` | BookController | Yes | Any authenticated | — | `BookResponse` | Get single book | Active |
+| 7 | POST | `/api/books` | BookController | Yes | ADMIN, LIBRARIAN | `BookRequest` | `BookResponse` (201) | Create book | Active |
+| 8 | PUT | `/api/books/{id}` | BookController | Yes | ADMIN, LIBRARIAN | `BookRequest` | `BookResponse` | Update book | Active |
+| 9 | DELETE | `/api/books/{id}` | BookController | Yes | ADMIN, LIBRARIAN | — | `204 No Content` | Delete book (if no borrow history) | Active |
+| 10 | GET | `/api/students` | StudentController | Yes | ADMIN, LIBRARIAN | — | `List<StudentResponse>` | List all students | Active |
+| 11 | GET | `/api/students/{id}` | StudentController | Yes | ADMIN, LIBRARIAN | — | `StudentResponse` | Get single student | Active |
+| 12 | POST | `/api/students` | StudentController | Yes | ADMIN, LIBRARIAN | `StudentRequest` | `StudentResponse` (201) | Create student + account | Active |
+| 13 | PUT | `/api/students/{id}` | StudentController | Yes | ADMIN, LIBRARIAN | `StudentUpdateRequest` | `StudentResponse` | Update student profile | Active |
+| 14 | DELETE | `/api/students/{id}` | StudentController | Yes | ADMIN, LIBRARIAN | — | `204 No Content` | Delete student | Active |
+| 15 | GET | `/api/librarians` | LibrarianController | Yes | ADMIN | — | `List<LibrarianResponse>` | List all librarians | Active |
+| 16 | GET | `/api/librarians/{id}` | LibrarianController | Yes | ADMIN | — | `LibrarianResponse` | Get single librarian | Active |
+| 17 | POST | `/api/librarians` | LibrarianController | Yes | ADMIN | `LibrarianRequest` | `LibrarianResponse` (201) | Create librarian + account | Active |
+| 18 | PUT | `/api/librarians/{id}` | LibrarianController | Yes | ADMIN | `LibrarianUpdateRequest` | `LibrarianResponse` | Update librarian profile | Active |
+| 19 | DELETE | `/api/librarians/{id}` | LibrarianController | Yes | ADMIN | — | `204 No Content` | Delete librarian | Active |
+| 20 | GET | `/api/borrow-records` | BorrowRecordController | Yes | ADMIN, LIBRARIAN | `?status=` (optional) | `List<BorrowRecordResponse>` | List borrow records | Active |
+| 21 | POST | `/api/borrow-records` | BorrowRecordController | Yes | ADMIN, LIBRARIAN | `BorrowRequest` | `BorrowRecordResponse` (201) | Borrow a book | Active |
+| 22 | POST | `/api/borrow-records/{id}/return` | BorrowRecordController | Yes | ADMIN, LIBRARIAN | — | `204 No Content` | Return a borrowed book | Active |
+| 23 | GET | `/api/dashboard` | DashboardController | Yes | ADMIN, LIBRARIAN | — | `DashboardResponse` | Dashboard statistics | Active |
+| 24 | GET | `/api/profile` | ProfileController | Yes | Any authenticated | — | `AuthenticatedUserResponse` | Current user profile | Active |
+
+**No dead or unused endpoints were found.** All 24 endpoints are actively called by the frontend JS API modules or test files.
+
+```
+Verified Files
+--------------
+AuthController.java
+BookController.java
+BorrowRecordController.java
+DashboardController.java
+LibrarianController.java
+ProfileController.java
+StudentController.java
+SecurityConfig.java (authorization rules)
+```
+
+---
+
+## 4. Role-Permission Matrix
+
+**Confidence: High**
+
+Roles are enforced at two levels: URL-pattern matching in `SecurityConfig` and service-level business logic. The matrix below is derived entirely from `SecurityConfig.security()` method lines 30–35.
+
+| Role | Resource | GET (list/detail) | POST (create) | PUT (update) | DELETE | Enforced In | Verification |
+|---|---|---|---|---|---|---|---|
+| **Public** | `/api/auth/csrf` | ✅ | — | — | — | SecurityConfig (permitAll) | Verified |
+| **Public** | `/api/auth/login` | — | ✅ | — | — | SecurityConfig (permitAll) | Verified |
+| **Public** | Static assets (`/`, `/index.html`, `/css/**`, `/js/**`, `/components/**`, `/assets/**`) | ✅ | — | — | — | SecurityConfig (permitAll) | Verified |
+| **Any authenticated** | `/api/auth/logout` | — | ✅ | — | — | SecurityConfig (anyRequest.authenticated) | Verified |
+| **Any authenticated** | `/api/auth/me` | ✅ | — | — | — | SecurityConfig (anyRequest.authenticated) | Verified |
+| **Any authenticated** | `/api/books` (GET only) | ✅ | — | — | — | SecurityConfig (GET /api/books/** = authenticated) | Verified |
+| **Any authenticated** | `/api/profile` | ✅ | — | — | — | SecurityConfig (anyRequest.authenticated) | Verified |
+| **ADMIN, LIBRARIAN** | `/api/books` (mutate) | — | ✅ | ✅ | ✅ | SecurityConfig (hasAnyRole ADMIN, LIBRARIAN) | Verified |
+| **ADMIN, LIBRARIAN** | `/api/students` | ✅ | ✅ | ✅ | ✅ | SecurityConfig (hasAnyRole ADMIN, LIBRARIAN) | Verified |
+| **ADMIN, LIBRARIAN** | `/api/borrow-records` | ✅ | ✅ | — | — | SecurityConfig (hasAnyRole ADMIN, LIBRARIAN) | Verified |
+| **ADMIN, LIBRARIAN** | `/api/dashboard` | ✅ | — | — | — | SecurityConfig (hasAnyRole ADMIN, LIBRARIAN) | Verified |
+| **ADMIN only** | `/api/librarians` | ✅ | ✅ | ✅ | ✅ | SecurityConfig (hasRole ADMIN) | Verified |
+| **STUDENT** | `/api/books` (GET only) | ✅ | ❌ | ❌ | ❌ | SecurityConfig | Verified |
+| **STUDENT** | `/api/profile` | ✅ | — | — | — | SecurityConfig | Verified |
+| **STUDENT** | Everything else | ❌ | ❌ | ❌ | ❌ | SecurityConfig (403) | Verified |
+
+### Authorization rule ordering note
+
+**Verified:** The security filter chain evaluates rules in declaration order. The rule `requestMatchers(HttpMethod.GET, "/api/books/**").authenticated()` appears before `requestMatchers("/api/books/**").hasAnyRole("ADMIN","LIBRARIAN")`, so GET requests from any authenticated user (including STUDENT) are permitted, while POST/PUT/DELETE require ADMIN or LIBRARIAN. (Confirmed in: `SecurityConfig.java` lines 33–34.)
+
+### Test coverage of authorization
+
+**Verified:** The integration test `unauthenticatedAndForbiddenResponsesUseApiErrorShape` tests:
+- Unauthenticated GET `/api/books` → 401 UNAUTHORIZED
+- LIBRARIAN role accessing GET `/api/librarians` → 403 FORBIDDEN
+
+(Confirmed in: `LibraryManagementIntegrationTest.java` lines 30–34.)
+
+```
+Verified Files
+--------------
+SecurityConfig.java
+RestAuthenticationEntryPoint.java
+RestAccessDeniedHandler.java
+LibraryManagementIntegrationTest.java
+```
+
+---
+
+## 5. Database Schema
+
+**Confidence: High**
+
+No migration files exist. The schema is generated by Hibernate `ddl-auto=update`. The following is derived from entity annotations.
+
+### Tables
+
+| Table | Entity | PK | Notable columns | Constraints |
+|---|---|---|---|---|
+| `accounts` | `Account` | `id` (IDENTITY) | `username` (VARCHAR 50), `password_hash` (VARCHAR 100), `role` (VARCHAR 20), `enabled` (BOOLEAN), `created_at`, `updated_at` | `username` UNIQUE, NOT NULL |
+| `books` | `Book` | `id` (IDENTITY) | `title` (VARCHAR 200), `author` (VARCHAR 200), `isbn` (VARCHAR 50), `published_date` (DATE), `available` (BOOLEAN), `created_at`, `updated_at` | `isbn` UNIQUE; `title` NOT NULL; `available` NOT NULL |
+| `student_profiles` | `StudentProfile` | `id` (IDENTITY) | `account_id` (FK), `name` (VARCHAR 100), `email` (VARCHAR 100), `phone` (VARCHAR 20), `created_at`, `updated_at` | `account_id` UNIQUE, NOT NULL (FK → `accounts.id`) |
+| `librarian_profiles` | `LibrarianProfile` | `id` (IDENTITY) | `account_id` (FK), `name` (VARCHAR 100), `age` (INT), `phone` (VARCHAR 20), `created_at`, `updated_at` | `account_id` UNIQUE, NOT NULL (FK → `accounts.id`) |
+| `borrow_records` | `BorrowRecord` | `id` (IDENTITY) | `book_id` (FK), `student_id` (FK nullable), `borrower_name` (VARCHAR 100), `borrower_email` (VARCHAR 100), `borrower_phone` (VARCHAR 20), `borrow_date` (DATE), `return_date` (DATE nullable), `created_at`, `updated_at` | `book_id` NOT NULL; `student_id` nullable; borrower fields NOT NULL |
+
+### Relationships
+
+```
+accounts        1 ←——→ 0..1  student_profiles    (via account_id FK, unique)
+accounts        1 ←——→ 0..1  librarian_profiles  (via account_id FK, unique)
+books           1 ←——→ 0..*  borrow_records      (via book_id FK, non-nullable)
+student_profiles 1 ←——→ 0..* borrow_records      (via student_id FK, nullable)
+```
+
+**Verified:** The `@ManyToOne` on `BorrowRecord.student` uses `FetchType.LAZY` without `optional=false`, making the FK nullable. However, in practice, `BorrowRecordService.borrow()` always sets a student. (Confirmed in: `BorrowRecord.java`, `BorrowRecordService.java`.)
+
+### Auditing
+
+**Verified:** All entities extend `AuditableEntity`, which provides `@CreatedDate` and `@LastModifiedDate` via `@EntityListeners(AuditingEntityListener.class)`. JPA auditing is enabled by `@EnableJpaAuditing` on the application class. (Confirmed in: `AuditableEntity.java`, `LibraryManagementApplication.java`.)
+
+### Indexes
+
+**Inferred:** Hibernate `ddl-auto=update` will generate indexes for primary keys and unique constraints (`accounts.username`, `books.isbn`, `student_profiles.account_id`, `librarian_profiles.account_id`). No additional custom indexes are defined.
+
+```
+Verified Files
+--------------
+Account.java, Book.java, BorrowRecord.java
+StudentProfile.java, LibrarianProfile.java
+AuditableEntity.java, Role.java
+LibraryManagementApplication.java (EnableJpaAuditing)
+application.properties (ddl-auto=update)
+```
+
+---
+
+## 6. Security Model
+
+**Confidence: High**
+
+### 6.1 Authentication (AuthN)
+
+| Mechanism | Implementation | File |
+|---|---|---|
+| Password hashing | `BCryptPasswordEncoder` via `PasswordConfig` | `PasswordConfig.java` |
+| User lookup | `AccountUserDetailsService` implements `UserDetailsService`; maps `Account` → Spring Security `User` with `ROLE_` prefix | `AccountUserDetailsService.java` |
+| Authentication provider | `DaoAuthenticationProvider` wired with the UserDetailsService and BCrypt encoder | `SecurityConfig.java` |
+| Login endpoint | `POST /api/auth/login` → `AuthService.login()` → `AuthenticationManager.authenticate()` → creates `SecurityContext` and stores in HTTP session | `AuthService.java` |
+| Session management | `SessionCreationPolicy.IF_REQUIRED` — sessions are created on login, not eagerly | `SecurityConfig.java` |
+| Admin seed | `CommandLineRunner` creates `admin`/`ChangeMe123!` account with `ROLE_ADMIN` if absent | `LibraryManagementApplication.java` |
+
+**Verified:** All items above confirmed by direct source code reading.
+
+### 6.2 Authorization (AuthZ)
+
+URL-pattern matching in `SecurityFilterChain` (see Role-Permission Matrix in §4 above). No method-level `@PreAuthorize` or `@Secured` annotations are used anywhere in the codebase.
+
+**Verified:** Grep for `@PreAuthorize`, `@Secured`, `@RolesAllowed` returned no results. (Confirmed by reading all controller and service files.)
+
+### 6.3 CSRF Protection
+
+| Aspect | Implementation |
+|---|---|
+| Token repository | `CookieCsrfTokenRepository.withHttpOnlyFalse()` — makes `XSRF-TOKEN` cookie readable by JavaScript |
+| SPA handler | `SpaCsrfTokenRequestHandler` — accepts the raw (non-XOR-encoded) token from the `X-XSRF-TOKEN` header for SPA requests, while retaining XOR protection for traditional form submissions |
+| Frontend usage | `http.js` reads `XSRF-TOKEN` cookie, attaches `X-XSRF-TOKEN` header on non-GET requests |
+| Bootstrap | `GET /api/auth/csrf` triggers cookie generation; called on SPA load |
+
+**Verified:** (Confirmed in: `SecurityConfig.java`, `SpaCsrfTokenRequestHandler.java`, `http.js`, `auth-api.js`, `BrowserCsrfFlowIntegrationTest.java`.)
+
+### 6.4 Error responses for security failures
+
+| Scenario | Handler | HTTP Status | JSON Code |
+|---|---|---|---|
+| No session / invalid credentials | `RestAuthenticationEntryPoint` | 401 | `UNAUTHORIZED` |
+| Insufficient role | `RestAccessDeniedHandler` | 403 | `FORBIDDEN` |
+
+Both return the standard `ApiErrorResponse` JSON shape.
+
+**Verified:** (Confirmed in: `RestAuthenticationEntryPoint.java`, `RestAccessDeniedHandler.java`.)
+
+### 6.5 Security gaps and observations
+
+- **[UNVERIFIED]:** No password-reset or password-change flow exists in the current implementation.
+- **[UNVERIFIED]:** No rate limiting or account lockout mechanism was found.
+- **[UNVERIFIED]:** No CORS configuration was found. The application relies on same-origin (SPA served by Spring Boot).
+- **Verified:** The hardcoded default password `ChangeMe123!` in `LibraryManagementApplication.java` is a development seed. The README warns to change it before non-local deployment.
+- **Verified:** `server.error.include-message=never` prevents Spring Boot from leaking error details. (Confirmed in: `application.properties`.)
+- **Verified:** `spring.jackson.default-property-inclusion=non_null` ensures null fields are omitted from JSON responses. (Confirmed in: `application.properties`.)
+
+```
+Verified Files
+--------------
+SecurityConfig.java
+PasswordConfig.java
+AccountUserDetailsService.java
+RestAuthenticationEntryPoint.java
+RestAccessDeniedHandler.java
+SpaCsrfTokenRequestHandler.java
+AuthService.java, AuthController.java
+LibraryManagementApplication.java
+application.properties
+http.js
+BrowserCsrfFlowIntegrationTest.java
+```
+
+---
+
+## 7. Validation
+
+**Confidence: High**
+
+Validation operates at three levels:
+
+### 7.1 Backend Bean Validation (Jakarta Validation)
+
+| DTO | Validated fields |
+|---|---|
+| `LoginRequest` | `username` @NotBlank, `password` @NotBlank |
+| `BookRequest` | `title` @NotBlank @Size(max=200), `author` @Size(max=200), `isbn` @Size(max=50), `publishedDate` (no constraint) |
+| `BorrowRequest` | `bookId` @NotNull, `studentId` @NotNull, `borrowerName` @NotBlank @Size(max=100), `borrowerEmail` @NotBlank @Email @Size(max=100), `borrowerPhone` @NotBlank @Size(max=20), `borrowDate` @NotNull |
+| `StudentRequest` | `username` @NotBlank @Size(max=50), `password` @NotBlank @Size(min=8, max=100), `name` @NotBlank @Size(max=100), `email` @NotBlank @Email @Size(max=100), `phone` @NotBlank @Size(max=20) |
+| `StudentUpdateRequest` | Same as StudentRequest minus `password` |
+| `LibrarianRequest` | `username` @NotBlank @Size(max=50), `password` @NotBlank @Size(min=8, max=100), `name` @NotBlank @Size(max=100), `age` @Min(18) @Max(100), `phone` @NotBlank @Size(max=20) |
+| `LibrarianUpdateRequest` | Same as LibrarianRequest minus `password` |
+
+**Verified:** All controllers use `@Valid @RequestBody` to trigger validation. (Confirmed in: all controller files.)
+
+### 7.2 Service-level business validation
+
+| Rule | Exception | Service |
+|---|---|---|
+| ISBN uniqueness (pre-check) | `ConflictException` "ISBN already exists." | `BookService` |
+| ISBN uniqueness (DB fallback) | `ConflictException` (catches `DataIntegrityViolationException`) | `BookService` |
+| Book with borrow history cannot be deleted | `ConflictException` | `BookService` |
+| Username uniqueness | `ConflictException` "Username is already in use." | `StudentService`, `LibrarianService` |
+| Book must be available to borrow | `BusinessRuleException` "BOOK_UNAVAILABLE" | `BorrowRecordService` |
+| Already-returned record cannot be returned again | `BusinessRuleException` "ALREADY_RETURNED" | `BorrowRecordService` |
+| Entity not found | `ResourceNotFoundException` | All services |
+
+### 7.3 Frontend validation
+
+**Verified:** `modal.js` performs client-side validation:
+- Required field check (empty string detection).
+- Email format regex: `/^\S+@\S+\.\S+$/`.
+- Server-side `fieldErrors` are rendered next to respective fields.
+- General/unmatched errors displayed in a form-level summary.
+
+(Confirmed in: `modal.js` lines 23–38.)
+
+### 7.4 Exception handling pipeline
+
+**Verified:** `GlobalExceptionHandler` maps:
+- `ResourceNotFoundException` → 404, code `NOT_FOUND`
+- `ConflictException` → 409, code `CONFLICT`
+- `BusinessRuleException` → 400, code from exception (e.g. `BOOK_UNAVAILABLE`)
+- `MethodArgumentNotValidException` → 400, code `VALIDATION_ERROR`, with `fieldErrors[]`
+
+All responses use the `ApiErrorResponse` record shape. (Confirmed in: `GlobalExceptionHandler.java`, `ApiErrorResponse.java`.)
+
+```
+Verified Files
+--------------
+All 14 DTO files
+GlobalExceptionHandler.java
+BusinessRuleException.java, ConflictException.java, ResourceNotFoundException.java
+BookService.java, StudentService.java, LibrarianService.java, BorrowRecordService.java
+modal.js
+```
+
+---
+
+## 8. Frontend Structure and Navigation
+
+**Confidence: High**
+
+### 8.1 SPA architecture
+
+The frontend is a single `index.html` file with 7 `<section>` elements identified by `data-page` attributes. Only one section is visible at a time (`class="active"`). Routing uses `location.hash` — no client-side router library is used.
+
+**Pages:** `login`, `dashboard`, `books`, `students`, `librarians`, `borrow-records`, `profile`.
+
+### 8.2 JavaScript module graph
+
+```
+index.html
+  └── js/main.js (type="module")
+        ├── components/modal.js
+        └── js/api/
+              ├── auth-api.js → http.js
+              ├── books-api.js → http.js
+              ├── borrow-api.js → http.js
+              ├── dashboard-api.js → http.js
+              ├── librarians-api.js → http.js
+              └── students-api.js → http.js
+```
+
+### 8.3 CSS architecture
+
+Five CSS files loaded in order: `tokens.css` (design tokens/custom properties) → `base.css` (resets/typography) → `layout.css` (app shell/grid) → `components.css` (cards/tables/buttons/modals/badges/toasts) → `responsive.css` (mobile breakpoints).
+
+**Verified:** Google Fonts `Inter` and `Poppins` are loaded via external CDN link. (Confirmed in: `index.html` line 11.)
+
+### 8.4 Frontend-only features
+
+- **Book search**: Real-time `oninput` handler calls `booksApi.list(search)` and re-renders.
+- **Toast notifications**: Temporary DOM elements in `#toast-region`, auto-removed after 3.2s.
+- **Modal forms**: 4 form types (`book`, `student`, `librarian`, `borrow`) defined declaratively in `modal.js`.
+- **XSS protection**: `esc()` function in `main.js` escapes `& < > ' "` in all rendered user content.
+
+**Verified:** (Confirmed in: `main.js`, `modal.js`, `index.html`.)
+
+### 8.5 Frontend/backend parity gap
+
+**Inferred:** The frontend JS API modules (`booksApi`, `studentsApi`, `librariansApi`) only expose `list()` and `create()` methods. They do **not** expose `update()` or `delete()`. The backend supports PUT and DELETE endpoints, but the frontend has no UI to invoke them. The "Actions" column in each table renders a `—` dash placeholder.
+
+(Confirmed in: `books-api.js`, `students-api.js`, `librarians-api.js`, `main.js` render functions.)
+
+```
+Verified Files
+--------------
+index.html
+main.js, modal.js
+All 7 js/api/*.js files
+All 5 css/*.css files
+```
+
+---
+
+## 9. Testing Strategy and Coverage
+
+**Confidence: High**
+
+### 9.1 Test infrastructure
+
+| Aspect | Implementation |
+|---|---|
+| Framework | JUnit 5 + Spring Boot Test + MockMvc |
+| Database | H2 in MySQL compatibility mode (`MODE=MySQL;DATABASE_TO_LOWER=TRUE`) |
+| Schema strategy | `create-drop` per test run |
+| Security testing | `spring-security-test` (`csrf()`, `user().roles()`) |
+| Assertions | Hamcrest matchers + AssertJ |
+
+**Verified:** (Confirmed in: `backend/src/test/resources/application.properties`, `pom.xml` dependencies.)
+
+### 9.2 Test files and methods
+
+| Test class | Type | @Test methods | Coverage |
+|---|---|---|---|
+| `LibraryManagementIntegrationTest` | Integration (MockMvc + admin session) | 4 | Auth, full CRUD + borrow/return lifecycle, validation errors, ISBN conflicts, role checks (401/403) |
+| `BrowserCsrfFlowIntegrationTest` | Integration (real CSRF cookie flow) | 1 | CSRF bootstrap → login → session reuse → logout → post-logout rejection |
+| `BookRepositoryTest` | Repository | 1 | Audit timestamp population, ISBN uniqueness constraint |
+| **Total** | | **6** | |
+
+### 9.3 What is tested
+
+| Area | Tested | Test file |
+|---|---|---|
+| Admin login | ✅ | `LibraryManagementIntegrationTest.login()` |
+| Unauthenticated access → 401 | ✅ | `LibraryManagementIntegrationTest` |
+| Forbidden access → 403 | ✅ | `LibraryManagementIntegrationTest` |
+| Student CRUD | ✅ (create) | `LibraryManagementIntegrationTest` |
+| Librarian CRUD | ✅ (create) | `LibraryManagementIntegrationTest` |
+| Book CRUD | ✅ (create, search) | `LibraryManagementIntegrationTest` |
+| Book validation errors | ✅ | `LibraryManagementIntegrationTest` |
+| Duplicate ISBN conflict | ✅ | `LibraryManagementIntegrationTest` |
+| Borrow workflow | ✅ | `LibraryManagementIntegrationTest` |
+| Unavailable book borrow rejection | ✅ | `LibraryManagementIntegrationTest` |
+| Return workflow | ✅ | `LibraryManagementIntegrationTest` |
+| Already-returned rejection | ✅ | `LibraryManagementIntegrationTest` |
+| Book deletion with history → 409 | ✅ | `LibraryManagementIntegrationTest` |
+| Logout | ✅ | `LibraryManagementIntegrationTest` |
+| CSRF cookie/header exchange | ✅ | `BrowserCsrfFlowIntegrationTest` |
+| Audit timestamp population | ✅ | `BookRepositoryTest` |
+| ISBN DB uniqueness constraint | ✅ | `BookRepositoryTest` |
+| Email validation message | ✅ | `LibraryManagementIntegrationTest` |
+
+### 9.4 What is NOT tested
+
+| Area | Status |
+|---|---|
+| Student/librarian update (PUT) | ❌ Not tested |
+| Student/librarian delete (DELETE) | ❌ Not tested |
+| Book update (PUT) | ❌ Not tested |
+| Book delete with no history (success case) | ❌ Not tested |
+| Dashboard values | ❌ Not tested |
+| Profile endpoint | ❌ Not tested |
+| Username uniqueness (students/librarians) | ❌ Not tested |
+| STUDENT role access restrictions (books GET only) | ❌ Not tested |
+| LIBRARIAN role functional access | ❌ Not tested (403 only) |
+| Frontend JavaScript | ❌ No JS tests exist |
+| Unit tests (isolated service logic) | ❌ None — all tests are integration or repository level |
+
+### 9.5 Manual test matrix
+
+**Verified:** 14 black-box test cases defined in `docs/testing/black-box-test-cases.csv`. All have status `PENDING LOCAL MYSQL`. (Confirmed in: `black-box-test-cases.csv`.)
+
+```
+Verified Files
+--------------
+LibraryManagementIntegrationTest.java
+BrowserCsrfFlowIntegrationTest.java
+BookRepositoryTest.java
+application.properties (test)
+pom.xml (test dependencies)
+black-box-test-cases.csv
+```
+
+---
+
+## 10. Documentation Coverage
+
+**Confidence: High**
+
+| Area | Coverage | Notes |
+|---|---|---|
+| **Overall architecture** | ✅ Fully documented | `ARCHITECTURE.md` (87K), `README.md` architecture diagram. Matches implementation. |
+| **API contract** | ✅ Fully documented | `API.md` covers all 24 endpoints, status codes, DTOs, error shape. |
+| **Setup / run instructions** | ✅ Fully documented | `SETUP.md` covers prerequisites, env vars, run command, CSRF/session notes. |
+| **Project structure** | ✅ Fully documented | `PROJECT_STRUCTURE.md` matches actual folder layout. |
+| **Requirements** | ✅ Fully documented | `REQUIREMENTS.md` with 10 functional + 7 non-functional + scope boundaries. |
+| **Testing** | ✅ Fully documented | `TESTING.md` + `black-box-test-cases.csv`. |
+| **Changelog** | ✅ Fully documented | `CHANGELOG.md` with day-by-day history + v1.0.0 release notes. |
+| **ER diagram** | ✅ Fully documented | `diagrams/er-diagram.md` Mermaid diagram matches entity classes. |
+| **Security model** | ⚠️ Partially documented | Covered in ARCHITECTURE.md and SETUP.md (CSRF, sessions, BCrypt). No dedicated security document. CSRF SPA handler logic not documented in detail. |
+| **Role-permission matrix** | ⚠️ Partially documented | Roles mentioned in API.md per-endpoint. No consolidated matrix document. |
+| **Validation rules** | ⚠️ Partially documented | API.md mentions error shapes. Individual field constraints not documented. |
+| **Business rules** | ⚠️ Partially documented | Borrow/return rules in API.md. Delete-protection rule mentioned. No consolidated rules document. |
+| **Frontend architecture** | ❌ Not documented | No documentation for JS module structure, SPA routing, CSRF flow in frontend, or CSS architecture. |
+| **Deployment** | ❌ Not documented | No Docker, CI/CD, or production deployment guide. Explicitly deferred in scope. |
+| **API versioning** | ❌ Not documented | No versioning strategy. |
+| **Error code catalog** | ❌ Not documented | Error codes (`BOOK_UNAVAILABLE`, `ALREADY_RETURNED`, etc.) are not cataloged. |
+| **Data seeding** | ⚠️ Partially documented | Admin seed mentioned in README and SETUP. No documentation of seed behavior for other environments. |
+
+### Discrepancies between documentation and implementation
+
+| # | Documentation claim | Actual implementation | Severity |
+|---|---|---|---|
+| 1 | `API.md` says "Update requests omit immutable username" | `StudentUpdateRequest` and `LibrarianUpdateRequest` both **include** a `username` field, and the services allow updating it. | Medium — documentation inaccurate |
+| 2 | `API.md` shows `/auth/csrf` endpoint under "Authentication and profile" | The endpoint returns the Spring `CsrfToken` object directly, which is not a custom DTO — this is accurate but not explicit about the response shape. | Low |
+| 3 | `ER diagram` shows `BOOKS.isbn` without a unique marker | Entity code has `@Column(unique=true)` on `isbn`. The ER diagram does not show this constraint. | Low — diagram incomplete |
+
+### Areas deserving future documentation
+
+1. **Frontend module architecture** — SPA routing, JS module graph, CSRF flow, CSS token system.
+2. **Consolidated security model** — dedicated document covering auth flow, CSRF, role matrix, session lifecycle.
+3. **Error code catalog** — all custom error codes with meanings and when they occur.
+4. **Validation constraint reference** — per-field validation rules for each DTO.
+5. **Account lifecycle** — what happens to accounts on profile deletion, password change path.
+6. **Cascade/orphan behavior** — document FK cascade policy (or lack thereof).
+
+```
+Verified Files
+--------------
+README.md
+docs/API.md
+docs/ARCHITECTURE.md
+docs/CHANGELOG.md
+docs/PROJECT_STRUCTURE.md
+docs/REQUIREMENTS.md
+docs/SETUP.md
+docs/TASKS.md
+docs/TESTING.md
+docs/diagrams/er-diagram.md
+docs/testing/black-box-test-cases.csv
+StudentUpdateRequest.java, LibrarianUpdateRequest.java (discrepancy check)
+StudentService.java, LibrarianService.java (discrepancy check)
+```
+
+---
+
+*Phase 2 complete. Awaiting confirmation to proceed to Phase 3.*
