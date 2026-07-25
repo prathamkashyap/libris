@@ -45,14 +45,14 @@ class LibraryManagementIntegrationTest {
                 .content("{\"title\":\"Clean Code\",\"author\":\"Robert Martin\",\"isbn\":\"9780132350884\",\"publishedDate\":\"2008-08-01\"}"))
             .andExpect(status().isCreated()).andExpect(jsonPath("$.available").value(true)).andReturn();
         long bookId = json.readTree(book.getResponse().getContentAsString()).path("id").asLong();
-        mvc.perform(get("/api/books?search=Clean").session(adminSession)).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)));
+        mvc.perform(get("/api/books?search=Clean").session(adminSession)).andExpect(status().isOk()).andExpect(jsonPath("$.content", hasSize(1)));
         MvcResult borrow = mvc.perform(post("/api/borrow-records").session(adminSession).with(csrf()).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"bookId\":"+bookId+",\"studentId\":"+studentId+",\"borrowerName\":\"Ignored\",\"borrowerEmail\":\"ignored@example.com\",\"borrowerPhone\":\"0\",\"borrowDate\":\"2026-07-23\"}"))
             .andExpect(status().isCreated()).andExpect(jsonPath("$.status").value("BORROWED")).andExpect(jsonPath("$.borrowerName").value("Alice")).andReturn();
         long recordId = json.readTree(borrow.getResponse().getContentAsString()).path("id").asLong();
         mvc.perform(post("/api/borrow-records").session(adminSession).with(csrf()).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"bookId\":"+bookId+",\"studentId\":"+studentId+",\"borrowerName\":\"Alice\",\"borrowerEmail\":\"alice@example.com\",\"borrowerPhone\":\"555\",\"borrowDate\":\"2026-07-23\"}"))
-            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("BOOK_UNAVAILABLE"));
+            .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("UNAVAILABLE"));
         mvc.perform(post("/api/borrow-records/{id}/return",recordId).session(adminSession).with(csrf())).andExpect(status().isNoContent());
         mvc.perform(post("/api/borrow-records/{id}/return",recordId).session(adminSession).with(csrf())).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("ALREADY_RETURNED"));
         mvc.perform(delete("/api/books/{id}",bookId).session(adminSession).with(csrf())).andExpect(status().isConflict());
