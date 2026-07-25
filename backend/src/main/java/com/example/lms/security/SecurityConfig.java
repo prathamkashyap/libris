@@ -29,10 +29,13 @@ public class SecurityConfig {
             .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/components/**", "/assets/**", "/api/auth/login", "/api/auth/csrf").permitAll()
+                .requestMatchers("/api/auth/logout", "/api/auth/me", "/api/profile").authenticated()
+                .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "LIBRARIAN", "STUDENT")
+                .requestMatchers(HttpMethod.GET, "/api/books/**", "/api/magazines/**", "/api/newspapers/**").authenticated()
                 .requestMatchers("/api/librarians/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/books/**").authenticated()
                 .requestMatchers("/api/books/**", "/api/students/**", "/api/borrow-records/**", "/api/dashboard").hasAnyRole("ADMIN", "LIBRARIAN")
                 .anyRequest().authenticated())
+            .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("/"))
             .userDetailsService(users).build();
     }
 }
