@@ -1,6 +1,6 @@
 # Library Management System
 
-A responsive Library Management System built with Spring Boot, MySQL, and a vanilla HTML/CSS/JavaScript frontend. It is a single deployable application: the browser client is served by Spring Boot and communicates with the REST API through Fetch.
+A responsive Library Management System built with Spring Boot, MySQL, and a vanilla HTML/CSS/JavaScript frontend. It is a single deployable application: the browser client is served by Spring Boot and communicates with the REST API through Fetch. Docker Compose is the recommended way to run it.
 
 ## Features
 
@@ -59,7 +59,28 @@ The API is rooted at `/api` and uses structured JSON responses. Main resources a
 
 See [docs/API.md](docs/API.md) for endpoint, role, status, and error details.
 
-## Running Locally
+## Docker Quick Start (Recommended)
+
+Prerequisites: [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/).
+
+```bash
+cd backend
+cp .env.example .env
+# Edit .env and set passwords, then:
+docker compose up --build
+```
+
+Open <http://localhost:8080>. The admin seed is configured via `LMS_ADMIN_PASSWORD` in `.env`.
+
+Once running, explore the API at <http://localhost:8080/swagger-ui/index.html>.
+
+To include phpMyAdmin (on port 8081), use:
+
+```bash
+docker compose --profile dev up --build
+```
+
+## Running Locally (Without Docker)
 
 Prerequisites: Java 21+, MySQL, and a database account that can create/use `librarydb`.
 
@@ -107,7 +128,7 @@ Mobile evidence is maintained in [screenshots/mobile](screenshots/mobile):
 
 ## Future Improvements
 
-Pagination, advanced search, categories, fines, notifications, Swagger/OpenAPI, Docker deployment, reservations, physical-copy modelling, and JWT-based API access are intentionally deferred from v1.0.0.
+Reservations, fines, notifications, physical-copy modelling, and JWT-based API access are intentionally deferred from v1.0.0.
 
 ## Documentation
 
