@@ -260,15 +260,102 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Logout
-  document.querySelectorAll("[data-action='logout']").forEach(btn => {
-    btn.addEventListener("click", async e => {
-      e.preventDefault();
-      await authApi.logout();
-      setCurrentUser(null);
-      currentUser = null;
-      loginView.classList.remove("hidden");
-      window.location.hash = '#/login';
+  // Logout (sidebar .logout links)
+  document.querySelectorAll('.logout').forEach(link => {
+    link.addEventListener('click', async event => {
+      event.preventDefault();
+      try {
+        await authApi.logout();
+      } finally {
+        setCurrentUser(null);
+        currentUser = null;
+        window.location.replace('/login.html');
+      }
     });
+  });
+
+  // Mobile sidebar toggle
+  const menuBtn = document.getElementById('menuToggle');
+  const rail = document.getElementById('rail');
+  if (menuBtn && rail) {
+    menuBtn.addEventListener('click', () => rail.classList.toggle('open'));
+    document.addEventListener('click', (e) => {
+      if (rail.classList.contains('open') && !rail.contains(e.target) && e.target !== menuBtn) {
+        rail.classList.remove('open');
+      }
+    });
+  }
+
+  // Notification dropdown
+  const bell = document.getElementById('notifBell');
+  const notifPanel = document.getElementById('notifPanel');
+  if (bell && notifPanel) {
+    bell.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notifPanel.classList.toggle('open');
+    });
+    document.addEventListener('click', () => notifPanel.classList.remove('open'));
+    notifPanel.addEventListener('click', (e) => e.stopPropagation());
+  }
+
+  // Command palette (Ctrl+K / Cmd+K)
+  const palette = document.getElementById('cmdPalette');
+  const paletteInput = document.getElementById('cmdInput');
+  const searchTrigger = document.getElementById('searchTrigger');
+
+  const openPalette = () => {
+    if (!palette) return;
+    palette.classList.add('open');
+    setTimeout(() => paletteInput && paletteInput.focus(), 30);
+  };
+  const closePalette = () => palette && palette.classList.remove('open');
+
+  if (searchTrigger) searchTrigger.addEventListener('click', openPalette);
+  if (palette) {
+    palette.addEventListener('click', (e) => { if (e.target === palette) closePalette(); });
+  }
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      palette && palette.classList.contains('open') ? closePalette() : openPalette();
+    }
+    if (e.key === 'Escape') closePalette();
+  });
+
+  // Settings tabs
+  document.querySelectorAll('.tabs').forEach(tabGroup => {
+    const buttons = tabGroup.querySelectorAll('.tab-btn');
+    const panels = document.querySelectorAll('[data-tab-panel]');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const target = btn.getAttribute('data-tab');
+        panels.forEach(p => {
+          p.style.display = (p.getAttribute('data-tab-panel') === target) ? '' : 'none';
+        });
+      });
+    });
+  });
+
+  // Books grid/list toggle
+  const gridBtn = document.getElementById('viewGrid');
+  const listBtn = document.getElementById('viewList');
+  const gridEl = document.getElementById('booksGrid');
+  const listEl = document.getElementById('booksList');
+  if (gridBtn && listBtn && gridEl && listEl) {
+    gridBtn.addEventListener('click', () => {
+      gridBtn.classList.add('active'); listBtn.classList.remove('active');
+      gridEl.style.display = ''; listEl.style.display = 'none';
+    });
+    listBtn.addEventListener('click', () => {
+      listBtn.classList.add('active'); gridBtn.classList.remove('active');
+      listEl.style.display = ''; gridEl.style.display = 'none';
+    });
+  }
+
+  // Skeleton -> content swap (Analytics page)
+  document.querySelectorAll('.skeleton-wrap').forEach(el => {
+    setTimeout(() => el.classList.add('loaded'), 700);
   });
 });

@@ -28,7 +28,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/login.html", "/styles.css", "/script.js", "/css/**", "/js/**", "/components/**", "/assets/**", "/themes/**", "/api/auth/login", "/api/auth/csrf", "/login.html", "/register.html").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/login.html", "/styles.css", "/css/**", "/js/**", "/components/**", "/assets/**", "/themes/**", "/api/auth/login", "/api/auth/csrf", "/login.html", "/register.html").permitAll()
                 .requestMatchers("/api/auth/logout", "/api/auth/me", "/api/profile").authenticated()
                 .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "LIBRARIAN", "STUDENT")
                 .requestMatchers(HttpMethod.GET, "/api/books/**", "/api/magazines/**", "/api/newspapers/**").authenticated()
