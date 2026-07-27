@@ -28,11 +28,12 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
             .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/components/**", "/assets/**", "/api/auth/login", "/api/auth/csrf").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/login.html", "/styles.css", "/script.js", "/css/**", "/js/**", "/components/**", "/assets/**", "/themes/**", "/api/auth/login", "/api/auth/csrf", "/login.html", "/register.html").permitAll()
                 .requestMatchers("/api/auth/logout", "/api/auth/me", "/api/profile").authenticated()
                 .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "LIBRARIAN", "STUDENT")
                 .requestMatchers(HttpMethod.GET, "/api/books/**", "/api/magazines/**", "/api/newspapers/**").authenticated()
                 .requestMatchers("/api/librarians/**").hasRole("ADMIN")
+                .requestMatchers("/api/analytics/**", "/api/audit/**", "/api/reports/**").hasAnyRole("ADMIN", "LIBRARIAN")
                 .requestMatchers("/api/books/**", "/api/students/**", "/api/borrow-records/**", "/api/dashboard").hasAnyRole("ADMIN", "LIBRARIAN")
                 .anyRequest().authenticated())
             .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("/"))
