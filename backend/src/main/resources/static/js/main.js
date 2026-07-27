@@ -164,23 +164,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize data
   const loginView = document.getElementById("login-view");
-  const registerView = document.getElementById("register-view");
 
-  // Handle initial page load - check if we're on a specific route
+  // Handle initial page load
   const path = window.location.pathname;
-  if (path === '/register') {
-    loginView.classList.add("hidden");
-    registerView.classList.remove("hidden");
-  } else if (path === '/login') {
+  if (path === '/login') {
     loginView.classList.remove("hidden");
-    registerView.classList.add("hidden");
   }
 
   authApi.csrf().then(() => authApi.me()).then(user => {
     setCurrentUser(user);
     currentUser = user;
     loginView.classList.add("hidden");
-    registerView.classList.add("hidden");
     
     // Route to appropriate dashboard based on role
     if (currentUser.role === 'STUDENT') {
@@ -193,40 +187,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     return load();
   }).catch(() => {
-    // Not authenticated - show appropriate view based on path
-    if (path === '/register') {
-      registerView.classList.remove("hidden");
-    } else {
-      loginView.classList.remove("hidden");
-    }
-  });
-
-  // Registration form
-  document.getElementById("register-form").addEventListener("submit", async e => {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const password = fd.get("password");
-    const confirmPassword = fd.get("confirmPassword");
-    
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
-    
-    try {
-      // Use the librariansApi to create a new librarian
-      await librariansApi.create({
-        name: fd.get("name"),
-        age: parseInt(fd.get("age")),
-        phone: fd.get("phone"),
-        username: fd.get("username"),
-        password: password
-      });
-      alert("Registration successful! You can now sign in.");
-      window.location.href = '/login';
-    } catch (err) {
-      alert(err.message || "Registration failed");
-    }
+    // Not authenticated - show login
+    loginView.classList.remove("hidden");
   });
 
   // Modals
