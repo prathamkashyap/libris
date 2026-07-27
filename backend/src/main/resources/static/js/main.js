@@ -7,9 +7,10 @@ import { borrowApi } from "/js/api/borrow-api.js";
 import { authApi } from "/js/api/auth-api.js";
 import { dashboardApi } from "/js/api/dashboard-api.js";
 import { studentDashboardApi } from "/js/api/student-dashboard-api.js";
+import { requestJson, setCurrentUser, getCurrentUser } from "/js/api/http.js";
 import { openModal } from "/components/modal.js";
 
-let currentUser;
+let currentUser = getCurrentUser();
 const esc = v => String(v ?? "").replace(/[&<>'"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[c]);
 
 async function load() {
@@ -176,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   authApi.csrf().then(() => authApi.me()).then(user => {
+    setCurrentUser(user);
     currentUser = user;
     loginView.classList.add("hidden");
     registerView.classList.add("hidden");
@@ -248,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     try {
-      await authApi.login(fd.get("username"), fd.get("password"));
+      await authApi.login({ username: fd.get("username"), password: fd.get("password") });
       loginView.classList.add("hidden");
       const user = await authApi.me();
       currentUser = user;
@@ -263,8 +265,10 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener("click", async e => {
       e.preventDefault();
       await authApi.logout();
+      setCurrentUser(null);
       currentUser = null;
       loginView.classList.remove("hidden");
+      window.location.hash = '#/login';
     });
   });
 });
