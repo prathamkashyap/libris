@@ -10,8 +10,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MagazineRepository extends JpaRepository<Magazine, Long> {
-    Page<Magazine> findByAvailableTrue(Pageable pageable);
-    
     @Query("SELECT m FROM Magazine m WHERE LOWER(m.title) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(m.publisher) LIKE LOWER(CONCAT('%', :query, '%'))")
     Page<Magazine> searchMagazines(@Param("query") String query, Pageable pageable);
 }
