@@ -1,0 +1,49 @@
+services:
+
+  mysql:
+    image: mysql:9
+    container_name: lms-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${LMS_DB_PASSWORD:?LMS_DB_PASSWORD is required}
+      MYSQL_DATABASE: librarydb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: lms-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      LMS_DB_PASSWORD: ${LMS_DB_PASSWORD:?LMS_DB_PASSWORD is required}
+      LMS_ADMIN_PASSWORD: ${LMS_ADMIN_PASSWORD:-admin123}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: lms-phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: ${LMS_DB_PASSWORD:?LMS_DB_PASSWORD is required}
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    profiles:
+      - dev
+
+volumes:
+  mysql-data:
