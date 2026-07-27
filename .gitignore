@@ -15,3 +15,9 @@ backend/src/main/resources/application-local.properties
 # Generated verification artefacts
 tmp/
 output/
+
+# Runtime logs
+*.log
+
+# Maven wrapper (root convenience wrapper is tracked; backend/.mvn/wrapper is tracked)
+# backend/target/ already covered above
