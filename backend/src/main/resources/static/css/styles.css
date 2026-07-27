@@ -511,3 +511,37 @@ a:focus-visible, button:focus-visible, input:focus-visible{outline:2px solid var
 .toast-region { position: fixed; bottom: 24px; right: 24px; z-index: 3000; display: flex; flex-direction: column; gap: 8px; }
 .toast { background: var(--text-base); color: var(--bg-canvas); padding: 12px 24px; border-radius: 8px; font-weight: 500; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); animation: fade-in 0.3s ease; }
 @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Book cards grid */
+.book-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.book-gcard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-sm);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.book-gcard:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.book-gcard .cov { width: 100%; height: 140px; border-radius: 8px; margin-bottom: 6px; }
+.book-gcard b { font-size: 14px; line-height: 1.25; }
+.book-gcard small { font-size: 12px; color: var(--ink-soft); }
+.book-gcard .badge { width: fit-content; margin-top: 4px; }
+.gcard-actions { display: flex; gap: 6px; margin-top: auto; padding-top: 10px; }
+.gcard-actions .btn-ghost.sm { padding: 4px 10px; font-size: 11.5px; }
+
+.toast-success { background: var(--green); color: #fff; }
+.toast-error { background: var(--red); color: #fff; }
+.toast-info { background: var(--ink); color: var(--canvas); }
+
+.loading-state, .empty-state, .error-state { color: var(--ink-soft); }
