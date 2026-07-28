@@ -167,29 +167,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle initial page load
   const path = window.location.pathname;
-  if (path === '/login') {
+  if (path === '/login' && loginView) {
     loginView.classList.remove("hidden");
   }
 
-  authApi.csrf().then(() => authApi.me()).then(user => {
-    setCurrentUser(user);
-    currentUser = user;
-    loginView.classList.add("hidden");
-    
-    // Route to appropriate dashboard based on role
-    if (currentUser.role === 'STUDENT') {
-      window.location.hash = '#/student-dashboard';
-    } else if (currentUser.role === 'LIBRARIAN') {
-      window.location.hash = '#/librarian-dashboard';
-    } else {
-      window.location.hash = '#/dashboard'; // Admin
-    }
-    
-    return load();
-  }).catch(() => {
-    // Not authenticated - show login
-    loginView.classList.remove("hidden");
-  });
+  if (loginView) {
+    authApi.csrf().then(() => authApi.me()).then(user => {
+      setCurrentUser(user);
+      currentUser = user;
+      loginView.classList.add("hidden");
+      
+      // Route to appropriate dashboard based on role
+      if (currentUser.role === 'STUDENT') {
+        window.location.hash = '#/student-dashboard';
+      } else if (currentUser.role === 'LIBRARIAN') {
+        window.location.hash = '#/librarian-dashboard';
+      } else {
+        window.location.hash = '#/dashboard'; // Admin
+      }
+      
+      return load();
+    }).catch(() => {
+      // Not authenticated - show login
+      loginView.classList.remove("hidden");
+    });
+  }
 
   // Modals
   document.querySelectorAll("[data-open-modal]").forEach(button => {
@@ -208,7 +210,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Login form
-  document.getElementById("login-form").addEventListener("submit", async e => {
+  const loginForm = document.getElementById("login-form");
+  if (loginForm) loginForm.addEventListener("submit", async e => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     try {
