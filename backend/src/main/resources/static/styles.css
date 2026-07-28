@@ -469,6 +469,34 @@ a:focus-visible, button:focus-visible, input:focus-visible{outline:2px solid var
 .cmd-item svg{width:15px; height:15px; stroke:var(--ink-soft); fill:none; stroke-width:1.8;}
 .cmd-item span.hint{margin-left:auto; font-size:11px; color:#9B96B5;}
 
+/* ---------- Modals ---------- */
+.modal-backdrop{
+  position:fixed; inset:0; width:100vw; height:100vh;
+  background:rgba(4,3,10,.6); backdrop-filter:blur(4px);
+  display:flex; align-items:center; justify-content:center;
+  z-index:1000;
+}
+.modal{
+  background:var(--panel); border:1px solid var(--line);
+  border-radius:16px; box-shadow:var(--shadow-lg);
+  width:100%; max-width:520px; padding:32px;
+}
+.modal-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;}
+.modal-header h2{margin:0; font-family:'Fraunces',serif; font-size:1.5rem;}
+.modal-close{background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--ink-soft);}
+.modal-footer{display:flex; justify-content:flex-end; gap:12px; margin-top:32px;}
+.form-error{color:#D84C55; font-size:0.85rem; margin-bottom:16px;}
+.field-error{color:#D84C55; font-size:0.75rem; margin-top:4px; display:block;}
+.span-all{grid-column:1/-1;}
+
+/* ---------- Toasts ---------- */
+.toast-region{position:fixed; bottom:24px; right:24px; z-index:3000; display:flex; flex-direction:column; gap:8px;}
+.toast{background:var(--ink); color:var(--canvas); padding:12px 24px; border-radius:8px; font-weight:500; font-size:0.9rem; box-shadow:0 4px 12px rgba(0,0,0,.1); animation:fade-in .3s ease;}
+.toast-success{background:var(--green); color:#fff;}
+.toast-error{background:#F87171; color:#fff;}
+.toast-info{background:var(--ink); color:var(--canvas);}
+@keyframes fade-in{from{opacity:0; transform:translateY(10px);}to{opacity:1; transform:translateY(0);}}
+
 /* ---------- Tabs ---------- */
 .tabs{display:flex; gap:4px; border-bottom:1px solid var(--line); margin-bottom:24px; flex-wrap:wrap;}
 .tab-btn{
