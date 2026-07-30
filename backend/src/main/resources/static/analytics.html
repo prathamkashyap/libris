@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Analytics — Libris</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -84,57 +85,95 @@
 </header>
 
 <div class="stat-grid stat-grid-4">
-  <div class="stat-card"><span class="stat-label">Avg. borrow duration</span><span class="stat-value">11.4 <small>days</small></span></div>
-  <div class="stat-card"><span class="stat-label">Renewal rate</span><span class="stat-value">18%</span></div>
-  <div class="stat-card"><span class="stat-label">Peak hour</span><span class="stat-value">4&ndash;5 <small>PM</small></span></div>
-  <div class="stat-card"><span class="stat-label">Fill rate</span><span class="stat-value">92%</span></div>
+  <div class="stat-card"><span class="stat-label">Avg. borrow duration</span><span class="stat-value" id="stat-duration">&mdash;</span></div>
+  <div class="stat-card"><span class="stat-label">Renewal rate</span><span class="stat-value" id="stat-renewal">&mdash;</span></div>
+  <div class="stat-card"><span class="stat-label">Peak hour</span><span class="stat-value" id="stat-peak">&mdash;</span></div>
+  <div class="stat-card"><span class="stat-label">Fill rate</span><span class="stat-value" id="stat-fill">&mdash;</span></div>
 </div>
 
+<!-- Row 1: Issued vs Returned (8 cols) + Usage by Department (4 cols) -->
 <div class="bento">
-  <div class="card span-7 skeleton-wrap">
+  <div class="card span-8">
     <div class="card-head"><h3>Issued vs. returned</h3></div>
-    <div class="skeleton" style="height:200px; width:100%"></div>
-    <div class="real">
-      <svg class="area-chart" viewBox="0 0 560 200">
-        <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#7C6CF0" stop-opacity=".25"/><stop offset="100%" stop-color="#7C6CF0" stop-opacity="0"/></linearGradient></defs>
-        <path d="M0,150 60,120 120,135 180,90 240,105 300,70 360,85 420,50 480,60 560,30 560,200 0,200Z" fill="url(#ag)"/>
-        <polyline points="0,150 60,120 120,135 180,90 240,105 300,70 360,85 420,50 480,60 560,30" fill="none" stroke="#7C6CF0" stroke-width="2.5"/>
-        <polyline points="0,170 60,160 120,168 180,150 240,155 300,140 360,148 420,130 480,138 560,120" fill="none" stroke="#F0C179" stroke-width="2.5" stroke-dasharray="3 5"/>
+    <div class="chart-area" id="chart-issued-returned">
+      <svg class="area-chart" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="grad-issued" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#7C6CF0" stop-opacity=".3"/>
+            <stop offset="100%" stop-color="#7C6CF0" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="grad-returned" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#4ADE80" stop-opacity=".2"/>
+            <stop offset="100%" stop-color="#4ADE80" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- Grid lines -->
+        <g class="chart-grid" stroke="rgba(255,255,255,.06)" stroke-width="1">
+          <line x1="40" y1="20" x2="620" y2="20"/>
+          <line x1="40" y1="65" x2="620" y2="65"/>
+          <line x1="40" y1="110" x2="620" y2="110"/>
+          <line x1="40" y1="155" x2="620" y2="155"/>
+          <line x1="40" y1="200" x2="620" y2="200"/>
+        </g>
+        <!-- Y-axis labels -->
+        <g class="axis-labels" fill="rgba(155,150,181,.5)" font-size="10" font-family="Inter, sans-serif">
+          <text x="32" y="24" text-anchor="end">5</text>
+          <text x="32" y="69" text-anchor="end">4</text>
+          <text x="32" y="114" text-anchor="end">3</text>
+          <text x="32" y="159" text-anchor="end">2</text>
+          <text x="32" y="204" text-anchor="end">1</text>
+        </g>
+        <!-- Issued area -->
+        <path id="issued-area" d="" fill="url(#grad-issued)"/>
+        <!-- Issued line -->
+        <polyline id="issued-line" points="" fill="none" stroke="#7C6CF0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Returned area -->
+        <path id="returned-area" d="" fill="url(#grad-returned)"/>
+        <!-- Returned line -->
+        <polyline id="returned-line" points="" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 4"/>
+        <!-- X-axis labels -->
+        <g id="issued-x-labels" class="axis-labels" fill="rgba(155,150,181,.5)" font-size="10" font-family="Inter, sans-serif"></g>
+        <!-- Dots for hover -->
+        <g id="issued-dots"></g>
       </svg>
+      <div class="chart-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#7C6CF0"></span>Issued</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#4ADE80"></span>Returned</span>
+      </div>
     </div>
   </div>
-  <div class="card span-5">
+
+  <div class="card span-4">
     <div class="card-head"><h3>Usage by department</h3></div>
-    <svg class="radar" viewBox="0 0 200 200">
-      <polygon points="100,20 165,60 165,140 100,180 35,140 35,60" fill="none" stroke="#2B2540"/>
-      <polygon points="100,50 145,72 145,128 100,155 55,128 55,72" fill="none" stroke="#2B2540"/>
-      <polygon points="100,35 152,64 140,132 100,165 48,120 60,68" fill="#7C6CF0" fill-opacity=".18" stroke="#7C6CF0" stroke-width="2"/>
-      <text x="100" y="12" text-anchor="middle" class="radar-lbl">CS</text><text x="178" y="60" text-anchor="middle" class="radar-lbl">Design</text>
-      <text x="178" y="145" text-anchor="middle" class="radar-lbl">Lit.</text><text x="100" y="196" text-anchor="middle" class="radar-lbl">Physics</text>
-      <text x="20" y="145" text-anchor="middle" class="radar-lbl">Econ</text><text x="20" y="60" text-anchor="middle" class="radar-lbl">History</text>
-    </svg>
+    <div class="chart-dept" id="chart-department">
+      <!-- Horizontal bar chart rendered by JS -->
+    </div>
   </div>
+</div>
+
+<!-- Row 2: Borrows by hour (full width) -->
+<div class="bento">
   <div class="card span-12">
     <div class="card-head"><h3>Borrows by hour</h3></div>
-    <div class="bar-chart">
-      <div style="height:22%"></div><div style="height:18%"></div><div style="height:14%"></div><div style="height:12%"></div>
-      <div style="height:20%"></div><div style="height:38%"></div><div style="height:52%"></div><div style="height:60%"></div>
-      <div style="height:48%"></div><div style="height:44%"></div><div style="height:58%"></div><div style="height:72%"></div>
-      <div style="height:66%"></div><div style="height:80%"></div><div style="height:94%"></div><div style="height:88%"></div>
-      <div style="height:70%"></div><div style="height:54%"></div><div style="height:40%"></div><div style="height:30%"></div>
+    <div class="chart-hour" id="chart-hourly">
+      <div class="bar-chart" id="hourly-bars"></div>
+      <div class="axis-row" id="hourly-labels"></div>
     </div>
-    <div class="axis-row"><span>8am</span><span>10am</span><span>12pm</span><span>2pm</span><span>4pm</span><span>6pm</span><span>8pm</span></div>
   </div>
-  <div class="card span-6"><div class="card-head"><h3>Top readers</h3></div>
-    <ol class="rank-list">
-      <li><span class="rk">01</span><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Fatima-Sheikh&amp;backgroundColor=2b2540" style="width:30px;height:30px;border-radius:50%"><div><b>Fatima Sheikh</b><small>Literature</small></div><span class="rk-count">24</span></li>
-      <li><span class="rk">02</span><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Meera-Kulkarni&amp;backgroundColor=2b2540" style="width:30px;height:30px;border-radius:50%"><div><b>Meera Kulkarni</b><small>Design</small></div><span class="rk-count">17</span></li>
+</div>
+
+<!-- Row 3: Top readers + Most borrowed -->
+<div class="bento">
+  <div class="card span-6">
+    <div class="card-head"><h3>Top readers</h3></div>
+    <ol class="rank-list" id="top-readers">
+      <li class="rank-empty">Loading&hellip;</li>
     </ol>
   </div>
-  <div class="card span-6"><div class="card-head"><h3>Most borrowed</h3></div>
-    <ol class="rank-list">
-      <li><span class="rk">01</span><div class="cov cov-1"></div><div><b>Sapiens</b><small>Harari</small></div><span class="rk-count">142</span></li>
-      <li><span class="rk">02</span><div class="cov cov-2"></div><div><b>Atomic Habits</b><small>James Clear</small></div><span class="rk-count">128</span></li>
+  <div class="card span-6">
+    <div class="card-head"><h3>Most borrowed</h3></div>
+    <ol class="rank-list" id="top-books">
+      <li class="rank-empty">Loading&hellip;</li>
     </ol>
   </div>
 </div>

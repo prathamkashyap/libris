@@ -4,29 +4,547 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign In — Libris</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ============================================================
+       LOGIN PAGE — Library Platform Theme
+       ============================================================ */
+
+    /* ---- Layout ---- */
+    .login-layout {
+      display: flex;
+      min-height: 100vh;
+      background: var(--canvas);
+    }
+
+    /* ---- Branding Panel ---- */
+    .login-branding {
+      flex: 0 0 46%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 56px 60px 64px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Library atmosphere: warm lamp glow + bookshelf texture */
+    .login-branding::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        /* Warm reading lamp glows */
+        radial-gradient(ellipse 500px 400px at 30% 75%, rgba(180,140,80,.07), transparent 60%),
+        radial-gradient(ellipse 400px 350px at 70% 30%, rgba(160,120,70,.05), transparent 55%),
+        /* Subtle bookshelf vertical lines */
+        repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0px, rgba(255,255,255,.012) 1px, transparent 1px, transparent 48px),
+        /* Deep indigo base */
+        linear-gradient(160deg, rgba(20,14,40,.4) 0%, rgba(10,8,20,.2) 100%);
+      z-index: 0;
+    }
+
+    /* Soft vignette edges */
+    .login-branding::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(11,8,20,.5) 100%);
+      z-index: 0;
+    }
+
+    .login-branding > * { position: relative; z-index: 1; }
+
+    /* ---- Brand Lockup ---- */
+    .login-brand-lockup {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 52px;
+    }
+    .login-brand-lockup svg {
+      width: 42px;
+      height: 42px;
+      flex-shrink: 0;
+    }
+    .login-brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+    .login-brand-name {
+      font-family: 'Fraunces', serif;
+      font-size: 21px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -.005em;
+      line-height: 1.15;
+    }
+    .login-brand-sub {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--ink-soft);
+      letter-spacing: .02em;
+      margin-top: 1px;
+      opacity: .7;
+    }
+
+    /* ---- Headline ---- */
+    .login-brand-headline {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(30px, 3.8vw, 42px);
+      font-weight: 480;
+      line-height: 1.18;
+      color: var(--ink);
+      margin: 0 0 20px;
+    }
+    .login-brand-headline em {
+      font-style: normal;
+      color: var(--indigo);
+    }
+    .login-brand-desc {
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--ink-soft);
+      margin: 0 0 44px;
+      max-width: 400px;
+      opacity: .8;
+    }
+
+    /* ---- Capabilities List ---- */
+    .login-capabilities {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px 20px;
+      list-style: none;
+      margin: 0 0 48px;
+      padding: 0;
+    }
+    .login-capability {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--ink-soft);
+    }
+    .login-capability svg {
+      width: 16px;
+      height: 16px;
+      color: var(--indigo);
+      opacity: .7;
+      flex-shrink: 0;
+    }
+
+    /* ---- Trust Badge ---- */
+    .login-trust {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      background: rgba(124,108,240,.06);
+      border: 1px solid rgba(124,108,240,.1);
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      opacity: .7;
+    }
+    .login-trust svg {
+      width: 16px;
+      height: 16px;
+      color: var(--indigo);
+    }
+
+    /* ---- Login Panel ---- */
+    .login-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+      background: rgba(14, 10, 26, .5);
+      border-left: 1px solid var(--glass-border);
+    }
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      padding: 44px 36px;
+    }
+
+    /* ---- Login Card Internal ---- */
+    .login-card-logo {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .login-card-logo svg {
+      width: 52px;
+      height: 52px;
+      margin-bottom: 18px;
+    }
+    .login-card-title {
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      font-weight: 480;
+      color: var(--ink);
+      margin: 0 0 6px;
+    }
+    .login-card-sub {
+      font-size: 13.5px;
+      color: var(--ink-soft);
+      margin: 0 0 30px;
+      opacity: .7;
+    }
+
+    /* ---- Form Fields ---- */
+    .login-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 18px;
+    }
+    .login-field label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-soft);
+    }
+    .login-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .login-input-icon {
+      position: absolute;
+      left: 14px;
+      width: 17px;
+      height: 17px;
+      color: var(--ink-soft);
+      pointer-events: none;
+      opacity: .5;
+    }
+    .login-field input {
+      width: 100%;
+      padding: 12px 14px 12px 40px;
+      background: rgba(10, 8, 20, .55);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 10px;
+      color: var(--ink);
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .login-field input::placeholder {
+      color: rgba(155, 150, 181, .35);
+    }
+    .login-field input:focus {
+      border-color: var(--indigo);
+      box-shadow: 0 0 0 3px rgba(124,108,240,.1);
+    }
+    .login-pw-toggle {
+      position: absolute;
+      right: 12px;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      background: none;
+      border: none;
+      color: var(--ink-soft);
+      cursor: pointer;
+      opacity: .45;
+      transition: opacity .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-pw-toggle:hover { opacity: .7; }
+    .login-pw-toggle svg { width: 17px; height: 17px; }
+
+    /* ---- Error ---- */
+    .login-error { margin-bottom: 16px; }
+
+    /* ---- Submit Button ---- */
+    .login-submit {
+      width: 100%;
+      padding: 13px 24px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--indigo), #5B52E8);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform .15s, box-shadow .2s, opacity .2s;
+      margin-top: 4px;
+    }
+    .login-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px -4px rgba(124,108,240,.35);
+    }
+    .login-submit:active { transform: translateY(0); }
+    .login-submit:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .login-submit svg {
+      width: 17px;
+      height: 17px;
+      transition: transform .2s;
+    }
+    .login-submit:hover svg { transform: translateX(3px); }
+
+    /* ---- Divider ---- */
+    .login-divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 22px 0;
+    }
+    .login-divider::before,
+    .login-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,.06);
+    }
+    .login-divider span {
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      opacity: .4;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    /* ---- Staff Login ---- */
+    .login-staff {
+      width: 100%;
+      padding: 12px 20px;
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 10px;
+      background: rgba(255,255,255,.02);
+      color: var(--ink);
+      font-size: 13.5px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: border-color .2s, background .2s;
+    }
+    .login-staff:hover {
+      border-color: rgba(124,108,240,.2);
+      background: rgba(124,108,240,.05);
+    }
+    .login-staff svg {
+      width: 17px;
+      height: 17px;
+      opacity: .6;
+    }
+
+    /* ---- Footer Note ---- */
+    .login-footer-note {
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--ink-soft);
+      opacity: .4;
+      margin: 22px 0 0;
+    }
+
+    /* ---- Bottom Bar ---- */
+    .login-bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 14px 32px;
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      opacity: .35;
+      z-index: 10;
+    }
+    .login-bottom-bar a {
+      transition: opacity .2s;
+    }
+    .login-bottom-bar a:hover { opacity: .8; }
+    .login-bottom-bar .sep {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: .4;
+    }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 960px) {
+      .login-branding { display: none; }
+      .login-panel { border-left: none; }
+      .login-bottom-bar { position: static; }
+    }
+    @media (max-width: 480px) {
+      .login-panel { padding: 28px 18px; }
+      .login-card { padding: 32px 24px; }
+      .login-card-title { font-size: 21px; }
+    }
+
+    /* ---- Animations ---- */
+    .login-branding { animation: fadeSlideLeft .55s ease both; }
+    .login-card { animation: fadeSlideUp .5s ease .12s both; }
+  </style>
 </head>
-<body style="background:var(--canvas);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
-  <main class="card login-card" style="width:100%;max-width:420px;margin:0 auto;padding:32px">
-    <div style="text-align:center;margin-bottom:32px">
-      <svg class="mark" viewBox="0 0 32 32" fill="none" style="width:48px;height:48px;color:var(--indigo);margin-bottom:16px" aria-hidden="true">
-        <path d="M6 5h9a5 5 0 0 1 5 5v17H11a5 5 0 0 1-5-5V5Z" stroke="currentColor" stroke-width="1.5"/>
-        <path d="M20 10h6v17h-6" stroke="currentColor" stroke-width="1.5"/><path d="M9 12h7M9 16h7M9 20h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      <h1 class="serif" style="font-size:28px;margin:0 0 8px">Welcome to Libris</h1>
-      <p class="muted" style="font-size:15px;margin:0">Library management, in one place.</p>
-    </div>
-    <p id="login-error" class="form-error" role="alert" hidden></p>
-    <form id="login-form" novalidate style="display:flex;flex-direction:column;gap:20px">
-      <label class="field" style="display:flex;flex-direction:column;gap:6px"><span>Username / Student ID</span><input id="login-username" name="username" required autocomplete="username"></label>
-      <label class="field" style="display:flex;flex-direction:column;gap:6px"><span>Password</span><input id="login-password" name="password" type="password" required autocomplete="current-password"></label>
-      <button class="btn-primary full" type="submit">Sign In</button>
-    </form>
-    <p class="muted" style="margin:24px 0 0;font-size:13.5px;text-align:center">Student accounts are created by your librarian. Librarian accounts are managed by an administrator.</p>
+<body>
+  <main class="login-layout" id="login-view">
+    <!-- Branding Panel (desktop) -->
+    <aside class="login-branding" aria-hidden="true">
+      <!-- Brand lockup: icon + name + subtitle on single baseline -->
+      <div class="login-brand-lockup">
+        <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="lb-bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#5B52E8"/><stop offset=".48" stop-color="#4338CA"/><stop offset="1" stop-color="#0D9488"/>
+            </linearGradient>
+          </defs>
+          <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#lb-bg)"/>
+          <path d="M8 21c5-9 12-12 22-11" stroke="#FFF" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+          <path d="M14 19.5c0-2.2 1.8-4 4-4h10c3.6 0 6.7 1.5 9 3.9v28.1c-2.3-2.1-5.3-3.3-8.5-3.3H18c-2.2 0-4-1.8-4-4V19.5Z" fill="#FFF" fill-opacity=".9"/>
+          <path d="M37 19.4c2.4-2.4 5.5-3.9 9-3.9h.1c2.2 0 3.9 1.8 3.9 4v20.7c0 2.2-1.8 4-4 4H45.5c-3.2 0-6.2 1.2-8.5 3.3V19.4Z" fill="#FFF" fill-opacity=".7"/>
+          <path d="M37 19.4v28.1" stroke="#8ACCC3" stroke-width="1.5"/>
+          <path d="M20 24h10M20 29h10M20 34h7M42 24h4M42 29h4M42 34h3" stroke="#4338CA" stroke-opacity=".58" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div class="login-brand-text">
+          <span class="login-brand-name">LIBRIS</span>
+          <span class="login-brand-sub">Library Management System</span>
+        </div>
+      </div>
+
+      <h2 class="login-brand-headline">Empowering libraries.<br><em>Enriching knowledge.</em></h2>
+      <p class="login-brand-desc">A modern and secure platform to manage your library resources, users, and insights&mdash;all in one place.</p>
+
+      <!-- Actual Libris capabilities -->
+      <ul class="login-capabilities">
+        <li class="login-capability">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+          Book Management
+        </li>
+        <li class="login-capability">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Student &amp; Staff Accounts
+        </li>
+        <li class="login-capability">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Borrowing &amp; Returns
+        </li>
+        <li class="login-capability">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Magazines &amp; Newspapers
+        </li>
+        <li class="login-capability">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+          Reports &amp; Analytics
+        </li>
+        <li class="login-capability">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Audit Logs
+        </li>
+      </ul>
+
+      <div class="login-trust">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Trusted by libraries. Built for the future.
+      </div>
+    </aside>
+
+    <!-- Login Panel -->
+    <section class="login-panel">
+      <div class="card login-card">
+        <div class="login-card-logo">
+          <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="lc-bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#5B52E8"/><stop offset=".48" stop-color="#4338CA"/><stop offset="1" stop-color="#0D9488"/>
+              </linearGradient>
+            </defs>
+            <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#lc-bg)"/>
+            <path d="M8 21c5-9 12-12 22-11" stroke="#FFF" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+            <path d="M14 19.5c0-2.2 1.8-4 4-4h10c3.6 0 6.7 1.5 9 3.9v28.1c-2.3-2.1-5.3-3.3-8.5-3.3H18c-2.2 0-4-1.8-4-4V19.5Z" fill="#FFF" fill-opacity=".9"/>
+            <path d="M37 19.4c2.4-2.4 5.5-3.9 9-3.9h.1c2.2 0 3.9 1.8 3.9 4v20.7c0 2.2-1.8 4-4 4H45.5c-3.2 0-6.2 1.2-8.5 3.3V19.4Z" fill="#FFF" fill-opacity=".7"/>
+            <path d="M37 19.4v28.1" stroke="#8ACCC3" stroke-width="1.5"/>
+            <path d="M20 24h10M20 29h10M20 34h7M42 24h4M42 29h4M42 34h3" stroke="#4338CA" stroke-opacity=".58" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <h1 class="login-card-title">Welcome back</h1>
+          <p class="login-card-sub">Sign in to access your library portal</p>
+        </div>
+
+        <p id="login-error" class="form-error login-error" role="alert" hidden></p>
+
+        <form id="login-form" novalidate>
+          <div class="login-field">
+            <label for="login-username">Username / Student ID</label>
+            <div class="login-input-wrap">
+              <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input id="login-username" name="username" type="text" required autocomplete="username" placeholder="Enter your username">
+            </div>
+          </div>
+          <div class="login-field">
+            <label for="login-password">Password</label>
+            <div class="login-input-wrap">
+              <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="Enter your password">
+              <button type="button" class="login-pw-toggle" aria-label="Toggle password visibility" data-target="login-password">
+                <svg class="pw-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="pw-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+          </div>
+          <button class="login-submit" type="submit">
+            Sign In
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+        </form>
+
+        <div class="login-divider"><span>or</span></div>
+
+        <button type="button" class="login-staff" onclick="document.getElementById('login-username').focus()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Login as Librarian
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+
+        <p class="login-footer-note">Student accounts are created by your librarian.<br>Librarian accounts are managed by an administrator.</p>
+      </div>
+    </section>
   </main>
+
+  <!-- Bottom bar: navigation links -->
+  <footer class="login-bottom-bar">
+    <span>&copy; 2026 Libris</span>
+    <span class="sep"></span>
+    <a href="#">Documentation</a>
+    <span class="sep"></span>
+    <a href="#">Privacy</a>
+    <span class="sep"></span>
+    <a href="#">Support</a>
+    <span class="sep"></span>
+    <a href="#">GitHub</a>
+    <span class="sep"></span>
+    <span>v1.0.0</span>
+  </footer>
+
   <script type="module">
     import { authApi } from "/js/api/auth-api.js";
 
@@ -56,6 +574,18 @@
       } finally {
         submit.disabled = false;
       }
+    });
+
+    /* Password visibility toggle */
+    document.querySelectorAll(".login-pw-toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const input = document.getElementById(btn.dataset.target);
+        if (!input) return;
+        const isPassword = input.type === "password";
+        input.type = isPassword ? "text" : "password";
+        btn.querySelector(".pw-eye-open").style.display = isPassword ? "none" : "";
+        btn.querySelector(".pw-eye-closed").style.display = isPassword ? "" : "none";
+      });
     });
   </script>
 </body>
