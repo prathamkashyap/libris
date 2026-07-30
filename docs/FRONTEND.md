@@ -1,5 +1,7 @@
 # Frontend
 
+> **Source of truth as of:** 30 July 2026
+
 The frontend is a **multi-page application (MPA)** served as static resources from Spring Boot. Each page is a standalone HTML file with its own JavaScript module. Pages are connected by standard `<a href>` navigation in a sidebar rail — there is no client-side router.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [SECURITY.md](SECURITY.md) for the CSRF bootstrap flow.

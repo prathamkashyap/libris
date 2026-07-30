@@ -1,5 +1,7 @@
 # API Contract
 
+> **Source of truth as of:** 30 July 2026
+
 **Version:** v1.0.0  
 **Base path:** `/api`  
 **Format:** JSON request/response bodies; dates use `yyyy-MM-dd`.

@@ -1,5 +1,7 @@
 # Design History
 
+> **Source of truth as of:** 30 July 2026
+
 This document records the pre-implementation design context: the resources reviewed, the alternatives considered, and the decisions that shaped the final architecture. It is a historical reference — the implementation is the source of truth.
 
 See [ARCHITECTURE.md](../ARCHITECTURE.md) for the as-built system design.

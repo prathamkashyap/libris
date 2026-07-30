@@ -1,5 +1,7 @@
 # Testing
 
+> **Source of truth as of:** 30 July 2026
+
 **Framework:** JUnit 5 + Spring Boot Test + MockMvc  
 **Database:** H2 in MySQL compatibility mode (`MODE=MySQL;DATABASE_TO_LOWER=TRUE`)  
 **Schema strategy:** `create-drop` per test run  

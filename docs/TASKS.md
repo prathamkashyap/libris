@@ -1,5 +1,7 @@
 # Delivery Board
 
+> **Source of truth as of:** 30 July 2026
+
 ## Done
 
 - [x] Day 1: reviewed source artifacts and froze the master architecture.

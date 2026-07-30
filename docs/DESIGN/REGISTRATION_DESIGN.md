@@ -1,5 +1,7 @@
 # Self-Service Registration — Design Document
 
+> **Source of truth as of:** 30 July 2026
+
 **Status:** Design only — implementation deferred to post-stabilization.
 **Scope:** New feature, out of current v1.1 cleanup engagement.
 

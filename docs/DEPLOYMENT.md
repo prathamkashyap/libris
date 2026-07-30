@@ -1,5 +1,7 @@
 # Deployment
 
+> **Source of truth as of:** 30 July 2026
+
 How to build, containerize, and deploy the Library Management System.
 
 See [SETUP.md](SETUP.md) for local development and [SECURITY.md](SECURITY.md) for security configuration.

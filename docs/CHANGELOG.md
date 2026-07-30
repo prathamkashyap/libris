@@ -1,5 +1,7 @@
 # Changelog
 
+> **Source of truth as of:** 30 July 2026
+
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]

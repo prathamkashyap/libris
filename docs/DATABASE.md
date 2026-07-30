@@ -1,5 +1,7 @@
 # Database
 
+> **Source of truth as of:** 30 July 2026
+
 **Engine:** MySQL 8 (production) / H2 in MySQL-compatibility mode (tests)  
 **Schema management:** Hibernate `ddl-auto=update` (production) / `ddl-auto=create-drop` (tests)  
 **Migrations:** None — no Flyway or Liquibase. Schema is generated from entity annotations.

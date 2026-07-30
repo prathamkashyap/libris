@@ -1,5 +1,7 @@
 # Setup
 
+> **Source of truth as of:** 30 July 2026
+
 How to run the Library Management System locally and with Docker.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [TESTING.md](TESTING.md) for running tests.

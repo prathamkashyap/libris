@@ -1,5 +1,7 @@
 # Security
 
+> **Source of truth as of:** 30 July 2026
+
 The Library Management System uses **session-based authentication** with Spring Security 6.5, **BCrypt password hashing**, **CSRF protection** via a SPA-aware token handler, and **URL-pattern-based role authorization**. The frontend and API share the same origin (Spring Boot serves both), so no CORS configuration is needed.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [API.md](API.md) for endpoint reference.

@@ -1,5 +1,7 @@
 # Architecture
 
+> **Source of truth as of:** 30 July 2026
+
 The Library Management System is a **single-deployable Spring Boot 3.5 monolith** following a layered MVC architecture. The browser frontend is a multi-page application served as static resources from Spring Boot and communicates with the REST API through the Fetch API. No layer violations were detected — controllers never access repositories directly (except `ProfileController`, noted in §3.6), services never produce HTTP responses, and repositories contain no business logic.
 
 **See also:** [FRONTEND.md](FRONTEND.md) for MPA structure and CSS architecture · [SECURITY.md](SECURITY.md) for auth flow and CSRF · [DATABASE.md](DATABASE.md) for ER diagram and schema · [API.md](API.md) for endpoint reference · [DESIGN/DESIGN_HISTORY.md](DESIGN/DESIGN_HISTORY.md) for pre-implementation design decisions.
