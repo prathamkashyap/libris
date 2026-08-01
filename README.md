@@ -15,6 +15,12 @@ A responsive Library Management System built with Spring Boot 3.5, MySQL, and a 
 - **Server-side validation** with field-level frontend feedback and a uniform `ApiErrorResponse` JSON shape.
 - **MockMvc integration tests**, including a browser-equivalent CSRF cookie/header flow test.
 - **Repository tests** for ISBN uniqueness constraint and auditing timestamp population.
+- **Spring Boot Actuator** with health, info, and metrics endpoints for production monitoring.
+- **Structured JSON logging** via Logstash encoder with traceId/spanId MDC support.
+- **Spotless formatting** enforced in CI with Google Java Format.
+- **Dual-theme system** with a cool dark blue theme and a rosy pink theme, switchable from Settings.
+- **Smooth theme transitions** with CSS animations and no flash on page load.
+- **Decorative floating elements** — rose petals in pink mode, cosmic particles in blue mode.
 
 ## Technology Stack
 
@@ -27,7 +33,7 @@ A responsive Library Management System built with Spring Boot 3.5, MySQL, and a 
 | Build | Maven, Maven Wrapper |
 | Testing | JUnit 5, MockMvc, Hamcrest, AssertJ |
 | Containerization | Docker, Docker Compose |
-| CI | GitHub Actions (`mvn clean verify`) |
+| CI | GitHub Actions (`mvn spotless:check` + `mvn clean verify`) |
 
 ## Architecture
 
@@ -98,6 +104,7 @@ The REST API is rooted at `/api` and returns structured JSON. Key resource group
 | `/api/borrow-records` | Borrow, return, and history |
 | `/api/dashboard` | Aggregate statistics |
 | `/api/profile` | Current authenticated user view |
+| `/actuator` | Health, info, and metrics (production monitoring) |
 
 See [docs/API.md](docs/API.md) for the complete endpoint catalogue, request/response schemas, and error codes.
 
@@ -156,11 +163,12 @@ Run the full isolated test suite from the repository root:
 ./mvnw clean test
 ```
 
-Tests use H2 in MySQL compatibility mode (`create-drop` schema strategy) and cover authentication, role restrictions, CRUD, borrow/return lifecycle, validation errors, ISBN conflicts, CSRF cookie/header exchange, and repository safeguards.
+Tests use H2 in MySQL compatibility mode (`create-drop` schema strategy) and cover authentication, role restrictions, CRUD, borrow/return lifecycle, validation errors, ISBN conflicts, CSRF cookie/header exchange, repository safeguards, and full Student/Librarian delete with account cleanup.
 
 | Test File | Type | Methods | Coverage |
 |-----------|------|---------|----------|
 | `LibraryManagementIntegrationTest` | Integration (MockMvc) | 4 | Login, full CRUD + borrow/return, validation, ISBN conflicts, 401/403 |
+| `CrudIntegrationTest` | Integration (MockMvc) | 7 | Magazine/Newspaper CRUD, Student/Librarian update+delete, Dashboard, Audit, duplicate username |
 | `BrowserCsrfFlowIntegrationTest` | Integration (real CSRF flow) | 1 | CSRF bootstrap → login → session reuse → logout → post-logout rejection |
 | `BookRepositoryTest` | Repository | 1 | Audit timestamp population, ISBN uniqueness constraint |
 
@@ -202,7 +210,9 @@ Full evidence in [screenshots/desktop](screenshots/desktop) and [screenshots/mob
 
 ## Future Improvements
 
-Reservations, fines, notifications, physical-copy modelling, self-service student registration, and JWT-based API access are intentionally deferred from v1.0.0. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#12-out-of-scope-for-v100) for the full deferred scope.
+- **Theme toggle accessibility** — Add theme switcher to sidebar or topbar for quick access from any page.
+- **Additional themes** — Consider adding a light blue or system-preference-following theme.
+- Reservations, fines, notifications, physical-copy modelling, self-service student registration, and JWT-based API access are intentionally deferred from v1.0.0. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#12-out-of-scope-for-v100) for the full deferred scope.
 
 ## License
 
