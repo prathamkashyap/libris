@@ -510,13 +510,18 @@ The v1.0.0 release preparation record reports a successful suite with **6 tests*
 
 The following are intentionally outside v1.0.0:
 
-- Pagination, richer search, and book categories.
+- Richer search filters and book categories.
 - Reservations, notifications, fines, overdue automation, and analytics.
 - Physical-copy modelling for multiple copies of one title/ISBN.
-- Swagger/OpenAPI documentation and generated API clients.
-- Dockerized local/deployment environments.
 - Advanced reporting and operational dashboards.
 - JWT or other API-client authentication only if the project expands beyond its same-origin web application model.
+
+The following were originally deferred but are **implemented in v1.0.0**:
+
+- Basic page/size pagination on list endpoints.
+- Swagger/OpenAPI documentation (springdoc).
+- Docker Compose with MySQL, backend, and phpMyAdmin.
+- CI via GitHub Actions.
 
 ---
 

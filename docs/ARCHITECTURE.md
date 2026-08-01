@@ -591,7 +591,7 @@ See [DESIGN/DESIGN_HISTORY.md](DESIGN/DESIGN_HISTORY.md) for the full ADR discus
 The following are deliberately deferred so the baseline remains coherent:
 
 - **JWT:** Consider for separate clients, APIs, or stateless deployments. (OAuth2 login is implemented via Google client.)
-- **Pagination and richer search:** Add page/size/sort when data size makes list-all unsuitable.
+- **Pagination and richer search:** Basic page/size pagination is implemented. Richer sort options and search filters can be added when data size warrants it.
 - **Book Categories:** Add after requirements clarify whether books have one or many categories.
 - **Physical book copies:** Introduce when multiple copies of one ISBN must be loaned independently.
 - **Fine system:** Add due date, overdue calculation, payment/audit rules.

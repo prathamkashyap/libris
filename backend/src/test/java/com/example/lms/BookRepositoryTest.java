@@ -13,14 +13,22 @@ import org.springframework.dao.DataIntegrityViolationException;
 
 @SpringBootTest
 class BookRepositoryTest {
-    @Autowired BookRepository books;
+  @Autowired BookRepository books;
 
-    @Test void persistsAuditTimestampsAndRejectsDuplicateIsbn() {
-        Book saved = books.saveAndFlush(book("Repository Test", "9780000000001"));
-        assertThat(saved.getCreatedAt()).isNotNull();
-        assertThat(saved.getUpdatedAt()).isNotNull();
-        assertThatThrownBy(() -> books.saveAndFlush(book("Duplicate", "9780000000001"))).isInstanceOf(DataIntegrityViolationException.class);
-    }
+  @Test
+  void persistsAuditTimestampsAndRejectsDuplicateIsbn() {
+    Book saved = books.saveAndFlush(book("Repository Test", "9780000000001"));
+    assertThat(saved.getCreatedAt()).isNotNull();
+    assertThat(saved.getUpdatedAt()).isNotNull();
+    assertThatThrownBy(() -> books.saveAndFlush(book("Duplicate", "9780000000001")))
+        .isInstanceOf(DataIntegrityViolationException.class);
+  }
 
-    private Book book(String title, String isbn) { Book book = new Book(); book.setTitle(title); book.setIsbn(isbn); book.setPublishedDate(LocalDate.of(2020, 1, 1)); return book; }
+  private Book book(String title, String isbn) {
+    Book book = new Book();
+    book.setTitle(title);
+    book.setIsbn(isbn);
+    book.setPublishedDate(LocalDate.of(2020, 1, 1));
+    return book;
+  }
 }

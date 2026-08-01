@@ -3,6 +3,8 @@ package com.example.lms.config;
 import com.example.lms.entity.Account;
 import com.example.lms.entity.Role;
 import com.example.lms.repository.AccountRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -12,54 +14,49 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class AdminSeeder {
 
-    @Bean
-    public CommandLineRunner seedAdmin(
-            AccountRepository accountRepository,
-            PasswordEncoder passwordEncoder,
-            @Value("${lms.admin.username}") String adminUsername,
-            @Value("${lms.admin.password}") String adminPassword) {
+  private static final Logger log = LoggerFactory.getLogger(AdminSeeder.class);
 
-        return args -> {
+  @Bean
+  public CommandLineRunner seedAdmin(
+      AccountRepository accountRepository,
+      PasswordEncoder passwordEncoder,
+      @Value("${lms.admin.username}") String adminUsername,
+      @Value("${lms.admin.password}") String adminPassword) {
 
-            System.out.println("=== AdminSeeder: Starting ===");
-            System.out.println("Admin username from config: " + adminUsername);
-            System.out.println("Admin password from config: " + (adminPassword != null ? "***" + adminPassword.substring(Math.max(0, adminPassword.length() - 4)) : "NULL"));
+    return args -> {
+      log.info("AdminSeeder: Starting");
 
-            if (adminPassword == null || adminPassword.isBlank()) {
-                throw new IllegalStateException(
-                    "LMS_ADMIN_PASSWORD environment variable is required."
-                );
-            }
+      if (adminPassword == null || adminPassword.isBlank()) {
+        throw new IllegalStateException("LMS_ADMIN_PASSWORD environment variable is required.");
+      }
 
-            Account admin = accountRepository
-                    .findByUsername(adminUsername)
-                    .orElseGet(Account::new);
+      Account admin = accountRepository.findByUsername(adminUsername).orElseGet(Account::new);
 
-            boolean isNew = admin.getId() == null;
-            System.out.println("Admin exists: " + !isNew);
+      boolean isNew = admin.getId() == null;
+      log.info("Admin account exists: {}", !isNew);
 
-            admin.setUsername(adminUsername);
+      admin.setUsername(adminUsername);
 
-            if (!isNew) {
-                boolean matches = admin.getPasswordHash() != null &&
-                        passwordEncoder.matches(adminPassword, admin.getPasswordHash());
-                System.out.println("Current password matches: " + matches);
-                if (!matches) {
-                    System.out.println("Updating admin password...");
-                    admin.setPasswordHash(passwordEncoder.encode(adminPassword));
-                } else {
-                    System.out.println("Password already up to date");
-                }
-            } else {
-                System.out.println("Creating new admin with password");
-                admin.setPasswordHash(passwordEncoder.encode(adminPassword));
-            }
+      if (!isNew) {
+        boolean matches =
+            admin.getPasswordHash() != null
+                && passwordEncoder.matches(adminPassword, admin.getPasswordHash());
+        if (!matches) {
+          log.info("Updating admin password");
+          admin.setPasswordHash(passwordEncoder.encode(adminPassword));
+        } else {
+          log.info("Admin password already up to date");
+        }
+      } else {
+        log.info("Creating new admin account");
+        admin.setPasswordHash(passwordEncoder.encode(adminPassword));
+      }
 
-            admin.setRole(Role.ADMIN);
-            admin.setEnabled(true);
+      admin.setRole(Role.ADMIN);
+      admin.setEnabled(true);
 
-            accountRepository.save(admin);
-            System.out.println("=== AdminSeeder: Completed ===");
-        };
-    }
+      accountRepository.save(admin);
+      log.info("AdminSeeder: Completed");
+    };
+  }
 }

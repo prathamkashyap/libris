@@ -20,6 +20,10 @@ jobs:
           distribution: temurin
           cache: maven
 
+      - name: Check formatting
+        run: mvn spotless:check
+        working-directory: backend
+
       - name: Build and test
         run: mvn clean verify
         working-directory: backend
