@@ -1,2 +1,27 @@
-package com.example.lms.security; import com.example.lms.repository.AccountRepository; import org.springframework.security.core.authority.SimpleGrantedAuthority; import org.springframework.security.core.userdetails.*; import org.springframework.stereotype.Service;
-@Service public class AccountUserDetailsService implements UserDetailsService {private final AccountRepository accounts;public AccountUserDetailsService(AccountRepository a){accounts=a;}public UserDetails loadUserByUsername(String username){var a=accounts.findByUsername(username).orElseThrow(()->new UsernameNotFoundException("Invalid credentials."));return User.withUsername(a.getUsername()).password(a.getPasswordHash()).authorities(new SimpleGrantedAuthority("ROLE_"+a.getRole().name())).disabled(!a.isEnabled()).build();}}
+package com.example.lms.security;
+
+import com.example.lms.repository.AccountRepository;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.*;
+import org.springframework.stereotype.Service;
+
+@Service
+public class AccountUserDetailsService implements UserDetailsService {
+  private final AccountRepository accounts;
+
+  public AccountUserDetailsService(AccountRepository a) {
+    accounts = a;
+  }
+
+  public UserDetails loadUserByUsername(String username) {
+    var a =
+        accounts
+            .findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("Invalid credentials."));
+    return User.withUsername(a.getUsername())
+        .password(a.getPasswordHash())
+        .authorities(new SimpleGrantedAuthority("ROLE_" + a.getRole().name()))
+        .disabled(!a.isEnabled())
+        .build();
+  }
+}

@@ -2,7 +2,6 @@ package com.example.lms.dto;
 
 import com.example.lms.entity.AuditAction;
 import com.example.lms.entity.AuditEntityType;
-
 import java.time.Instant;
 
 public record AuditLogResponse(
@@ -16,5 +15,4 @@ public record AuditLogResponse(
     Long entityId,
     String description,
     String ipAddress,
-    String userAgent
-) {}
+    String userAgent) {}

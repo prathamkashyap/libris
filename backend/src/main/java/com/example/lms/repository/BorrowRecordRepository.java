@@ -1,10 +1,57 @@
 package com.example.lms.repository;
-import com.example.lms.entity.BorrowRecord; import java.time.LocalDate; import java.util.List; import org.springframework.data.domain.Page; import org.springframework.data.domain.Pageable; import org.springframework.data.jpa.repository.JpaRepository; import org.springframework.data.jpa.repository.Query;
-public interface BorrowRecordRepository extends JpaRepository<BorrowRecord,Long> { org.springframework.data.domain.Page<BorrowRecord> findByReturnDateIsNull(org.springframework.data.domain.Pageable pageable); org.springframework.data.domain.Page<BorrowRecord> findByReturnDateIsNotNull(org.springframework.data.domain.Pageable pageable); org.springframework.data.domain.Page<BorrowRecord> findByStudentId(Long studentId, org.springframework.data.domain.Pageable pageable); org.springframework.data.domain.Page<BorrowRecord> findByStudentIdAndReturnDateIsNull(Long studentId, org.springframework.data.domain.Pageable pageable); org.springframework.data.domain.Page<BorrowRecord> findByStudentIdAndReturnDateIsNotNull(Long studentId, org.springframework.data.domain.Pageable pageable); boolean existsByBookId(Long bookId); boolean existsByMagazineId(Long magazineId); boolean existsByNewspaperId(Long newspaperId);
- long countByReturnDateIsNull(); java.util.List<BorrowRecord> findByReturnDateIsNullAndBorrowDateBefore(LocalDate date);
- @Query(value="SELECT YEAR(r.borrow_date) yr,MONTH(r.borrow_date) mo,COUNT(*) cnt FROM borrow_records r GROUP BY yr,mo ORDER BY yr ASC,mo ASC",nativeQuery=true) List<Object[]> findMonthlyTrends();
- @Query("SELECT r.book.id,r.book.title,r.book.author,COUNT(r) FROM BorrowRecord r WHERE r.book IS NOT NULL GROUP BY r.book.id,r.book.title,r.book.author ORDER BY COUNT(r) DESC") List<Object[]> findTopBooks(org.springframework.data.domain.Pageable pageable);
- @Query("SELECT r.student.id,r.student.name,r.student.email,COUNT(r) FROM BorrowRecord r WHERE r.student IS NOT NULL GROUP BY r.student.id,r.student.name,r.student.email ORDER BY COUNT(r) DESC") List<Object[]> findTopReaders(org.springframework.data.domain.Pageable pageable);
- java.util.List<BorrowRecord> findByBorrowDateBetween(LocalDate from,LocalDate to,org.springframework.data.domain.Sort sort);
- @Query("SELECT r FROM BorrowRecord r WHERE LOWER(r.borrowerName) LIKE LOWER(CONCAT('%',:q,'%')) OR LOWER(r.borrowerEmail) LIKE LOWER(CONCAT('%',:q,'%'))") org.springframework.data.domain.Page<BorrowRecord> search(@org.springframework.data.repository.query.Param("q") String q, org.springframework.data.domain.Pageable pageable);
- }
+
+import com.example.lms.entity.BorrowRecord;
+import java.time.LocalDate;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long> {
+  org.springframework.data.domain.Page<BorrowRecord> findByReturnDateIsNull(
+      org.springframework.data.domain.Pageable pageable);
+
+  org.springframework.data.domain.Page<BorrowRecord> findByReturnDateIsNotNull(
+      org.springframework.data.domain.Pageable pageable);
+
+  org.springframework.data.domain.Page<BorrowRecord> findByStudentId(
+      Long studentId, org.springframework.data.domain.Pageable pageable);
+
+  org.springframework.data.domain.Page<BorrowRecord> findByStudentIdAndReturnDateIsNull(
+      Long studentId, org.springframework.data.domain.Pageable pageable);
+
+  org.springframework.data.domain.Page<BorrowRecord> findByStudentIdAndReturnDateIsNotNull(
+      Long studentId, org.springframework.data.domain.Pageable pageable);
+
+  boolean existsByBookId(Long bookId);
+
+  boolean existsByMagazineId(Long magazineId);
+
+  boolean existsByNewspaperId(Long newspaperId);
+
+  long countByReturnDateIsNull();
+
+  java.util.List<BorrowRecord> findByReturnDateIsNullAndBorrowDateBefore(LocalDate date);
+
+  @Query(
+      value =
+          "SELECT YEAR(r.borrow_date) yr,MONTH(r.borrow_date) mo,COUNT(*) cnt FROM borrow_records r GROUP BY yr,mo ORDER BY yr ASC,mo ASC",
+      nativeQuery = true)
+  List<Object[]> findMonthlyTrends();
+
+  @Query(
+      "SELECT r.book.id,r.book.title,r.book.author,COUNT(r) FROM BorrowRecord r WHERE r.book IS NOT NULL GROUP BY r.book.id,r.book.title,r.book.author ORDER BY COUNT(r) DESC")
+  List<Object[]> findTopBooks(org.springframework.data.domain.Pageable pageable);
+
+  @Query(
+      "SELECT r.student.id,r.student.name,r.student.email,COUNT(r) FROM BorrowRecord r WHERE r.student IS NOT NULL GROUP BY r.student.id,r.student.name,r.student.email ORDER BY COUNT(r) DESC")
+  List<Object[]> findTopReaders(org.springframework.data.domain.Pageable pageable);
+
+  java.util.List<BorrowRecord> findByBorrowDateBetween(
+      LocalDate from, LocalDate to, org.springframework.data.domain.Sort sort);
+
+  @Query(
+      "SELECT r FROM BorrowRecord r WHERE LOWER(r.borrowerName) LIKE LOWER(CONCAT('%',:q,'%')) OR LOWER(r.borrowerEmail) LIKE LOWER(CONCAT('%',:q,'%'))")
+  org.springframework.data.domain.Page<BorrowRecord> search(
+      @org.springframework.data.repository.query.Param("q") String q,
+      org.springframework.data.domain.Pageable pageable);
+}

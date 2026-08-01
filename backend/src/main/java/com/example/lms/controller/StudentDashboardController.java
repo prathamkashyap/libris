@@ -6,53 +6,51 @@ import com.example.lms.service.StudentService;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-@RestController @RequestMapping("/api/student")
+@RestController
+@RequestMapping("/api/student")
 public class StudentDashboardController {
 
-    private final StudentService studentService;
-    private final BorrowRecordService borrowService;
+  private final StudentService studentService;
+  private final BorrowRecordService borrowService;
 
-    public StudentDashboardController(StudentService s, BorrowRecordService b) {
-        this.studentService = s;
-        this.borrowService = b;
-    }
+  public StudentDashboardController(StudentService s, BorrowRecordService b) {
+    this.studentService = s;
+    this.borrowService = b;
+  }
 
-    @GetMapping("/dashboard")
-    public StudentDashboardResponse getDashboard(Authentication authentication) {
-        var student = studentService.getByUsername(authentication.getName());
-        
-        var borrowed = borrowService.list("BORROWED", null, org.springframework.data.domain.Pageable.unpaged());
-        var returned = borrowService.list("RETURNED", null, org.springframework.data.domain.Pageable.unpaged());
-        
-        var currentBorrows = borrowed.getContent().stream()
+  @GetMapping("/dashboard")
+  public StudentDashboardResponse getDashboard(Authentication authentication) {
+    var student = studentService.getByUsername(authentication.getName());
+
+    var borrowed =
+        borrowService.list("BORROWED", null, org.springframework.data.domain.Pageable.unpaged());
+    var returned =
+        borrowService.list("RETURNED", null, org.springframework.data.domain.Pageable.unpaged());
+
+    var currentBorrows =
+        borrowed.getContent().stream()
             .filter(r -> r.studentId().equals(student.id()))
             .map(this::toSummary)
             .toList();
-        
-        var history = returned.getContent().stream()
+
+    var history =
+        returned.getContent().stream()
             .filter(r -> r.studentId().equals(student.id()))
             .map(this::toSummary)
             .toList();
-        
-        return new StudentDashboardResponse(
-            student.id(),
-            student.name(),
-            student.email(),
-            student.phone(),
-            student.username(),
-            currentBorrows,
-            history
-        );
-    }
 
-    private BorrowRecordSummary toSummary(com.example.lms.dto.BorrowRecordResponse r) {
-        return new BorrowRecordSummary(
-            r.id(),
-            r.itemTitle(),
-            r.itemType(),
-            r.borrowDate(),
-            r.returnDate(),
-            r.status()
-        );
-    }
+    return new StudentDashboardResponse(
+        student.id(),
+        student.name(),
+        student.email(),
+        student.phone(),
+        student.username(),
+        currentBorrows,
+        history);
+  }
+
+  private BorrowRecordSummary toSummary(com.example.lms.dto.BorrowRecordResponse r) {
+    return new BorrowRecordSummary(
+        r.id(), r.itemTitle(), r.itemType(), r.borrowDate(), r.returnDate(), r.status());
+  }
 }
