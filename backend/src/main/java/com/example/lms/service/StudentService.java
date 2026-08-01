@@ -114,7 +114,9 @@ public class StudentService {
   public void delete(Long id) {
     var p = student(id);
     var name = p.getName();
+    var account = p.getAccount();
     students.delete(p);
+    accounts.delete(account);
     var actor = currentUser.get();
     events.publishEvent(
         new EntityAuditEvent(

@@ -105,7 +105,9 @@ public class LibrarianService {
   public void delete(Long id) {
     var p = librarian(id);
     var name = p.getName();
+    var account = p.getAccount();
     librarians.delete(p);
+    accounts.delete(account);
     var actor = currentUser.get();
     events.publishEvent(
         new EntityAuditEvent(
