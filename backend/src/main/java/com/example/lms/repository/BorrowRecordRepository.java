@@ -3,22 +3,28 @@ package com.example.lms.repository;
 import com.example.lms.entity.BorrowRecord;
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long> {
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
   org.springframework.data.domain.Page<BorrowRecord> findByReturnDateIsNull(
       org.springframework.data.domain.Pageable pageable);
 
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
   org.springframework.data.domain.Page<BorrowRecord> findByReturnDateIsNotNull(
       org.springframework.data.domain.Pageable pageable);
 
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
   org.springframework.data.domain.Page<BorrowRecord> findByStudentId(
       Long studentId, org.springframework.data.domain.Pageable pageable);
 
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
   org.springframework.data.domain.Page<BorrowRecord> findByStudentIdAndReturnDateIsNull(
       Long studentId, org.springframework.data.domain.Pageable pageable);
 
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
   org.springframework.data.domain.Page<BorrowRecord> findByStudentIdAndReturnDateIsNotNull(
       Long studentId, org.springframework.data.domain.Pageable pageable);
 
@@ -46,11 +52,15 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
       "SELECT r.student.id,r.student.name,r.student.email,COUNT(r) FROM BorrowRecord r WHERE r.student IS NOT NULL GROUP BY r.student.id,r.student.name,r.student.email ORDER BY COUNT(r) DESC")
   List<Object[]> findTopReaders(org.springframework.data.domain.Pageable pageable);
 
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
   java.util.List<BorrowRecord> findByBorrowDateBetween(
       LocalDate from, LocalDate to, org.springframework.data.domain.Sort sort);
 
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
+  java.util.List<BorrowRecord> findAll(org.springframework.data.domain.Sort sort);
+
   @Query(
-      "SELECT r FROM BorrowRecord r WHERE LOWER(r.borrowerName) LIKE LOWER(CONCAT('%',:q,'%')) OR LOWER(r.borrowerEmail) LIKE LOWER(CONCAT('%',:q,'%'))")
+      "SELECT r FROM BorrowRecord r LEFT JOIN FETCH r.book LEFT JOIN FETCH r.magazine LEFT JOIN FETCH r.newspaper LEFT JOIN FETCH r.student WHERE LOWER(r.borrowerName) LIKE LOWER(CONCAT('%',:q,'%')) OR LOWER(r.borrowerEmail) LIKE LOWER(CONCAT('%',:q,'%'))")
   org.springframework.data.domain.Page<BorrowRecord> search(
       @org.springframework.data.repository.query.Param("q") String q,
       org.springframework.data.domain.Pageable pageable);
