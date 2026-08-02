@@ -19,16 +19,19 @@ public class SecurityConfig {
   private final PasswordEncoder passwords;
   private final RestAuthenticationEntryPoint authenticationEntryPoint;
   private final RestAccessDeniedHandler accessDeniedHandler;
+  private final CustomOidcUserService oidcUserService;
 
   public SecurityConfig(
       AccountUserDetailsService users,
       PasswordEncoder passwords,
       RestAuthenticationEntryPoint entryPoint,
-      RestAccessDeniedHandler deniedHandler) {
+      RestAccessDeniedHandler deniedHandler,
+      org.springframework.beans.factory.ObjectProvider<CustomOidcUserService> oidcUserService) {
     this.users = users;
     this.passwords = passwords;
     this.authenticationEntryPoint = entryPoint;
     this.accessDeniedHandler = deniedHandler;
+    this.oidcUserService = oidcUserService.getIfAvailable();
   }
 
   @Bean
@@ -46,10 +49,12 @@ public class SecurityConfig {
   }
 
   @Bean
-  SecurityFilterChain security(HttpSecurity http) throws Exception {
+  SecurityFilterChain security(
+      HttpSecurity http,
+      org.springframework.beans.factory.ObjectProvider<org.springframework.security.oauth2.client.registration.ClientRegistrationRepository> clientRegistrationRepository) throws Exception {
     CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
 
-    return http.csrf(
+    http.csrf(
             csrf ->
                 csrf.csrfTokenRepository(csrfTokenRepository)
                     .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
@@ -63,8 +68,6 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
                         "/login.html",
                         "/styles.css",
                         "/css/**",
@@ -87,6 +90,8 @@ public class SecurityConfig {
                     .hasRole("ADMIN")
                     .requestMatchers("/api/analytics/**", "/api/audit/**", "/api/reports/**")
                     .hasAnyRole("ADMIN", "LIBRARIAN")
+                    .requestMatchers("/api/borrow-records/my")
+                    .hasAnyRole("ADMIN", "LIBRARIAN", "STUDENT")
                     .requestMatchers(
                         "/api/books/**",
                         "/api/students/**",
@@ -94,9 +99,19 @@ public class SecurityConfig {
                         "/api/dashboard")
                     .hasAnyRole("ADMIN", "LIBRARIAN")
                     .anyRequest()
-                    .authenticated())
-        .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("/"))
-        .userDetailsService(users)
-        .build();
+                    .authenticated());
+
+    org.springframework.security.oauth2.client.registration.ClientRegistrationRepository repo = clientRegistrationRepository.getIfAvailable();
+    if (repo != null) {
+        http.oauth2Login(oauth2 -> {
+            oauth2.defaultSuccessUrl("/");
+            if (oidcUserService != null) {
+                oauth2.userInfoEndpoint(userInfo -> userInfo.oidcUserService(oidcUserService));
+            }
+        });
+    }
+
+    http.userDetailsService(users);
+    return http.build();
   }
 }

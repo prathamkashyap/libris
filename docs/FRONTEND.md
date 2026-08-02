@@ -37,19 +37,25 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [SECURITY.md](SECU
 
 ```text
 index.html
-└── js/main.js (type="module")
+└── js/app-init.js (type="module")
+      ├── js/dashboard.js
+      ├── js/theme.js
+      ├── js/palette.js
+      ├── js/sidebar.js
+      ├── js/topbar.js
       ├── components/modal.js
+      ├── components/sidebar-loader.js
       └── js/api/
             ├── http.js              → requestJson utility, CSRF header, credentials
             ├── auth-api.js          → csrf, login, logout, me
-            ├── books-api.js         → list, create
-            ├── magazines-api.js     → list, create
-            ├── newspapers-api.js    → list, create
-            ├── students-api.js      → list, create
-            ├── librarians-api.js    → list, create
+            ├── books-api.js         → list, create, update, delete
+            ├── magazines-api.js     → list, create, update, delete
+            ├── newspapers-api.js    → list, create, update, delete
+            ├── students-api.js      → list, create, update, delete
+            ├── librarians-api.js    → list, create, update, delete
             ├── borrow-api.js        → list, create, returnBook
             ├── dashboard-api.js     → get
-            ├── student-dashboard-api.js → getDashboard, getBorrowHistory
+            ├── student-dashboard-api.js → getDashboard
             ├── analytics-api.js     → analytics endpoints
             └── report-api.js        → CSV export endpoints
 
@@ -64,7 +70,7 @@ js/utils/
 
 Each API module (`books-api.js`, `students-api.js`, etc.) imports `requestJson` from `http.js` and exports typed functions for its resource. All non-GET requests automatically include the `X-XSRF-TOKEN` header from the `XSRF-TOKEN` cookie.
 
-**Note:** The frontend JS API modules (`booksApi`, `studentsApi`, `librariansApi`) currently expose `list()` and `create()` methods. The backend supports PUT and DELETE endpoints, but the frontend has no UI to invoke them — the "Actions" column in each table renders a `—` dash placeholder.
+**Note:** The frontend JS API modules (`booksApi`, `studentsApi`, `librariansApi`, etc.) expose full CRUD methods (`list`, `create`, `update`, `delete`). These methods are wired up to the frontend UI "Actions" column allowing direct in-table edits and deletions.
 
 ### http.js — the Fetch helper
 
@@ -75,24 +81,23 @@ Each API module (`books-api.js`, `students-api.js`, etc.) imports `requestJson` 
 - Parses error responses into a uniform shape.
 - Handles `204 No Content` without attempting JSON parse.
 
-### main.js — the dashboard orchestrator
+### dashboard.js / app-init.js — the orchestrators
 
-`main.js` is the entry point for the dashboard page. It:
-1. Checks for an existing session via `authApi.me()`.
-2. Loads role-specific data (student vs. admin/librarian) in parallel.
-3. Renders dashboard cards, recent activity, and sidebar user info.
-4. Wires the logout button.
+`app-init.js` is the main entry point which handles common setup across all pages (theme, topbar, palette, authentication). `dashboard.js` runs specific dashboard logic:
+1. Loads role-specific data (student vs. admin/librarian) in parallel.
+2. Renders dashboard cards and recent activity.
+3. Initializes the sidebar using `sidebar-loader.js`.
 
 ---
 
 ## CSS Architecture
 
-The frontend uses **two stylesheets**: a root-level `styles.css` (fonts, animations, and global styles) and `css/styles.css` (design tokens and CSS custom properties). Each HTML page loads `styles.css` from the root. Design tokens are implemented as CSS custom properties in `css/styles.css`.
+The frontend uses **two stylesheets**: a root-level `styles.css` (fonts, animations, variables, and global styles) and `login.css` (specialized animations for the auth page). Design tokens are implemented as CSS custom properties in `styles.css`.
 
 | File | Purpose |
 |------|---------|
-| `styles.css` (root) | Fonts (Fraunces, Inter, IBM Plex Mono), animations, global layout and component styles |
-| `css/styles.css` | Design tokens as CSS custom properties (`:root`), palette, radii, gradients |
+| `styles.css` | Fonts, animations, design tokens (`:root`), global layout and component styles |
+| `login.css` | Specialized styling and animations for `login.html` |
 
 ### Design tokens (CSS custom properties)
 
@@ -122,7 +127,12 @@ The color scheme and typography are defined as CSS custom properties at `:root`:
 
 ---
 
-## Modal System
+## Component System
+
+The frontend utilizes a modular approach for shared UI components:
+
+1. **Modal (`components/modal.js`)**: Provides a reusable accessible modal dialog.
+2. **Sidebar (`components/sidebar.html` & `components/sidebar-loader.js`)**: A shared HTML partial loaded dynamically by JavaScript to prevent duplication across all 19 HTML pages.
 
 `components/modal.js` provides a reusable accessible modal dialog. It defines 4 form types declaratively:
 
@@ -178,7 +188,6 @@ Navigation uses standard `<a href="page.html">` links. The active page is marked
 
 | Gap | Description |
 |-----|-------------|
-| No PUT/DELETE UI | Backend supports update and delete endpoints, but the frontend has no UI to invoke them |
 | `register.html` | Self-registration page exists but is not wired to any backend endpoint |
 | `roles.html`, `settings.html` | Static pages with no dynamic data |
 | No frontend tests | No JavaScript test files exist |

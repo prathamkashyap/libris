@@ -14,6 +14,9 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
   Optional<StudentProfile> findByAccountUsername(String username);
 
   @EntityGraph(attributePaths = {"account"})
+  Optional<StudentProfile> findByEmail(String email);
+
+  @EntityGraph(attributePaths = {"account"})
   Page<StudentProfile> findAll(Pageable pageable);
 
   @Query(

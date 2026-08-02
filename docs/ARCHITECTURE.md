@@ -44,7 +44,7 @@ flowchart LR
 | **API** | REST endpoints, request validation, HTTP semantics | 14 `@RestController` classes under `/api/**` |
 | **Service** | Business rules, transactions, DTO mapping | 11 `@Service` classes with `@Transactional` |
 | **Persistence** | Data access | 8 `JpaRepository` interfaces with derived query methods |
-| **Security** | AuthN, AuthZ, CSRF, session | Spring Security 6.5 filter chain + 5 security classes |
+| **Security** | AuthN, AuthZ, CSRF, session | Spring Security 6.5 filter chain + 6 security classes |
 | **Cross-cutting** | Error handling, auditing | `@RestControllerAdvice` + `@MappedSuperclass` auditing |
 
 ---
@@ -100,7 +100,7 @@ com.example.lms
 ├── event/              EntityAuditEvent, AuditEventListener
 ├── exception/          3 custom exceptions + 1 @RestControllerAdvice handler
 ├── repository/         8 JPA interfaces
-├── security/           5 security classes
+├── security/           6 security classes
 ├── service/            11 transactional services
 └── util/               CurrentUser, StringUtils
 ```

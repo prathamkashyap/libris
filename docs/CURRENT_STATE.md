@@ -137,9 +137,8 @@ spring-security-test
 - `StudentProfileRepository`: `JOIN FETCH` on `Account` association
 - `LibrarianProfileRepository`: `JOIN FETCH` on `Account` association
 
-### Phase 3A — Flyway + Swagger Restriction (pre-session)
-- Flyway migrations in place
-- Swagger UI restricted to ADMIN/LIBRARIAN roles
+### Phase 3A — Swagger Restriction (pre-session)
+- Swagger UI restricted (disabled in production profile)
 
 ### Phase 3B — Observability
 - Spring Boot Actuator enabled with health/info/metrics endpoints
@@ -158,6 +157,18 @@ spring-security-test
 
 ### Phase 6 — README Update
 - README updated with Actuator, N+1 fixes, Spotless, new tests, and JSON logging sections
+
+### Phase 7 (Phase A) — Repository Cleanup & OAuth Fix
+- Fixed OAuth startup regression in `SecurityConfig` by conditionally initializing `.oauth2Login()` with `ObjectProvider<ClientRegistrationRepository>`.
+- Full test suite passed (13 tests) and server startup verified.
+- Cleaned up frontend `main.js` and modernized JS structure.
+- Implemented `sidebar.html` and `sidebar-loader.js` as a reusable component.
+
+### Phase 8 (Phase B) — Documentation Synchronization
+- Performed full repository consistency audit between docs and codebase.
+- Updated `FRONTEND.md` to reflect the new 37-module JS architecture and the new Sidebar component.
+- Updated `SECURITY.md` to document `CustomOidcUserService` and correct Swagger authorization rules.
+- Updated `ARCHITECTURE.md` and `PROJECT_STRUCTURE.md` with corrected security class counts and accurate filesystem tree generation.
 
 ---
 

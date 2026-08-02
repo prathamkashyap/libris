@@ -18,7 +18,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [API.md](API.md) f
 | User lookup | `AccountUserDetailsService` implements `UserDetailsService`; maps `Account` → Spring Security `User` with `ROLE_` prefix |
 | Authentication provider | `DaoAuthenticationProvider` wired with the UserDetailsService and BCrypt encoder |
 | Login endpoint | `POST /api/auth/login` → `AuthService.login()` → `AuthenticationManager.authenticate()` → creates `SecurityContext` and stores in HTTP session |
-| OAuth2 login | Google OAuth2 client configured via `oauth2Login()` with `defaultSuccessUrl("/")`. Client ID/secret from `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` env vars. |
+| OAuth2 login | Google OAuth2 client configured via `oauth2Login()` with `defaultSuccessUrl("/")` and `CustomOidcUserService` mapping. Client ID/secret from `application-oauth.properties` via `oauth` profile. |
 | Session management | `SessionCreationPolicy.IF_REQUIRED` — sessions are created on login, not eagerly |
 
 ### Login flow
@@ -74,7 +74,7 @@ Authorization is enforced at the URL-pattern level in `SecurityConfig.security()
 
 ```java
 // Public endpoints
-.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/login.html", "/styles.css",
+.requestMatchers("/login.html", "/styles.css",
     "/css/**", "/js/**", "/components/**", "/assets/**",
     "/api/auth/login", "/api/auth/csrf", "/login.html", "/register.html").permitAll()
 
@@ -99,7 +99,7 @@ Authorization is enforced at the URL-pattern level in `SecurityConfig.security()
 // Librarian dashboard — ADMIN and LIBRARIAN
 .requestMatchers("/api/librarian/dashboard").hasAnyRole("ADMIN", "LIBRARIAN")
 
-// Everything else — authenticated
+// Everything else (including Swagger UI) — authenticated
 .anyRequest().authenticated()
 ```
 

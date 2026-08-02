@@ -22,9 +22,9 @@ This document tracks the staged review and implementation plan for Project A. Ea
 
 **Status:** Done — BorrowRecord, Student, Librarian repositories.
 
-### Phase 3A — Flyway Migrations + Swagger Restriction to Dev/Test
+### Phase 3A — Swagger Restriction to Dev/Test
 
-**Status:** Done (before session)
+**Status:** Done (disabled in production profile)
 
 ### Phase 3B — Actuator + Structured Logging
 

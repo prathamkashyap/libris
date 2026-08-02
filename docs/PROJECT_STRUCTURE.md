@@ -25,7 +25,7 @@ Library Management System/
 │   │   ├── event/                     EntityAuditEvent, AuditEventListener
 │   │   ├── exception/                 3 custom exceptions + global handler
 │   │   ├── repository/                8 JPA repositories
-│   │   ├── security/                  5 security classes
+│   │   ├── security/                  6 security classes
 │   │   ├── service/                   11 transactional services
 │   │   └── util/                      CurrentUser, StringUtils
 │   ├── src/main/resources/
@@ -57,78 +57,79 @@ Library Management System/
 
 All frontend files live in `backend/src/main/resources/static/`.
 
-### 2.1 HTML Pages (19 files)
+### 2.1 HTML Pages (18 files)
 
 ```
 static/
-├── index.html                 Dashboard            (204 lines)
-├── books.html                 Books catalog        (162 lines)
-├── book-details.html          Book detail view     (125 lines)
-├── add-book.html              Add book form        (151 lines)
-├── magazines.html             Magazines catalog    (148 lines)
-├── newspapers.html            Newspapers catalog   (148 lines)
-├── students.html              Student list         (145 lines)
-├── student-profile.html       Student detail       (125 lines)
-├── librarians.html            Librarian list       (147 lines)
-├── librarian-profile.html     Librarian detail     (125 lines)
-├── borrow.html                Borrow records       (144 lines)
-├── analytics.html             Analytics dashboard  (220 lines)
-├── reports.html               Reports/exports      (152 lines)
-├── roles.html                 Roles & permissions  (168 lines)
-├── settings.html              Settings (9 tabs)    (146 lines)
-├── profile.html               User profile         (192 lines)
-├── login.html                 Authentication       (639 lines)
-├── register.html              Account info page    (27 lines)
+├── add-book.html
+├── analytics.html
+├── book-details.html
+├── books.html
+├── borrow.html
+├── index.html
+├── librarian-profile.html
+├── librarians.html
+├── login.html
+├── magazines.html
+├── newspapers.html
+├── profile.html
+├── register.html
+├── reports.html
+├── roles.html
+├── settings.html
+├── student-profile.html
+└── students.html
 ```
 
-### 2.2 JavaScript Modules (31 files)
+### 2.2 JavaScript Modules (37 files)
 
 ```
-js/
-├── main.js                    Legacy monolith (326 lines) — dashboard orchestrator
-├── dashboard.js               Dashboard page module (83 lines)
-├── books.js                   Books page (273 lines)
-├── book-details.js            Book detail page (198 lines)
-├── magazines.js               Magazines page (148 lines)
-├── newspapers.js              Newspapers page (147 lines)
-├── students.js                Students page (175 lines)
-├── student-profile.js         Student profile page (246 lines)
-├── librarians.js              Librarians page (154 lines)
-├── librarian-profile.js       Librarian profile page (168 lines)
-├── borrow.js                  Borrow records page (186 lines)
-├── analytics.js               Analytics page (264 lines)
-├── reports.js                 Reports page (26 lines)
-├── profile.js                 Profile page (47 lines)
-│
-├── api/
-│   ├── http.js                HTTP boundary — CSRF, fetch wrapper (65 lines)
-│   ├── auth-api.js            Auth endpoints (2 lines)
-│   ├── books-api.js           Book CRUD (8 lines)
-│   ├── magazines-api.js       Magazine CRUD (8 lines)
-│   ├── newspapers-api.js      Newspaper CRUD (8 lines)
-│   ├── students-api.js        Student CRUD (8 lines)
-│   ├── librarians-api.js      Librarian CRUD (8 lines)
-│   ├── borrow-api.js          Borrow ops (2 lines)
-│   ├── dashboard-api.js       Dashboard stats (2 lines)
-│   ├── analytics-api.js       Analytics endpoints (8 lines)
-│   ├── report-api.js          CSV exports (6 lines)
-│   └── student-dashboard-api.js  Student portal (12 lines)
-│
-└── utils/
-    ├── esc.js                 XSS-safe HTML escaping (2 lines)
-    ├── toast.js               Toast notifications (16 lines)
-    ├── pagination.js          Pager rendering (39 lines)
-    └── confirm.js             Confirmation dialogs (23 lines)
-
-components/
-└── modal.js                   Generic modal/form generator (80 lines)
+js (and static)/
+├── components/modal.js
+├── components/sidebar-loader.js
+├── js/analytics.js
+├── js/api/analytics-api.js
+├── js/api/auth-api.js
+├── js/api/books-api.js
+├── js/api/borrow-api.js
+├── js/api/dashboard-api.js
+├── js/api/http.js
+├── js/api/librarians-api.js
+├── js/api/magazines-api.js
+├── js/api/newspapers-api.js
+├── js/api/report-api.js
+├── js/api/student-dashboard-api.js
+├── js/api/students-api.js
+├── js/app-init.js
+├── js/book-details.js
+├── js/books.js
+├── js/borrow.js
+├── js/dashboard.js
+├── js/librarian-profile.js
+├── js/librarians.js
+├── js/magazines.js
+├── js/main.js
+├── js/newspapers.js
+├── js/palette.js
+├── js/profile.js
+├── js/reports.js
+├── js/sidebar.js
+├── js/student-profile.js
+├── js/students.js
+├── js/theme.js
+├── js/topbar.js
+├── js/utils/confirm.js
+├── js/utils/esc.js
+├── js/utils/pagination.js
+└── js/utils/toast.js
 ```
 
 ### 2.3 Stylesheets (2 files)
 
 ```
-├── styles.css                 Main stylesheet (1711 lines) — themes, components, layout
-├── css/styles.css             Legacy/reference stylesheet (547 lines)
+css (and static)/
+├── login.css
+└── styles.css
 ```
 
 ### 2.4 Assets
@@ -442,8 +443,6 @@ AuditableEntity (superclass)
 | Method | Path | Response |
 |--------|------|----------|
 | GET | `/api/student/dashboard` | `StudentDashboardResponse` |
-| GET | `/api/student/borrow-history` | Page of `BorrowRecordResponse` |
-| GET | `/api/student/profile` | `StudentProfileResponse` |
 
 **Total: 48 endpoints across 13 resource groups**
 
@@ -637,7 +636,7 @@ Only one reusable component exists: `components/modal.js`
 | Category | Count |
 |----------|-------|
 | HTML pages | 19 (17 authenticated + 1 login + 1 register info) |
-| JS modules | 31 (14 page + 12 API + 4 utility + 1 component) |
+| JS modules | 36 (14 page + 12 API + 4 utility + 5 component + 1 initializer) |
 | CSS files | 2 (1 main + 1 legacy) |
 | Java files | 57 (14 controllers + 11 services + 8 repositories + 8 entities + 24 DTOs + ...) |
 | REST endpoints | 48 across 13 resource groups |

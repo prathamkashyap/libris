@@ -66,7 +66,7 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the complete system design,
 │   │   ├── entity/           8 entities + 1 superclass + 3 enums
 │   │   ├── exception/        3 custom exceptions + global handler
 │   │   ├── repository/       8 JPA repositories
-│   │   ├── security/         5 security classes
+│   │   ├── security/         6 security classes
 │   │   └── service/          11 transactional services
 │   ├── src/main/resources/
 │   │   ├── static/           Frontend (HTML, JS, CSS, assets)
