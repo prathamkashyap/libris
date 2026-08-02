@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+  (function(){
+    var t=localStorage.getItem('theme');
+    if(t==='bloom'||t==='slate')document.documentElement.setAttribute('data-theme',t);
+  })();
+</script>
+<style>
+  html{transition:background-color .3s ease,color .3s ease}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analytics — Libris</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="petal-decor" aria-hidden="true"></div>
+<div class="star-decor" aria-hidden="true"></div>
+
+<nav class="rail" id="rail"></nav>
+
+<main class="canvas single">
+  <div class="shell-page">
+    <div class="topbar">
+    <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    <div class="breadcrumb"><a href="index.html">Libris</a> <span class="sep">/</span> <span class="current">Analytics</span></div>
+    <button class="search-trigger" id="searchTrigger">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      Search Libris&hellip;
+      <kbd>&#8984;K</kbd>
+    </button>
+    <div class="notif-wrap">
+      <button class="topbar-icon" id="notifBell"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="dot"></span></button>
+      <div class="notif-panel" id="notifPanel">
+        <div class="notif-panel-head">Notifications</div>
+        <div class="notif-item"><span class="dot" style="background:#C97355"></span><div><b>Sapiens</b> is overdue &mdash; Fatima Sheikh<small>1 hour ago</small></div></div>
+        <div class="notif-item"><span class="dot" style="background:#7FA876"></span><div>New student registered &mdash; Karan Mehta<small>5 hours ago</small></div></div>
+        <div class="notif-item"><span class="dot" style="background:#8FA8C4"></span><div>July circulation report generated<small>Yesterday</small></div></div>
+        <div class="notif-item"><span class="dot" style="background:#E3B06C"></span><div>Nightly backup completed<small>Yesterday</small></div></div>
+      </div>
+    </div>
+        <div class="theme-switch" id="themeSwitch" role="group" aria-label="Theme">
+      <button type="button" class="theme-opt" data-theme-value="bloom" aria-pressed="false" title="Bloom — cute &amp; sakura">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c1 2 .5 3.6-.6 4.7C12.6 6.9 14.3 6.6 16 7.6c-1.7 1-2.2 2.7-1.6 4.4 1.7-1 3.4-.6 4.6.6-2 1-3.6.5-4.7-.6.9 1.2 1.2 2.9.2 4.6-1-1.7-2.7-2.2-4.4-1.6 1 1.7.6 3.4-.6 4.6-1-2-.5-3.6.6-4.7-1.2.9-2.9 1.2-4.6.2 1.7-1 2.2-2.7 1.6-4.4-1.7 1-3.4.6-4.6-.6 2-1 3.6-.5 4.7.6-.9-1.2-1.2-2.9-.2-4.6 1 1.7 2.7 2.2 4.4 1.6-1-1.7-.6-3.4.6-4.6Z"/></svg>
+      </button>
+      <button type="button" class="theme-opt" data-theme-value="ember" aria-pressed="true" title="Ember — warm &amp; scholarly">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c1.2 2.8-1.6 4.2-1.9 7a3.9 3.9 0 0 0 7.8.3c.1-1.3-.4-2.4-1.1-3.3 1.3.7 2.5 2.3 2.5 4.5a6.3 6.3 0 0 1-12.6 0c0-4.3 3.7-5.6 5.3-8.5Z"/></svg>
+      </button>
+      <button type="button" class="theme-opt" data-theme-value="slate" aria-pressed="false" title="Slate — neutral &amp; focused">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 22 12 12 22 2 12Z"/></svg>
+      </button>
+    </div>
+    <img class="topbar-avatar" src="https://api.dicebear.com/7.x/notionists/svg?seed=Admin&amp;backgroundColor=2b2540" alt="">
+  </div>
+    
+<header class="page-head">
+  <div class="eyebrow">Intelligence</div>
+  <h1 class="serif">Analytics</h1>
+  <p class="page-sub">How the collection is actually being read.</p>
+</header>
+
+<div class="stat-grid stat-grid-4">
+  <div class="stat-card"><span class="stat-label">Avg. borrow duration</span><span class="stat-value" id="stat-duration">&mdash;</span></div>
+  <div class="stat-card"><span class="stat-label">Renewal rate</span><span class="stat-value" id="stat-renewal">&mdash;</span></div>
+  <div class="stat-card"><span class="stat-label">Peak hour</span><span class="stat-value" id="stat-peak">&mdash;</span></div>
+  <div class="stat-card"><span class="stat-label">Fill rate</span><span class="stat-value" id="stat-fill">&mdash;</span></div>
+</div>
+
+<!-- Row 1: Issued vs Returned (8 cols) + Usage by Department (4 cols) -->
+<div class="bento">
+  <div class="card span-8">
+    <div class="card-head"><h3>Issued vs. returned</h3></div>
+    <div class="chart-area" id="chart-issued-returned">
+      <svg class="area-chart" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <linearGradient id="grad-issued" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--indigo)" stop-opacity=".3"/>
+            <stop offset="100%" stop-color="var(--indigo)" stop-opacity="0"/>
+          </linearGradient>
+          <linearGradient id="grad-returned" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#4ADE80" stop-opacity=".2"/>
+            <stop offset="100%" stop-color="#4ADE80" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- Grid lines -->
+        <g class="chart-grid" stroke="rgba(255,255,255,.06)" stroke-width="1">
+          <line x1="40" y1="20" x2="620" y2="20"/>
+          <line x1="40" y1="65" x2="620" y2="65"/>
+          <line x1="40" y1="110" x2="620" y2="110"/>
+          <line x1="40" y1="155" x2="620" y2="155"/>
+          <line x1="40" y1="200" x2="620" y2="200"/>
+        </g>
+        <!-- Y-axis labels -->
+        <g class="axis-labels" fill="rgba(155,150,181,.5)" font-size="10" font-family="Inter, sans-serif">
+          <text x="32" y="24" text-anchor="end">5</text>
+          <text x="32" y="69" text-anchor="end">4</text>
+          <text x="32" y="114" text-anchor="end">3</text>
+          <text x="32" y="159" text-anchor="end">2</text>
+          <text x="32" y="204" text-anchor="end">1</text>
+        </g>
+        <!-- Issued area -->
+        <path id="issued-area" d="" fill="url(#grad-issued)"/>
+        <!-- Issued line -->
+        <polyline id="issued-line" points="" fill="none" stroke="var(--indigo)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Returned area -->
+        <path id="returned-area" d="" fill="url(#grad-returned)"/>
+        <!-- Returned line -->
+        <polyline id="returned-line" points="" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 4"/>
+        <!-- X-axis labels -->
+        <g id="issued-x-labels" class="axis-labels" fill="rgba(155,150,181,.5)" font-size="10" font-family="Inter, sans-serif"></g>
+        <!-- Dots for hover -->
+        <g id="issued-dots"></g>
+      </svg>
+      <div class="chart-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:var(--indigo)"></span>Issued</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#4ADE80"></span>Returned</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card span-4">
+    <div class="card-head"><h3>Usage by department</h3></div>
+    <div class="chart-dept" id="chart-department">
+      <!-- Horizontal bar chart rendered by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- Row 2: Borrows by hour (full width) -->
+<div class="bento">
+  <div class="card span-12">
+    <div class="card-head"><h3>Borrows by hour</h3></div>
+    <div class="chart-hour" id="chart-hourly">
+      <div class="bar-chart" id="hourly-bars"></div>
+      <div class="axis-row" id="hourly-labels"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Row 3: Top readers + Most borrowed -->
+<div class="bento">
+  <div class="card span-6">
+    <div class="card-head"><h3>Top readers</h3></div>
+    <ol class="rank-list" id="top-readers">
+      <li class="rank-empty">Loading&hellip;</li>
+    </ol>
+  </div>
+  <div class="card span-6">
+    <div class="card-head"><h3>Most borrowed</h3></div>
+    <ol class="rank-list" id="top-books">
+      <li class="rank-empty">Loading&hellip;</li>
+    </ol>
+  </div>
+</div>
+
+  </div>
+</main>
+
+<div class="cmd-overlay" id="cmdPalette">
+  <div class="cmd-box">
+    <div class="cmd-input-row">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="cmdInput" placeholder="Search books, magazines, students, reports&hellip;">
+    </div>
+    <div class="cmd-section">
+      <div class="cmd-section-label">Go to</div>
+      <a class="cmd-item" href="index.html"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10Zm10 8h8V3h-8v18ZM3 21h8v-6H3v6Z"/></svg>Dashboard</a>
+      <a class="cmd-item" href="books.html"><svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5Z"/></svg>Books<span class="hint">G then B</span></a>
+      <a class="cmd-item" href="magazines.html"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/></svg>Magazines</a>
+      <a class="cmd-item" href="newspapers.html"><svg viewBox="0 0 24 24"><path d="M4 4h13v15a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2V4Z"/></svg>Newspapers</a>
+      <a class="cmd-item" href="students.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/></svg>Students<span class="hint">G then S</span></a>
+      <a class="cmd-item" href="reports.html"><svg viewBox="0 0 24 24"><path d="M7 3h8l5 5v13H7z"/></svg>Reports</a>
+    </div>
+    <div class="cmd-section">
+      <div class="cmd-section-label">Suggestions</div>
+      <a class="cmd-item" href="book-details.html"><svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5Z"/></svg>Sapiens &mdash; Yuval Noah Harari</a>
+      <a class="cmd-item" href="student-profile.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/></svg>Fatima Sheikh &mdash; 1 overdue</a>
+    </div>
+  </div>
+</div>
+<script type="module" src="/js/app-init.js"></script>
+<script type="module" src="js/main.js"></script>
+<script type="module" src="js/analytics.js"></script>
+<script>
+(function(){
+  var root = document.documentElement;
+  var sw = document.getElementById("themeSwitch");
+  if (!sw) return;
+  var opts = Array.prototype.slice.call(sw.querySelectorAll(".theme-opt"));
+  function current(){ return root.getAttribute("data-theme") || "ember"; }
+  function reflect(){
+    var c = current();
+    opts.forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.themeValue === c)); });
+  }
+  opts.forEach(function(b){
+    b.addEventListener("click", function(){
+      var v = b.dataset.themeValue;
+      if (v === "ember") root.removeAttribute("data-theme");
+      else root.setAttribute("data-theme", v);
+      try { localStorage.setItem("theme", v); } catch(e){}
+      reflect();
+    });
+  });
+  reflect();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+  (function(){
+    var t=localStorage.getItem('theme');
+    if(t==='pink')document.documentElement.setAttribute('data-theme','pink');
+  })();
+</script>
+<style>
+  html{transition:background-color .3s ease,color .3s ease}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In — Libris</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340;0,9..144,480;0,9..144,600;0,9..144,680;1,9..144,480&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* ============================================================
+     LOGIN — "Two Doors" theme
+     Pink  = cute / cozy / sakura         (data-theme="pink")
+     Blue  = chūnibyō / arcane / devilish (default)
+     ============================================================ */
+
+  :root{
+    --lp-cream:#FFF8FB; --lp-blossom:#F9A8D4; --lp-cherry:#E85D8A; --lp-deep:#BE185D; --lp-gold:#F4C875;
+    --lb-void:#06060D; --lb-arcane:#7C6CF0; --lb-violet:#A78BFA; --lb-cyan:#38BDF8; --lb-crimson:#DC2626; --lb-glow:#C9BFFA;
+  }
+
+  html,body{ height:100%; }
+  body{ overflow:hidden; background:var(--canvas); }
+  main.login-layout{ overflow-y:auto; height:100vh; }
+
+  /* ---------------------------------------------------------
+     Ambient ombre canvas behind everything
+     --------------------------------------------------------- */
+  .login-layout{
+    display:flex; min-height:100vh; position:relative; isolation:isolate;
+    background:
+      radial-gradient(ellipse 900px 620px at 12% 8%, rgba(124,108,240,.22), transparent 62%),
+      radial-gradient(ellipse 760px 640px at 92% 88%, rgba(56,189,248,.10), transparent 60%),
+      linear-gradient(155deg, #060812 0%, #0B0F1F 45%, #0A0714 100%);
+    transition: background 0.6s ease;
+  }
+  [data-theme="pink"] .login-layout{
+    background:
+      radial-gradient(ellipse 900px 620px at 12% 8%, rgba(249,168,212,.5), transparent 62%),
+      radial-gradient(ellipse 760px 640px at 92% 88%, rgba(244,197,221,.45), transparent 60%),
+      linear-gradient(155deg, #FFF8FB 0%, #FFF0F6 45%, #FDF2F8 100%);
+  }
+
+  /* ---------------------------------------------------------
+     Foreground particle layers (JS-populated, page signature)
+     --------------------------------------------------------- */
+  .fx-layer{ position:fixed; inset:0; pointer-events:none; z-index:2; overflow:hidden; }
+  .petal{
+    position:absolute; top:-5vh; width:var(--size); height:var(--size);
+    background:linear-gradient(135deg,#fff,#fbcfe8 45%,var(--lp-blossom) 75%,var(--lp-cherry));
+    border-radius:0 100% 0 100%;
+    box-shadow:0 0 8px rgba(232,93,138,.25);
+    opacity:0;
+    animation:sakuraFall var(--dur) linear var(--delay) infinite;
+  }
+  @keyframes sakuraFall{
+    0%{ transform:translateY(-8vh) translateX(0) rotate(0deg); opacity:0; }
+    8%{ opacity:.9; }
+    50%{ transform:translateY(50vh) translateX(var(--drift)) rotate(var(--rot)); }
+    92%{ opacity:.75; }
+    100%{ transform:translateY(112vh) translateX(calc(var(--drift) * 1.7)) rotate(calc(var(--rot) * 2)); opacity:0; }
+  }
+  .ember{
+    position:absolute; bottom:-6vh; width:var(--size); height:var(--size); border-radius:50%;
+    background:radial-gradient(circle, #E9E4FF, var(--lb-arcane) 55%, transparent 78%);
+    box-shadow:0 0 10px 2px rgba(124,108,240,.55);
+    opacity:0;
+    animation:emberRise var(--dur) ease-in var(--delay) infinite;
+  }
+  @keyframes emberRise{
+    0%{ transform:translateY(6vh) translateX(0) scale(.5); opacity:0; }
+    10%{ opacity:.95; }
+    55%{ transform:translateY(-48vh) translateX(var(--drift)) scale(1); }
+    100%{ transform:translateY(-115vh) translateX(calc(var(--drift) * 1.6)) scale(.35); opacity:0; }
+  }
+  .rune-glyph{
+    position:absolute; bottom:-4vh; font-family:'Fraunces', serif; color:var(--lb-glow);
+    text-shadow:0 0 10px rgba(167,139,250,.7); opacity:0; user-select:none;
+    animation:runeRise var(--dur) ease-in var(--delay) infinite;
+  }
+  @keyframes runeRise{
+    0%{ transform:translateY(4vh) rotate(0deg) scale(.7); opacity:0; }
+    12%{ opacity:.6; }
+    55%{ transform:translateY(-45vh) rotate(var(--rot)) scale(1); opacity:.5; }
+    100%{ transform:translateY(-108vh) rotate(calc(var(--rot) * 2)) scale(.6); opacity:0; }
+  }
+
+  /* Click / hover burst particles */
+  .burst-bit{
+    position:fixed; left:0; top:0; width:8px; height:8px; pointer-events:none; z-index:60;
+    border-radius:0 100% 0 100%;
+    background:linear-gradient(135deg,#fff,var(--lp-blossom),var(--lp-cherry));
+    animation:burstOut .7s cubic-bezier(.2,.8,.3,1) forwards;
+  }
+  [data-theme="pink"] .burst-bit{ display:block; }
+  .burst-bit.spark{
+    border-radius:50%;
+    background:radial-gradient(circle,#fff,var(--lb-arcane) 60%, transparent);
+    box-shadow:0 0 8px rgba(124,108,240,.7);
+  }
+  @keyframes burstOut{
+    0%{ transform:translate(0,0) scale(1) rotate(0deg); opacity:1; }
+    100%{ transform:translate(var(--dx),var(--dy)) scale(.25) rotate(200deg); opacity:0; }
+  }
+
+  /* ---------------------------------------------------------
+     Theme switch — a little sun/moon | sakura/eye pill
+     --------------------------------------------------------- */
+  .theme-switch{
+    position:fixed; top:22px; right:24px; z-index:50;
+    display:flex; align-items:center; gap:9px;
+    padding:7px 14px 7px 7px; border-radius:999px; cursor:pointer;
+    background:rgba(124,108,240,.10); border:1px solid rgba(167,139,250,.28);
+    backdrop-filter:blur(14px); box-shadow:0 6px 20px -6px rgba(0,0,0,.5);
+    transition:background .3s ease, border-color .3s ease, transform .2s ease;
+  }
+  .theme-switch:hover{ transform:translateY(-1px); }
+  [data-theme="pink"] .theme-switch{
+    background:rgba(255,255,255,.55); border-color:rgba(232,93,138,.25);
+    box-shadow:0 6px 20px -6px rgba(232,93,138,.25);
+  }
+  .theme-switch-thumb{
+    width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,var(--lb-arcane),#4C3FCF); color:#fff;
+    transition:background .3s ease, transform .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  [data-theme="pink"] .theme-switch-thumb{
+    background:linear-gradient(135deg,var(--lp-blossom),var(--lp-cherry));
+    transform:rotate(180deg);
+  }
+  .theme-switch-thumb svg{ width:14px; height:14px; }
+  .theme-switch-label{ font-size:11.5px; font-weight:600; letter-spacing:.03em; color:var(--lb-glow); }
+  [data-theme="pink"] .theme-switch-label{ color:var(--lp-deep); }
+
+  /* ---------------------------------------------------------
+     Branding panel
+     --------------------------------------------------------- */
+  .login-branding{
+    flex:0 0 47%; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:60px 56px 60px 68px;
+    animation:fadeSlideLeft .6s ease both;
+  }
+  .art-wrap{ position:absolute; inset:0; z-index:0; opacity:.9; pointer-events:none; }
+  .art-wrap svg{ position:absolute; }
+  .branch-art{ right:-40px; bottom:-30px; width:420px; height:480px; opacity:.5; display:none; }
+  [data-theme="pink"] .branch-art{ display:block; }
+  .circle-art{ right:-60px; top:50%; transform:translateY(-50%); width:460px; height:460px; opacity:.55; display:block; }
+  [data-theme="pink"] .circle-art{ display:none; }
+  .ring-outer{ transform-box:fill-box; transform-origin:center; animation:ringSpin 46s linear infinite; }
+  .ring-mid{ transform-box:fill-box; transform-origin:center; animation:ringSpinReverse 34s linear infinite; }
+  .ring-ticks{ transform-box:fill-box; transform-origin:center; animation:ringSpin 60s linear infinite; }
+
+  .login-branding > *:not(.art-wrap){ position:relative; z-index:1; }
+
+  .brand-mark{ display:flex; align-items:center; gap:15px; margin-bottom:50px; }
+  .brand-mark-icon{ position:relative; width:48px; height:48px; flex-shrink:0; }
+  .brand-mark-icon svg.logo-svg{ width:48px; height:48px; position:relative; z-index:1; transition:transform .35s ease; }
+  .brand-mark-icon::before{
+    content:''; position:absolute; inset:-8px; border-radius:50%;
+    border:1px dashed rgba(124,108,240,.4); animation:ringSpin 14s linear infinite;
+  }
+  [data-theme="pink"] .brand-mark-icon::before{ border-color:rgba(232,93,138,.35); animation-duration:9s; }
+  .brand-mark:hover .logo-svg{ transform:rotate(-10deg) scale(1.08); }
+  .brand-text{ display:flex; flex-direction:column; }
+  .brand-name{
+    font-family:'Fraunces', serif; font-size:22px; font-weight:620; letter-spacing:-.005em; line-height:1.1;
+    background:linear-gradient(135deg,#C9BFFA,var(--lb-arcane));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  [data-theme="pink"] .brand-name{
+    background:linear-gradient(135deg,var(--lp-deep),var(--lp-cherry));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .brand-sub{ font-size:11px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; margin-top:2px; }
+  .brand-sub .sub-blue{ color:var(--lb-glow); opacity:.75; }
+  .brand-sub .sub-pink{ display:none; color:var(--lp-cherry); opacity:.85; }
+  [data-theme="pink"] .brand-sub .sub-blue{ display:none; }
+  [data-theme="pink"] .brand-sub .sub-pink{ display:inline; }
+
+  .brand-headline{
+    font-family:'Fraunces', serif; font-size:clamp(30px,3.6vw,44px); font-weight:500; line-height:1.16;
+    margin:0 0 20px; color:#EFEBFF;
+  }
+  [data-theme="pink"] .brand-headline{ color:#5B1237; }
+  .brand-headline em{
+    font-style:italic; font-weight:560;
+    background:linear-gradient(135deg,var(--lb-glow),var(--lb-cyan));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    text-shadow:0 0 26px rgba(124,108,240,.35);
+  }
+  [data-theme="pink"] .brand-headline em{
+    background:linear-gradient(135deg,var(--lp-cherry),var(--lp-deep));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    text-shadow:none;
+  }
+  .headline-pink, .desc-pink{ display:none; }
+  [data-theme="pink"] .headline-pink, [data-theme="pink"] .desc-pink{ display:inline; }
+  [data-theme="pink"] .headline-blue, [data-theme="pink"] .desc-blue{ display:none; }
+
+  .brand-desc{ font-size:15px; line-height:1.7; max-width:400px; margin:0 0 42px; color:#B7B4D9; }
+  [data-theme="pink"] .brand-desc{ color:#8C4A67; }
+
+  .brand-capabilities{ display:grid; grid-template-columns:1fr 1fr; gap:10px 16px; list-style:none; margin:0 0 40px; padding:0; }
+  .brand-cap{
+    display:flex; align-items:center; gap:9px; font-size:12.5px; font-weight:500;
+    padding:9px 12px; border-radius:11px; color:#C8C4EC;
+    background:rgba(124,108,240,.07); border:1px solid rgba(124,108,240,.14);
+    transition:transform .25s ease, background .25s ease, border-color .25s ease;
+  }
+  .brand-cap:hover{ transform:translateY(-2px); background:rgba(124,108,240,.14); border-color:rgba(124,108,240,.3); }
+  .brand-cap svg{ width:15px; height:15px; flex-shrink:0; color:var(--lb-glow); transition:transform .35s ease; }
+  .brand-cap:hover svg{ transform:rotate(-14deg) scale(1.15); }
+  [data-theme="pink"] .brand-cap{ color:#7A3B54; background:rgba(232,93,138,.07); border-color:rgba(232,93,138,.14); }
+  [data-theme="pink"] .brand-cap:hover{ background:rgba(232,93,138,.14); border-color:rgba(232,93,138,.28); }
+  [data-theme="pink"] .brand-cap svg{ color:var(--lp-cherry); }
+
+  .brand-trust{
+    display:inline-flex; align-items:center; gap:9px; padding:9px 16px; border-radius:999px;
+    font-size:12px; font-weight:500; color:#ADA8D6;
+    background:rgba(124,108,240,.08); border:1px solid rgba(124,108,240,.18);
+  }
+  .brand-trust svg{ width:15px; height:15px; color:var(--lb-glow); }
+  [data-theme="pink"] .brand-trust{ color:#9E5876; background:rgba(232,93,138,.08); border-color:rgba(232,93,138,.18); }
+  [data-theme="pink"] .brand-trust svg{ color:var(--lp-cherry); }
+  .trust-pink{ display:none; } [data-theme="pink"] .trust-pink{ display:inline; }
+  [data-theme="pink"] .trust-blue{ display:none; }
+
+  /* ---------------------------------------------------------
+     Login panel + card
+     --------------------------------------------------------- */
+  .login-panel{ flex:1; display:flex; align-items:center; justify-content:center; padding:40px 32px; position:relative; z-index:1; }
+
+  .login-card{
+    width:100%; max-width:398px; padding:42px 34px; border-radius:26px;
+    background:rgba(16,14,32,.62); backdrop-filter:blur(22px) saturate(160%);
+    border:1px solid rgba(124,108,240,.22);
+    box-shadow:0 24px 70px -20px rgba(0,0,0,.65), 0 0 0 1px rgba(124,108,240,.06) inset;
+    position:relative; isolation:isolate; overflow:hidden;
+    transform:perspective(1000px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+    transition:transform .25s ease, box-shadow .4s ease, border-color .4s ease;
+    animation:fadeSlideUp .55s ease .1s both;
+  }
+  [data-theme="pink"] .login-card{
+    background:rgba(255,255,255,.72);
+    border-color:rgba(232,93,138,.22);
+    box-shadow:0 24px 70px -20px rgba(232,93,138,.3), 0 0 0 1px rgba(255,255,255,.5) inset;
+  }
+  .card-glow{
+    position:absolute; inset:0; pointer-events:none; z-index:0; opacity:0; transition:opacity .35s ease;
+    background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(124,108,240,.35), transparent 62%);
+    mix-blend-mode:screen;
+  }
+  [data-theme="pink"] .card-glow{
+    background:radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.65), transparent 62%);
+    mix-blend-mode:normal;
+  }
+  .login-card:hover .card-glow{ opacity:1; }
+  .login-card > *{ position:relative; z-index:1; }
+  .login-card::before{
+    content:''; position:absolute; inset:-1px; border-radius:inherit; padding:1px; z-index:0;
+    background:linear-gradient(135deg, rgba(124,108,240,.5), transparent 40%, transparent 60%, rgba(56,189,248,.35));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;
+    opacity:.7; pointer-events:none;
+  }
+  [data-theme="pink"] .login-card::before{
+    background:linear-gradient(135deg, rgba(244,168,212,.7), transparent 40%, transparent 60%, rgba(244,197,117,.4));
+  }
+
+  .card-logo{ text-align:center; margin-bottom:22px; }
+  .card-logo svg{ width:50px; height:50px; margin-bottom:16px; transition:transform .3s ease; }
+  .card-logo:hover svg{ transform:scale(1.08) rotate(-6deg); }
+  .card-title{
+    font-family:'Fraunces', serif; font-size:23px; font-weight:520; margin:0 0 5px; color:#F1EEFF;
+  }
+  [data-theme="pink"] .card-title{ color:#5B1237; }
+  .title-pink{ display:none; } [data-theme="pink"] .title-pink{ display:inline; }
+  [data-theme="pink"] .title-blue{ display:none; }
+  .card-sub{ font-size:13px; margin:0 0 28px; color:#9B96C4; }
+  [data-theme="pink"] .card-sub{ color:#9E5876; }
+
+  /* Fields */
+  .login-field{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+  .login-field label{ font-size:12.5px; font-weight:600; letter-spacing:.01em; color:#A8A3D0; }
+  [data-theme="pink"] .login-field label{ color:#A2597B; }
+  .login-input-wrap{ position:relative; display:flex; align-items:center; }
+  .login-input-icon{ position:absolute; left:14px; width:16px; height:16px; color:#8A85B8; pointer-events:none; opacity:.7; transition:color .2s ease, transform .2s ease; }
+  [data-theme="pink"] .login-input-icon{ color:#C77A9A; }
+  .login-field input{
+    width:100%; padding:12px 14px 12px 40px; border-radius:13px; font-size:14px; font-family:inherit;
+    background:rgba(255,255,255,.03); border:1px solid rgba(124,108,240,.18); color:#F1EEFF; outline:none;
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  }
+  [data-theme="pink"] .login-field input{ background:rgba(255,255,255,.55); border-color:rgba(232,93,138,.18); color:#5B1237; }
+  .login-field input::placeholder{ color:#716C99; }
+  [data-theme="pink"] .login-field input::placeholder{ color:#C88AA5; }
+  .login-field input:focus{ border-color:var(--lb-arcane); box-shadow:0 0 0 3px rgba(124,108,240,.16), 0 0 18px rgba(124,108,240,.15); }
+  [data-theme="pink"] .login-field input:focus{ border-color:var(--lp-cherry); box-shadow:0 0 0 3px rgba(232,93,138,.14); }
+  .login-field input:focus ~ .login-input-icon, .login-input-wrap:focus-within .login-input-icon{ color:var(--lb-glow); transform:scale(1.1); }
+  [data-theme="pink"] .login-field input:focus ~ .login-input-icon,
+  [data-theme="pink"] .login-input-wrap:focus-within .login-input-icon{ color:var(--lp-cherry); }
+
+  .login-pw-toggle{
+    position:absolute; right:12px; width:20px; height:20px; padding:0; background:none; border:none;
+    color:#8A85B8; cursor:pointer; opacity:.6; transition:opacity .2s ease, transform .2s ease;
+    display:flex; align-items:center; justify-content:center;
+  }
+  [data-theme="pink"] .login-pw-toggle{ color:#C77A9A; }
+  .login-pw-toggle:hover{ opacity:1; transform:scale(1.1); }
+  .login-pw-toggle svg{ width:16px; height:16px; }
+
+  .login-error{ margin-bottom:14px; }
+
+  /* Submit */
+  .login-submit{
+    width:100%; padding:13px 22px; border:none; border-radius:13px; font-size:14px; font-weight:650;
+    font-family:inherit; color:#fff; cursor:pointer; margin-top:4px;
+    display:flex; align-items:center; justify-content:center; gap:8px; position:relative; overflow:hidden;
+    background:linear-gradient(135deg,var(--lb-arcane),#4C3FCF);
+    box-shadow:0 10px 26px -8px rgba(124,108,240,.55);
+    transition:box-shadow .25s ease, filter .2s ease;
+  }
+  .login-submit::before{
+    content:''; position:absolute; inset:0; background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%);
+    transform:translateX(-120%); transition:transform .6s ease;
+  }
+  .login-submit:hover::before{ transform:translateX(120%); }
+  .login-submit:hover{ box-shadow:0 14px 34px -8px rgba(124,108,240,.7); filter:brightness(1.05); }
+  .login-submit:active{ filter:brightness(.95); }
+  .login-submit:disabled{ opacity:.6; cursor:not-allowed; box-shadow:none; }
+  .login-submit svg{ width:16px; height:16px; transition:transform .2s ease; }
+  .login-submit:hover svg{ transform:translateX(3px); }
+  [data-theme="pink"] .login-submit{
+    border-radius:999px; background:linear-gradient(135deg,var(--lp-blossom),var(--lp-cherry));
+    box-shadow:0 10px 24px -6px rgba(232,93,138,.5);
+  }
+  [data-theme="pink"] .login-submit:hover{ box-shadow:0 14px 30px -6px rgba(232,93,138,.6); }
+
+  /* Divider */
+  .login-divider{ display:flex; align-items:center; gap:14px; margin:22px 0; }
+  .login-divider::before, .login-divider::after{ content:''; flex:1; height:1px; background:rgba(124,108,240,.18); }
+  [data-theme="pink"] .login-divider::before, [data-theme="pink"] .login-divider::after{ background:rgba(232,93,138,.18); }
+  .login-divider span{ font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#8A85B8; }
+  [data-theme="pink"] .login-divider span{ color:#C77A9A; }
+
+  /* Staff button */
+  .login-staff{
+    width:100%; padding:12px 18px; border-radius:13px; font-size:13.5px; font-weight:550; font-family:inherit;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px;
+    background:rgba(255,255,255,.03); border:1px solid rgba(124,108,240,.16); color:#E4E1FA;
+    transition:border-color .25s ease, background .25s ease, transform .2s ease;
+  }
+  .login-staff:hover{ border-color:rgba(124,108,240,.4); background:rgba(124,108,240,.08); transform:translateY(-1px); }
+  .login-staff svg{ width:16px; height:16px; opacity:.75; }
+  [data-theme="pink"] .login-staff{ background:rgba(255,255,255,.35); border-color:rgba(232,93,138,.18); color:#7A3B54; }
+  [data-theme="pink"] .login-staff:hover{ border-color:rgba(232,93,138,.4); background:rgba(255,255,255,.55); }
+
+  .login-footer-note{ text-align:center; font-size:11.5px; line-height:1.6; color:#716C99; opacity:.8; margin:22px 0 0; }
+  [data-theme="pink"] .login-footer-note{ color:#B57A98; }
+
+  /* Bottom bar */
+  .login-bottom-bar{
+    position:fixed; bottom:0; left:0; right:0; z-index:5;
+    display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap;
+    padding:14px 32px; font-size:11px; color:#8A85B8; opacity:.55;
+  }
+  [data-theme="pink"] .login-bottom-bar{ color:#B57A98; }
+  .login-bottom-bar a{ transition:opacity .2s ease; }
+  .login-bottom-bar a:hover{ opacity:.7; }
+  .login-bottom-bar .sep{ width:3px; height:3px; border-radius:50%; background:currentColor; opacity:.5; }
+
+  /* Responsive */
+  @media (max-width:960px){
+    .login-branding{ display:none; }
+    .login-bottom-bar{ position:static; margin-top:12px; }
+    main.login-layout{ overflow-y:auto; }
+  }
+  @media (max-width:480px){
+    .login-panel{ padding:26px 16px; }
+    .login-card{ padding:32px 22px; border-radius:20px; }
+    .card-title{ font-size:20px; }
+    .theme-switch{ top:14px; right:14px; padding:6px 11px 6px 6px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .petal, .ember, .rune-glyph, .ring-outer, .ring-mid, .ring-ticks, .brand-mark-icon::before{ animation:none !important; }
+    .login-card{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="petal-decor" aria-hidden="true"></div>
+<div class="star-decor" aria-hidden="true"></div>
+<div class="fx-layer" id="fxLayer" aria-hidden="true"></div>
+
+<button class="theme-switch" id="themeSwitch" type="button" aria-pressed="false" aria-label="Switch between cute sakura theme and dark arcane theme">
+  <span class="theme-switch-label" id="themeSwitchLabel">Dark Mode</span>
+  <span class="theme-switch-thumb">
+    <svg id="themeIconBlue" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+    <svg id="themeIconPink" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M12 3c1 2 .5 3.6-.6 4.7C12.6 6.9 14.3 6.6 16 7.6c-1.7 1-2.2 2.7-1.6 4.4 1.7-1 3.4-.6 4.6.6-2 1-3.6.5-4.7-.6.9 1.2 1.2 2.9.2 4.6-1-1.7-2.7-2.2-4.4-1.6 1 1.7.6 3.4-.6 4.6-1-2-.5-3.6.6-4.7-1.2.9-2.9 1.2-4.6.2 1.7-1 2.2-2.7 1.6-4.4-1.7 1-3.4.6-4.6-.6 2-1 3.6-.5 4.7.6-.9-1.2-1.2-2.9-.2-4.6 1 1.7 2.7 2.2 4.4 1.6-1-1.7-.6-3.4.6-4.6Z"/></svg>
+  </span>
+</button>
+
+<main class="login-layout" id="login-view">
+  <!-- Branding panel -->
+  <aside class="login-branding" aria-hidden="true">
+    <div class="art-wrap">
+      <svg class="branch-art" viewBox="0 0 420 480" fill="none">
+        <defs>
+          <g id="blossom">
+            <ellipse cx="0" cy="-7" rx="4.2" ry="6.2" fill="#F9A8D4" transform="rotate(0)"/>
+            <ellipse cx="0" cy="-7" rx="4.2" ry="6.2" fill="#FBCFE8" transform="rotate(72)"/>
+            <ellipse cx="0" cy="-7" rx="4.2" ry="6.2" fill="#F472B6" transform="rotate(144)"/>
+            <ellipse cx="0" cy="-7" rx="4.2" ry="6.2" fill="#F9A8D4" transform="rotate(216)"/>
+            <ellipse cx="0" cy="-7" rx="4.2" ry="6.2" fill="#F472B6" transform="rotate(288)"/>
+            <circle r="2.1" fill="#F4C875"/>
+          </g>
+        </defs>
+        <path d="M15 465C55 405 35 345 88 305C128 273 108 222 150 182C182 152 172 100 214 58" stroke="#E8B4C8" stroke-width="3" stroke-linecap="round" opacity=".5"/>
+        <path d="M88 305C120 296 142 306 164 286" stroke="#E8B4C8" stroke-width="2.5" stroke-linecap="round" opacity=".45"/>
+        <path d="M150 182C170 177 187 187 204 172" stroke="#E8B4C8" stroke-width="2.5" stroke-linecap="round" opacity=".45"/>
+        <use href="#blossom" transform="translate(88,305) scale(1.35) rotate(-15)"/>
+        <use href="#blossom" transform="translate(164,286) scale(1) rotate(24)"/>
+        <use href="#blossom" transform="translate(150,182) scale(1.25) rotate(-10)"/>
+        <use href="#blossom" transform="translate(204,172) scale(.9) rotate(34)"/>
+        <use href="#blossom" transform="translate(214,58) scale(1.5) rotate(-18)"/>
+        <use href="#blossom" transform="translate(58,398) scale(.85) rotate(48)"/>
+        <use href="#blossom" transform="translate(255,120) scale(.7) rotate(12)"/>
+      </svg>
+      <svg class="circle-art" viewBox="0 0 400 400" fill="none">
+        <circle class="ring-outer" cx="200" cy="200" r="182" stroke="#7C6CF0" stroke-width="1.2" stroke-dasharray="2 11" opacity=".5"/>
+        <circle class="ring-mid" cx="200" cy="200" r="150" stroke="#93B4FF" stroke-width="1" stroke-dasharray="1 7" opacity=".4"/>
+        <circle cx="200" cy="200" r="118" stroke="#7C6CF0" stroke-width="1" opacity=".3"/>
+        <g class="ring-ticks" stroke="#A78BFA" fill="#A78BFA" opacity=".45">
+          <path d="M200 16 L206 38 L194 38 Z"/>
+          <path d="M384 200 L362 206 L362 194 Z"/>
+          <path d="M200 384 L194 362 L206 362 Z"/>
+          <path d="M16 200 L38 194 L38 206 Z"/>
+          <path d="M332 68 L322 90 L310 80 Z"/>
+          <path d="M332 332 L310 320 L320 310 Z"/>
+          <path d="M68 332 L78 310 L90 320 Z"/>
+          <path d="M68 68 L90 80 L80 90 Z"/>
+        </g>
+        <path d="M200 88 L277 246 L123 246 Z" stroke="#7C6CF0" stroke-width="1" opacity=".28"/>
+        <path d="M200 312 L123 154 L277 154 Z" stroke="#7C6CF0" stroke-width="1" opacity=".28"/>
+        <circle cx="200" cy="200" r="7" fill="#C9BFFA" opacity=".7"/>
+      </svg>
+    </div>
+
+    <div class="brand-mark">
+      <div class="brand-mark-icon">
+        <svg class="logo-svg" viewBox="0 0 64 64" fill="none">
+          <defs>
+            <linearGradient id="lb-bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#7C6CF0"/><stop offset=".5" stop-color="#5B52E8"/><stop offset="1" stop-color="#38BDF8"/>
+            </linearGradient>
+          </defs>
+          <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#lb-bg)"/>
+          <path d="M8 21c5-9 12-12 22-11" stroke="#FFF" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+          <path d="M14 19.5c0-2.2 1.8-4 4-4h10c3.6 0 6.7 1.5 9 3.9v28.1c-2.3-2.1-5.3-3.3-8.5-3.3H18c-2.2 0-4-1.8-4-4V19.5Z" fill="#FFF" fill-opacity=".92"/>
+          <path d="M37 19.4c2.4-2.4 5.5-3.9 9-3.9h.1c2.2 0 3.9 1.8 3.9 4v20.7c0 2.2-1.8 4-4 4H45.5c-3.2 0-6.2 1.2-8.5 3.3V19.4Z" fill="#FFF" fill-opacity=".72"/>
+          <path d="M20 24h10M20 29h10M20 34h7M42 24h4M42 29h4M42 34h3" stroke="#4338CA" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">LIBRIS</span>
+        <span class="brand-sub"><span class="sub-blue">Keeper of the Archive</span><span class="sub-pink">your cozy corner for books</span></span>
+      </div>
+    </div>
+
+    <h2 class="brand-headline">
+      <span class="headline-blue">The archive stirs<br>for its <em>keeper.</em></span>
+      <span class="headline-pink">Every story finds<br>its <em>reader.</em></span>
+    </h2>
+    <p class="brand-desc">
+      <span class="desc-blue">Enter the vault where every volume holds a secret. Catalogue, circulate, and command the shelves &mdash; only those bound to the Archive may pass.</span>
+      <span class="desc-pink">Sign in to borrow, discover, and fall for your next favorite book. Cozy shelves, cute tools, always open. 🌸</span>
+    </p>
+
+    <ul class="brand-capabilities">
+      <li class="brand-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>Book Management</li>
+      <li class="brand-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Student &amp; Staff Accounts</li>
+      <li class="brand-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Borrowing &amp; Returns</li>
+      <li class="brand-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Magazines &amp; Newspapers</li>
+      <li class="brand-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>Reports &amp; Analytics</li>
+      <li class="brand-cap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Audit Logs</li>
+    </ul>
+
+    <div class="brand-trust">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span class="trust-blue">Bound by ancient uptime &mdash; 99.9% eternal.</span>
+      <span class="trust-pink">Loved by libraries everywhere 💕</span>
+    </div>
+  </aside>
+
+  <!-- Login panel -->
+  <section class="login-panel">
+    <div class="login-card" id="loginCard">
+      <div class="card-glow" aria-hidden="true"></div>
+      <div class="card-logo">
+        <svg viewBox="0 0 64 64" fill="none">
+          <defs>
+            <linearGradient id="lc-bg" x1="8" y1="6" x2="56" y2="58" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#7C6CF0"/><stop offset=".5" stop-color="#5B52E8"/><stop offset="1" stop-color="#38BDF8"/>
+            </linearGradient>
+          </defs>
+          <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#lc-bg)"/>
+          <path d="M8 21c5-9 12-12 22-11" stroke="#FFF" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+          <path d="M14 19.5c0-2.2 1.8-4 4-4h10c3.6 0 6.7 1.5 9 3.9v28.1c-2.3-2.1-5.3-3.3-8.5-3.3H18c-2.2 0-4-1.8-4-4V19.5Z" fill="#FFF" fill-opacity=".92"/>
+          <path d="M37 19.4c2.4-2.4 5.5-3.9 9-3.9h.1c2.2 0 3.9 1.8 3.9 4v20.7c0 2.2-1.8 4-4 4H45.5c-3.2 0-6.2 1.2-8.5 3.3V19.4Z" fill="#FFF" fill-opacity=".72"/>
+          <path d="M20 24h10M20 29h10M20 34h7M42 24h4M42 29h4M42 34h3" stroke="#4338CA" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <h1 class="card-title"><span class="title-blue">Welcome back, Keeper.</span><span class="title-pink">Welcome back, bookworm!</span></h1>
+        <p class="card-sub">Sign in to access your library portal</p>
+      </div>
+
+      <p id="login-error" class="form-error login-error" role="alert" hidden></p>
+
+      <form id="login-form" novalidate>
+        <div class="login-field">
+          <label for="login-username">Username / Student ID</label>
+          <div class="login-input-wrap">
+            <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input id="login-username" name="username" type="text" required autocomplete="username" placeholder="Enter your username">
+          </div>
+        </div>
+        <div class="login-field">
+          <label for="login-password">Password</label>
+          <div class="login-input-wrap">
+            <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="Enter your password">
+            <button type="button" class="login-pw-toggle" aria-label="Toggle password visibility" data-target="login-password">
+              <svg class="pw-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="pw-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="login-submit" type="submit" id="submitBtn">
+          Sign In
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </button>
+      </form>
+
+      <div class="login-divider"><span>or</span></div>
+
+      <button type="button" class="login-staff" id="staffBtn" onclick="document.getElementById('login-username').focus()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Sign in as Librarian
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </button>
+
+      <p class="login-footer-note">Student accounts are created by your librarian.<br>Librarian accounts are managed by an administrator.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="login-bottom-bar">
+  <span>&copy; 2026 Libris</span>
+  <span class="sep"></span>
+  <a href="#">Documentation</a>
+  <span class="sep"></span>
+  <a href="#">Privacy</a>
+  <span class="sep"></span>
+  <a href="#">Support</a>
+  <span class="sep"></span>
+  <a href="#">GitHub</a>
+  <span class="sep"></span>
+  <span>v1.0.0</span>
+</footer>
+
+<script type="module">
+  import { authApi } from "/js/api/auth-api.js";
+
+  const form = document.getElementById("login-form");
+  const error = document.getElementById("login-error");
+  authApi.csrf().catch(() => {});
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    error.hidden = true;
+    const data = new FormData(form);
+    const username = String(data.get("username") || "").trim();
+    const password = String(data.get("password") || "");
+    if (!username || !password) {
+      error.textContent = "Enter your username and password.";
+      error.hidden = false;
+      return;
+    }
+    const submit = form.querySelector("button[type=submit]");
+    submit.disabled = true;
+    try {
+      await authApi.csrf();
+      await authApi.login({ username, password });
+      window.location.replace("/");
+    } catch (err) {
+      error.textContent = err.message || "We could not sign you in. Check your credentials and try again.";
+      error.hidden = false;
+    } finally {
+      submit.disabled = false;
+    }
+  });
+
+  /* Password visibility toggle */
+  document.querySelectorAll(".login-pw-toggle").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const input = document.getElementById(btn.dataset.target);
+      if (!input) return;
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+      btn.querySelector(".pw-eye-open").style.display = isPassword ? "none" : "";
+      btn.querySelector(".pw-eye-closed").style.display = isPassword ? "" : "none";
+    });
+  });
+</script>
+
+<script>
+(function(){
+  "use strict";
+  var root = document.documentElement;
+  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------------- Theme toggle ---------------- */
+  var themeSwitch = document.getElementById("themeSwitch");
+  var iconBlue = document.getElementById("themeIconBlue");
+  var iconPink = document.getElementById("themeIconPink");
+  var label = document.getElementById("themeSwitchLabel");
+
+  function isPink(){ return root.getAttribute("data-theme") === "pink"; }
+  function reflectSwitch(){
+    var pink = isPink();
+    themeSwitch.setAttribute("aria-pressed", String(pink));
+    iconBlue.style.display = pink ? "none" : "";
+    iconPink.style.display = pink ? "" : "none";
+    label.textContent = pink ? "Sakura Mode" : "Dark Mode";
+  }
+  function setTheme(pink){
+    if (pink) root.setAttribute("data-theme", "pink");
+    else root.removeAttribute("data-theme");
+    try { localStorage.setItem("theme", pink ? "pink" : "blue"); } catch(e){}
+    reflectSwitch();
+    seedParticles();
+  }
+  themeSwitch.addEventListener("click", function(){ setTheme(!isPink()); });
+  reflectSwitch();
+
+  /* ---------------- Ambient particle layer (sakura / embers) ---------------- */
+  var fx = document.getElementById("fxLayer");
+  var spawnTimer = null;
+
+  function clearFx(){ fx.innerHTML = ""; }
+
+  function spawnPetal(){
+    var el = document.createElement("div");
+    el.className = "petal";
+    var size = 9 + Math.random() * 13;
+    el.style.setProperty("--size", size + "px");
+    el.style.left = (Math.random() * 100) + "vw";
+    el.style.setProperty("--drift", (Math.random() * 150 - 75) + "px");
+    el.style.setProperty("--dur", (9 + Math.random() * 9) + "s");
+    el.style.setProperty("--delay", (Math.random() * 6) + "s");
+    el.style.setProperty("--rot", (200 + Math.random() * 260) + "deg");
+    fx.appendChild(el);
+  }
+  function spawnEmber(){
+    var el = document.createElement("div");
+    el.className = "ember";
+    var size = 3 + Math.random() * 6;
+    el.style.setProperty("--size", size + "px");
+    el.style.left = (Math.random() * 100) + "vw";
+    el.style.setProperty("--drift", (Math.random() * 110 - 55) + "px");
+    el.style.setProperty("--dur", (7 + Math.random() * 8) + "s");
+    el.style.setProperty("--delay", (Math.random() * 6) + "s");
+    fx.appendChild(el);
+
+    if (Math.random() < 0.35) {
+      var glyphs = ["✦","✧","⟡","◈","⬥"];
+      var g = document.createElement("div");
+      g.className = "rune-glyph";
+      g.textContent = glyphs[Math.floor(Math.random() * glyphs.length)];
+      g.style.fontSize = (10 + Math.random() * 8) + "px";
+      g.style.left = (Math.random() * 100) + "vw";
+      g.style.setProperty("--drift", (Math.random() * 90 - 45) + "px");
+      g.style.setProperty("--dur", (10 + Math.random() * 8) + "s");
+      g.style.setProperty("--delay", (Math.random() * 8) + "s");
+      g.style.setProperty("--rot", (60 + Math.random() * 120) + "deg");
+      fx.appendChild(g);
+    }
+  }
+
+  function seedParticles(){
+    clearFx();
+    var count = reduced ? 6 : (window.innerWidth < 640 ? 14 : 26);
+    for (var i = 0; i < count; i++) {
+      if (isPink()) spawnPetal(); else spawnEmber();
+    }
+  }
+  seedParticles();
+  window.addEventListener("resize", function(){
+    clearTimeout(spawnTimer);
+    spawnTimer = setTimeout(seedParticles, 300);
+  });
+
+  /* ---------------- Card tilt + cursor spotlight ---------------- */
+  var card = document.getElementById("loginCard");
+  if (card && !reduced) {
+    card.addEventListener("pointermove", function(e){
+      var r = card.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - 0.5;
+      var py = (e.clientY - r.top) / r.height - 0.5;
+      card.style.setProperty("--rx", (-py * 5) + "deg");
+      card.style.setProperty("--ry", (px * 7) + "deg");
+      card.style.setProperty("--mx", (px * 100 + 50) + "%");
+      card.style.setProperty("--my", (py * 100 + 50) + "%");
+    });
+    card.addEventListener("pointerleave", function(){
+      card.style.setProperty("--rx", "0deg");
+      card.style.setProperty("--ry", "0deg");
+    });
+  }
+
+  /* ---------------- Magnetic submit button ---------------- */
+  var submitBtn = document.getElementById("submitBtn");
+  if (submitBtn && !reduced) {
+    submitBtn.addEventListener("pointermove", function(e){
+      var r = submitBtn.getBoundingClientRect();
+      var x = (e.clientX - r.left - r.width / 2) * 0.22;
+      var y = (e.clientY - r.top - r.height / 2) * 0.35;
+      submitBtn.style.transform = "translate(" + x + "px," + y + "px)";
+    });
+    submitBtn.addEventListener("pointerleave", function(){ submitBtn.style.transform = ""; });
+  }
+
+  /* ---------------- Click burst (sparkle / spark) ---------------- */
+  function burst(x, y){
+    var n = reduced ? 0 : 9;
+    for (var i = 0; i < n; i++){
+      var bit = document.createElement("span");
+      bit.className = "burst-bit" + (isPink() ? "" : " spark");
+      bit.style.left = x + "px";
+      bit.style.top = y + "px";
+      var ang = Math.random() * Math.PI * 2;
+      var dist = 26 + Math.random() * 46;
+      bit.style.setProperty("--dx", Math.cos(ang) * dist + "px");
+      bit.style.setProperty("--dy", Math.sin(ang) * dist + "px");
+      document.body.appendChild(bit);
+      (function(node){ setTimeout(function(){ node.remove(); }, 720); })(bit);
+    }
+  }
+  [submitBtn, document.getElementById("staffBtn"), themeSwitch].forEach(function(btn){
+    if (!btn) return;
+    btn.addEventListener("click", function(e){ burst(e.clientX, e.clientY); });
+  });
+})();
+</script>
+</body>
+</html>

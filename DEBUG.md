@@ -112,3 +112,59 @@ The H2 profile uses MySQL-compatible mode and is configured in `application-h2.p
 2. Ensure `librarydb` database exists: `mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS librarydb;"`
 3. Run the app: `mvn spring-boot:run`
 4. If it still fails, try with H2: `SPRING_PROFILES_ACTIVE=h2 LMS_ADMIN_PASSWORD=admin123 mvn spring-boot:run`
+
+---
+
+## New Issues (31 July 2026)
+
+### Page Transition Flash — FIXED
+
+**Problem:** When switching between pages, a flash of the dark blue theme was visible even when the pink theme was selected. This happened because the theme was applied via JavaScript on `DOMContentLoaded`, after the initial render.
+
+**Solution:** Added an inline synchronous script to the `<head>` of every HTML file that reads `localStorage('theme')` and applies `data-theme="pink"` before the first paint. Also added CSS transitions on `html` for smooth theme switching.
+
+**Status:** Fixed. All 18 HTML files updated.
+
+### Pink Theme Too Whitish — FIXED
+
+**Problem:** The pink theme was using near-white colors (`--canvas: #FAF6F0`) making it look whitish instead of pinkish.
+
+**Solution:** Updated all CSS design tokens for `[data-theme="pink"]` to use truly rosy/pinkish colors:
+- `--canvas: #FFF0F5` (light pink)
+- `--indigo: #E87EA1` (rosy pink accent)
+- `--indigo-deep: #D45C82` (deep rose)
+- Pink-tinted glass borders, shadows, and mesh gradients
+
+**Status:** Fixed.
+
+### Dark Blue Theme Too Dark — FIXED
+
+**Problem:** The default dark theme used `--canvas: #0B0814` which was too dark and harsh on the eyes.
+
+**Solution:** Updated all CSS design tokens for `:root` to use cooler, lighter blue tones:
+- `--canvas: #0C1426` (deep navy, less harsh)
+- `--indigo: #6C8EEF` (cooler blue accent)
+- Sky-blue tinted shadows and mesh gradients
+
+**Status:** Fixed.
+
+### Decorative Elements Added
+
+**Problem:** The interface lacked visual flair and premium feel.
+
+**Solution:** Added decorative floating elements to all pages:
+- Pink theme: Floating rose petal animations via `.petal-decor`
+- Blue theme: Floating cosmic particle animations via `.star-decor`
+- Both use CSS-only animations with no JavaScript overhead
+
+**Status:** Fixed.
+
+### Theme Toggle Persistence — WORKING
+
+The theme toggle in Settings persists to `localStorage` and is read synchronously on page load. Users' theme preference survives page navigation and browser refresh.
+
+### Remaining Issues
+
+1. **Theme toggle button not visible on all pages** — The toggle button is only in the Settings page's "Appearance" tab. Users cannot switch themes from other pages.
+2. **No visual indicator of current theme** — The toggle button text shows the action ("Switch to Pink Theme") but doesn't visually indicate which theme is currently active.
+3. **Login page missing theme support** — The login page may not fully respect the theme due to its fixed-position layout.
