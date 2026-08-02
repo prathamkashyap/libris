@@ -5,7 +5,7 @@ import { esc } from "/js/utils/esc.js";
 import { toast } from "/js/utils/toast.js";
 import { confirmDialog } from "/js/utils/confirm.js";
 import { renderPagination, renderPageInfo } from "/js/utils/pagination.js";
-
+import { openModal } from "/components/modal.js";
 let state = { page: 0, size: 10, search: "", totalPages: 0, totalElements: 0, magazines: [], loading: false };
 
 const tbody = document.querySelector(".card.table-card tbody");
@@ -76,52 +76,18 @@ function renderTable() {
 }
 
 function openMagazineModal(magazine) {
-  const isEdit = !!magazine;
-  const root = document.getElementById("modal-root");
-  root.innerHTML = `
-    <div class="modal-backdrop" role="presentation">
-      <section class="modal" role="dialog" aria-modal="true">
-        <div class="modal-header">
-          <h2 class="serif">${isEdit ? "Edit magazine" : "Add magazine"}</h2>
-          <button class="modal-close modal-close-mag" type="button">&times;</button>
-        </div>
-        <p class="form-error" data-mag-error hidden></p>
-        <form novalidate>
-          <div class="form-grid">
-            <label class="field span-all"><span>Title *</span><input name="title" value="${isEdit ? esc(magazine.title) : ""}" required><span class="field-error" data-error="title"></span></label>
-            <label class="field"><span>Publisher *</span><input name="publisher" value="${isEdit ? esc(magazine.publisher || "") : ""}" required><span class="field-error" data-error="publisher"></span></label>
-            <label class="field"><span>Issue date</span><input name="issueDate" type="date" value="${isEdit && magazine.issueDate ? magazine.issueDate : ""}"><span class="field-error" data-error="issueDate"></span></label>
-          </div>
-          <div class="modal-footer">
-            <button class="btn-ghost modal-close-mag" type="button">Cancel</button>
-            <button class="btn-primary" type="submit">${isEdit ? "Save changes" : "Add magazine"}</button>
-          </div>
-        </form>
-      </section>
-    </div>`;
-  const close = () => { root.innerHTML = ""; };
-  root.querySelectorAll(".modal-close-mag").forEach(b => b.addEventListener("click", close));
-  root.querySelector(".modal-backdrop").addEventListener("click", e => { if (e.target === e.currentTarget) close(); });
-  const fi = root.querySelector("input"); if (fi) fi.focus();
-  root.querySelector("form").addEventListener("submit", async e => {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const values = { title: fd.get("title"), publisher: fd.get("publisher"), issueDate: fd.get("issueDate") || null };
-    const errEl = root.querySelector("[data-mag-error]");
-    errEl.hidden = true;
-    if (!values.title?.trim()) { root.querySelector('[data-error="title"]').textContent = "Title is required."; return; }
-    try {
-      if (isEdit) { await magazinesApi.update(magazine.id, values); toast("Magazine updated.", "success"); }
-      else { await magazinesApi.create(values); toast("Magazine added.", "success"); }
-      close(); loadMagazines();
-    } catch (err) {
-      const fieldErrors = err.fieldErrors || [];
-      fieldErrors.forEach(({ field, message }) => { const fe = root.querySelector(`[data-error="${field}"]`); if (fe) fe.textContent = message; });
-      const unmatched = fieldErrors.filter(({ field }) => !root.querySelector(`[data-error="${field}"]`)).map(({ message }) => message);
-      errEl.textContent = unmatched.join(" ") || err.message || "Failed to save.";
-      errEl.hidden = false;
+  openModal('magazine', async (data) => {
+    if (!data.issueDate) data.issueDate = null;
+    
+    if (magazine) {
+      await magazinesApi.update(magazine.id, data);
+      toast("Magazine updated.", "success");
+    } else {
+      await magazinesApi.create(data);
+      toast("Magazine added.", "success");
     }
-  });
+    loadMagazines();
+  }, magazine);
 }
 
 async function deleteMagazine(id) {

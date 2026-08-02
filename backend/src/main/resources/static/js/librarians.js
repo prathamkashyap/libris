@@ -5,7 +5,7 @@ import { esc } from "/js/utils/esc.js";
 import { toast } from "/js/utils/toast.js";
 import { confirmDialog } from "/js/utils/confirm.js";
 import { renderPagination, renderPageInfo } from "/js/utils/pagination.js";
-
+import { openModal } from "/components/modal.js";
 let state = { page: 0, size: 10, search: "", totalPages: 0, totalElements: 0, librarians: [], loading: false };
 
 const tbody = document.querySelector(".card.table-card tbody");
@@ -78,54 +78,16 @@ function renderTable() {
 }
 
 function openLibrarianModal(librarian) {
-  const isEdit = !!librarian;
-  const root = document.getElementById("modal-root");
-  root.innerHTML = `
-    <div class="modal-backdrop" role="presentation">
-      <section class="modal" role="dialog" aria-modal="true">
-        <div class="modal-header">
-          <h2 class="serif">${isEdit ? "Edit librarian" : "Add librarian"}</h2>
-          <button class="modal-close modal-close-lib" type="button">&times;</button>
-        </div>
-        <p class="form-error" data-lib-error hidden></p>
-        <form id="lib-form" novalidate>
-          <div class="form-grid">
-            <label class="field span-all"><span>Name *</span><input name="name" value="${isEdit ? esc(librarian.name) : ""}" required><span class="field-error" data-error="name"></span></label>
-            <label class="field"><span>Age *</span><input name="age" type="number" value="${isEdit ? (librarian.age || "") : ""}" required><span class="field-error" data-error="age"></span></label>
-            <label class="field"><span>Phone *</span><input name="phone" type="tel" value="${isEdit ? esc(librarian.phone || "") : ""}" required><span class="field-error" data-error="phone"></span></label>
-            <label class="field"><span>Username *</span><input name="username" value="${isEdit ? esc(librarian.username || "") : ""}" required><span class="field-error" data-error="username"></span></label>
-            ${isEdit ? "" : '<label class="field"><span>Password *</span><input name="password" type="password" required><span class="field-error" data-error="password"></span></label>'}
-          </div>
-          <div class="modal-footer">
-            <button class="btn-ghost modal-close-lib" type="button">Cancel</button>
-            <button class="btn-primary" type="submit">${isEdit ? "Save changes" : "Add librarian"}</button>
-          </div>
-        </form>
-      </section>
-    </div>`;
-  const close = () => { root.innerHTML = ""; };
-  root.querySelectorAll(".modal-close-lib").forEach(b => b.addEventListener("click", close));
-  root.querySelector(".modal-backdrop").addEventListener("click", e => { if (e.target === e.currentTarget) close(); });
-  const fi = root.querySelector("input"); if (fi) fi.focus();
-  root.querySelector("form").addEventListener("submit", async e => {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const values = Object.fromEntries(fd);
-    const errEl = root.querySelector("[data-lib-error]");
-    errEl.hidden = true;
-    if (!values.name?.trim()) { root.querySelector('[data-error="name"]').textContent = "Name is required."; return; }
-    try {
-      if (isEdit) { await librariansApi.update(librarian.id, values); toast("Librarian updated.", "success"); }
-      else { await librariansApi.create(values); toast("Librarian added.", "success"); }
-      close(); loadLibrarians();
-    } catch (err) {
-      const fieldErrors = err.fieldErrors || [];
-      fieldErrors.forEach(({ field, message }) => { const fe = root.querySelector(`[data-error="${field}"]`); if (fe) fe.textContent = message; });
-      const unmatched = fieldErrors.filter(({ field }) => !root.querySelector(`[data-error="${field}"]`)).map(({ message }) => message);
-      errEl.textContent = unmatched.join(" ") || err.message || "Failed to save.";
-      errEl.hidden = false;
+  openModal('librarian', async (data) => {
+    if (librarian) {
+      await librariansApi.update(librarian.id, data);
+      toast("Librarian updated.", "success");
+    } else {
+      await librariansApi.create(data);
+      toast("Librarian added.", "success");
     }
-  });
+    loadLibrarians();
+  }, librarian);
 }
 
 async function deleteLibrarian(id) {

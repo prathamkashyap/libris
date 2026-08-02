@@ -5,6 +5,7 @@ import { esc } from "/js/utils/esc.js";
 import { toast } from "/js/utils/toast.js";
 import { confirmDialog } from "/js/utils/confirm.js";
 import { renderPagination, renderPageInfo } from "/js/utils/pagination.js";
+import { openModal } from "/components/modal.js";
 
 let state = {
   page: 0,
@@ -142,95 +143,19 @@ function goToPage(p) {
 }
 
 function openBookModal(book) {
-  const isEdit = !!book;
-  const root = document.getElementById("modal-root");
-  const title = isEdit ? "Edit book" : "Add new book";
-
-  root.innerHTML = `
-    <div class="modal-backdrop" role="presentation">
-      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="book-modal-title">
-        <div class="modal-header">
-          <h2 id="book-modal-title" class="serif">${title}</h2>
-          <button class="modal-close book-modal-close" type="button" aria-label="Close">&times;</button>
-        </div>
-        <p class="form-error" data-book-error hidden></p>
-        <form id="book-form" novalidate>
-          <div class="form-grid">
-            <label class="field span-all">
-              <span>Title *</span>
-              <input id="f-title" name="title" type="text" value="${isEdit ? esc(book.title) : ""}" required>
-              <span class="field-error" data-error="title"></span>
-            </label>
-            <label class="field span-all">
-              <span>Author</span>
-              <input id="f-author" name="author" type="text" value="${isEdit ? esc(book.author || "") : ""}">
-              <span class="field-error" data-error="author"></span>
-            </label>
-            <label class="field">
-              <span>ISBN</span>
-              <input id="f-isbn" name="isbn" type="text" class="mono" value="${isEdit ? esc(book.isbn || "") : ""}">
-              <span class="field-error" data-error="isbn"></span>
-            </label>
-            <label class="field">
-              <span>Published date</span>
-              <input id="f-publishedDate" name="publishedDate" type="date" value="${isEdit && book.publishedDate ? book.publishedDate : ""}">
-              <span class="field-error" data-error="publishedDate"></span>
-            </label>
-          </div>
-          <div class="modal-footer">
-            <button class="btn-ghost book-modal-close" type="button">Cancel</button>
-            <button class="btn-primary" type="submit">${isEdit ? "Save changes" : "Add book"}</button>
-          </div>
-        </form>
-      </section>
-    </div>
-  `;
-
-  const close = () => { root.innerHTML = ""; };
-  root.querySelectorAll(".book-modal-close").forEach(b => b.addEventListener("click", close));
-  root.querySelector(".modal-backdrop").addEventListener("click", e => { if (e.target === e.currentTarget) close(); });
-  const firstInput = root.querySelector("input");
-  if (firstInput) firstInput.focus();
-
-  root.querySelector("form").addEventListener("submit", async e => {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const values = {
-      title: fd.get("title"),
-      author: fd.get("author"),
-      isbn: fd.get("isbn"),
-      publishedDate: fd.get("publishedDate") || null
-    };
-
-    const errorEl = root.querySelector("[data-book-error]");
-    errorEl.hidden = true;
-
-    if (!values.title.trim()) {
-      root.querySelector('[data-error="title"]').textContent = "Title is required.";
-      return;
+  openModal('book', async (data) => {
+    // If publishedDate is empty string, make it null
+    if (!data.publishedDate) data.publishedDate = null;
+    
+    if (book) {
+      await booksApi.update(book.id, data);
+      toast("Book updated successfully.", "success");
+    } else {
+      await booksApi.create(data);
+      toast("Book added successfully.", "success");
     }
-
-    try {
-      if (isEdit) {
-        await booksApi.update(book.id, values);
-        toast("Book updated successfully.", "success");
-      } else {
-        await booksApi.create(values);
-        toast("Book added successfully.", "success");
-      }
-      close();
-      loadBooks();
-    } catch (err) {
-      const fieldErrors = err.fieldErrors || [];
-      fieldErrors.forEach(({ field, message }) => {
-        const fe = root.querySelector(`[data-error="${field}"]`);
-        if (fe) fe.textContent = message;
-      });
-      const unmatched = fieldErrors.filter(({ field }) => !root.querySelector(`[data-error="${field}"]`)).map(({ message }) => message);
-      errorEl.textContent = unmatched.join(" ") || err.message || "Failed to save book.";
-      errorEl.hidden = false;
-    }
-  });
+    loadBooks();
+  }, book);
 }
 
 async function deleteBook(id) {

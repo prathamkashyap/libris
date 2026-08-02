@@ -5,7 +5,7 @@ import { esc } from "/js/utils/esc.js";
 import { toast } from "/js/utils/toast.js";
 import { confirmDialog } from "/js/utils/confirm.js";
 import { renderPagination, renderPageInfo } from "/js/utils/pagination.js";
-
+import { openModal } from "/components/modal.js";
 let state = { page: 0, size: 12, search: "", totalPages: 0, totalElements: 0, students: [], loading: false };
 
 const gridEl = document.querySelector(".people-grid");
@@ -97,55 +97,16 @@ function renderGrid() {
 }
 
 function openStudentModal(student) {
-  const isEdit = !!student;
-  const root = document.getElementById("modal-root");
-  root.innerHTML = `
-    <div class="modal-backdrop" role="presentation">
-      <section class="modal" role="dialog" aria-modal="true">
-        <div class="modal-header">
-          <h2 class="serif">${isEdit ? "Edit student" : "Add student"}</h2>
-          <button class="modal-close modal-close-student" type="button">&times;</button>
-        </div>
-        <p class="form-error" data-student-error hidden></p>
-        <form id="student-form" novalidate>
-          <div class="form-grid">
-            <label class="field span-all"><span>Name *</span><input name="name" value="${isEdit ? esc(student.name) : ""}" required><span class="field-error" data-error="name"></span></label>
-            <label class="field"><span>Email *</span><input name="email" type="email" value="${isEdit ? esc(student.email || "") : ""}" required><span class="field-error" data-error="email"></span></label>
-            <label class="field"><span>Phone *</span><input name="phone" type="tel" value="${isEdit ? esc(student.phone || "") : ""}" required><span class="field-error" data-error="phone"></span></label>
-            <label class="field"><span>Username *</span><input name="username" value="${isEdit ? esc(student.username || "") : ""}" required><span class="field-error" data-error="username"></span></label>
-            ${isEdit ? "" : '<label class="field"><span>Password *</span><input name="password" type="password" required><span class="field-error" data-error="password"></span></label>'}
-          </div>
-          <div class="modal-footer">
-            <button class="btn-ghost modal-close-student" type="button">Cancel</button>
-            <button class="btn-primary" type="submit">${isEdit ? "Save changes" : "Add student"}</button>
-          </div>
-        </form>
-      </section>
-    </div>`;
-  const close = () => { root.innerHTML = ""; };
-  root.querySelectorAll(".modal-close-student").forEach(b => b.addEventListener("click", close));
-  root.querySelector(".modal-backdrop").addEventListener("click", e => { if (e.target === e.currentTarget) close(); });
-  const fi = root.querySelector("input");
-  if (fi) fi.focus();
-  root.querySelector("form").addEventListener("submit", async e => {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const values = Object.fromEntries(fd);
-    const errEl = root.querySelector("[data-student-error]");
-    errEl.hidden = true;
-    if (!values.name?.trim()) { root.querySelector('[data-error="name"]').textContent = "Name is required."; return; }
-    try {
-      if (isEdit) { await studentsApi.update(student.id, values); toast("Student updated.", "success"); }
-      else { await studentsApi.create(values); toast("Student added.", "success"); }
-      close(); loadStudents();
-    } catch (err) {
-      const fieldErrors = err.fieldErrors || [];
-      fieldErrors.forEach(({ field, message }) => { const fe = root.querySelector(`[data-error="${field}"]`); if (fe) fe.textContent = message; });
-      const unmatched = fieldErrors.filter(({ field }) => !root.querySelector(`[data-error="${field}"]`)).map(({ message }) => message);
-      errEl.textContent = unmatched.join(" ") || err.message || "Failed to save.";
-      errEl.hidden = false;
+  openModal('student', async (data) => {
+    if (student) {
+      await studentsApi.update(student.id, data);
+      toast("Student updated.", "success");
+    } else {
+      await studentsApi.create(data);
+      toast("Student added.", "success");
     }
-  });
+    loadStudents();
+  }, student);
 }
 
 async function deleteStudent(id) {
