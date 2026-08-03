@@ -1,7 +1,7 @@
-# Security Knowledge Base — Library Management System (Project A)
+# Security Knowledge Base — Library Management System
 
 > Engineering reference document. Derived from source code and [SECURITY.md](SECURITY.md).
-> **Last verified:** 01 Aug 2026
+> **Last verified:** 3 August 2026
 
 ---
 

@@ -1,7 +1,7 @@
 # CURRENT_STATE.md
 
-> Engineering knowledge base — Library Management System (Project A)
-> Last updated: 2026-08-01
+> Engineering knowledge base — Library Management System
+> Last updated: 2026-08-03
 
 ---
 
@@ -11,8 +11,8 @@
 |-------|-------|
 | Version | `0.0.1-SNAPSHOT` (unreleased) |
 | Branch | `feature/v1.1-analytics-reports-docker` |
-| Total commits | 31 |
-| Session commits | 8 (Phase 0–6) |
+| Total commits | 33 |
+| Session commits | 11 (Phase 0–6 + repository stabilization) |
 
 ---
 
@@ -54,7 +54,7 @@ Tests use H2 in MySQL compatibility mode (`create-drop` schema strategy).
 | Transactional services | 11 |
 | JPA repositories | 8 |
 | Entities | 8 (+ 1 superclass `AuditableEntity`, 3 enums) |
-| DTOs | 26 request/response records |
+| DTOs | 24 request/response records |
 | Security classes | 5 |
 
 ### 3.2 Key Dependencies
@@ -158,17 +158,11 @@ spring-security-test
 ### Phase 6 — README Update
 - README updated with Actuator, N+1 fixes, Spotless, new tests, and JSON logging sections
 
-### Phase 7 (Phase A) — Repository Cleanup & OAuth Fix
-- Fixed OAuth startup regression in `SecurityConfig` by conditionally initializing `.oauth2Login()` with `ObjectProvider<ClientRegistrationRepository>`.
-- Full test suite passed (13 tests) and server startup verified.
-- Cleaned up frontend `main.js` and modernized JS structure.
-- Implemented `sidebar.html` and `sidebar-loader.js` as a reusable component.
-
-### Phase 8 (Phase B) — Documentation Synchronization
-- Performed full repository consistency audit between docs and codebase.
-- Updated `FRONTEND.md` to reflect the new 37-module JS architecture and the new Sidebar component.
-- Updated `SECURITY.md` to document `CustomOidcUserService` and correct Swagger authorization rules.
-- Updated `ARCHITECTURE.md` and `PROJECT_STRUCTURE.md` with corrected security class counts and accurate filesystem tree generation.
+### Phase 7 — Repository Stabilization (bb36a41, 768e9b6, be2c43e)
+- Batch 1-4: Infrastructure extraction, dead code cleanup, shared modal/theme upgrades
+- Batch 5-7: Refactored individual pages to use centralized modal, extracted login CSS, image fallback styling
+- Full repository consistency audit and documentation synchronization
+- Removed orphaned `files/` directory, cleaned up frontend module structure
 
 ---
 

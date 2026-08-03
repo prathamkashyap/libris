@@ -2,7 +2,7 @@
 
 ## Purpose and scope
 
-This is an audit of the documentation as it exists on 2 August 2026. It is an evidence record, not a documentation synchronization pass. Statements below were checked against the current Project A source tree and configuration.
+This is an audit of the documentation as it exists on 2 August 2026. It is an evidence record, not a documentation synchronization pass. Statements below were checked against the current Library Management System source tree and configuration.
 
 ## Summary
 

@@ -1,7 +1,7 @@
 # Testing Knowledge Base
 
-> **Project:** Library Management System (Project A)
-> **Last updated:** 01 August 2026
+> **Project:** Library Management System
+> **Last updated:** 3 August 2026
 > **Purpose:** Engineering reference for writing, running, and maintaining automated tests.
 
 ---

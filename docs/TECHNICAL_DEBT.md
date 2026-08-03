@@ -1,8 +1,8 @@
 # Technical Debt Register
 
-> **Source of truth as of:** 30 July 2026
+> **Source of truth as of:** 3 August 2026
 >
-> **Purpose:** Track all known deferred features, code-level shortcuts, testing gaps, and infrastructure limitations in the Library Management System (Project A) v1.0.0 baseline.
+> **Purpose:** Track all known deferred features, code-level shortcuts, testing gaps, and infrastructure limitations in the Library Management System v1.0.0 baseline.
 
 ---
 
@@ -176,10 +176,10 @@ These features are intentionally out of scope for v1.0.0. Each has a rationale f
 | Item | Detail |
 |------|--------|
 | **Branch** | `feature/v1.1-analytics-reports-docker` (current working branch) |
-| **Issue** | ~20 frontend HTML/CSS/JS files have uncommitted modifications and new files, including: HTML theme flash prevention, decorative elements, login page redesign, analytics dashboard, sidebar loader, palette/theme modules. |
-| **Files** | `login.html`, `analytics.html`, `index.html`, `styles.css`, `components/modal.js`, `components/sidebar-loader.js`, `components/sidebar.html`, `js/app-init.js`, `js/palette.js`, `js/sidebar.js`, `js/theme.js`, `js/topbar.js`, plus 15+ modified HTML pages |
-| **Impact** | Feature work is in-progress and not committed. Risk of loss. Uncommitted changes may conflict with future merges. |
-| **Fix** | Commit or stash in-progress work before merging to main. |
+| **Issue** | Frontend stabilization was committed (bb36a41, 768e9b6, be2c43e) but some working-tree modifications remain in `static/` (modal, sidebar, theme, CSS). Git status shows deleted `files/` directory and modified HTML/JS files. |
+| **Files** | Various HTML pages, `js/app-init.js`, `components/sidebar-loader.js` |
+| **Impact** | Working tree is not clean. Changes should be committed or stashed before merging to main. |
+| **Fix** | Review remaining modifications and commit or stash. |
 
 ### 2.7 No JacocoCo Coverage Enforcement
 
@@ -268,21 +268,21 @@ These features are intentionally out of scope for v1.0.0. Each has a rationale f
 
 | Item | Detail |
 |------|--------|
-| **File** | `pom.xml` — no `flyway-core` or `flyway-mysql` dependency |
-| **Issue** | ARCHITECTURE.md §3.4 states "No migration files exist (no Flyway or Liquibase)." The `pom.xml` does not include Flyway as a dependency. No `db/migration/` directory exists. |
+| **File** | `pom.xml` — `flyway-core` and `flyway-mysql` dependencies present but unused |
+| **Issue** | Flyway dependencies were added to `pom.xml` but no migration scripts exist. No `db/migration/` directory. `spring.jpa.hibernate.ddl-auto=update` remains active. |
 | **Current state** | Schema is managed entirely by `spring.jpa.hibernate.ddl-auto=update`. |
 | **Impact** | No versioned, repeatable, or rollback-capable schema management. Production schema changes are uncontrolled. |
-| **Fix** | Add `flyway-core` and `flyway-mysql` dependencies. Create `V1__baseline.sql` from the current schema. Switch `ddl-auto` to `none`. |
+| **Fix** | Create `db/migration/V1__baseline.sql` from the current schema. Switch `ddl-auto` to `none`. |
 
 ### 4.2 No Production Logging Configuration
 
 | Item | Detail |
 |------|--------|
-| **File** | `application.properties:18-19` |
-| **Issue** | Only `logging.level.org.springframework.security=INFO` and `logging.level.org.springframework.web=WARN` are configured. No structured JSON logging, no log file configuration, no log rotation. |
-| **Current state** | Logs go to stdout in plain text format. |
-| **Impact** | In production, plain-text stdout logs are difficult to aggregate, search, and parse. `logstash-logback-encoder` is in `pom.xml` but not configured. |
-| **Fix** | Add `logback-spring.xml` with JSON encoder for production profile, file-based appender with rotation, and structured fields (trace ID, span ID, MDC). |
+| **File** | `logback-spring.xml`, `application.properties` |
+| **Issue** | Structured JSON logging is configured via `logback-spring.xml` with `logstash-logback-encoder`. However, no file-based appender with rotation is configured. Logs go to stdout only. |
+| **Current state** | Structured JSON to stdout via `logstash-logback-encoder`. No log file, no rotation, no retention policy. |
+| **Impact** | In production, logs are lost when the process restarts. No log rotation means unbounded stdout growth. |
+| **Fix** | Add file-based appender with time-based rotation and size cap in `logback-spring.xml`. Configure retention policy. |
 
 ### 4.3 No Alerting/Monitoring Beyond Actuator Health
 

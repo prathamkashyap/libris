@@ -1,6 +1,6 @@
 # Engineering Decisions
 
-This document records every significant engineering decision made during the development of the Library Management System (Project A). Each entry captures the decision, the context in which it was made, alternatives considered, rationale, trade-offs, and any relevant date or commit information.
+This document records every significant engineering decision made during the development of the Library Management System. Each entry captures the decision, the context in which it was made, alternatives considered, rationale, trade-offs, and any relevant date or commit information.
 
 ---
 

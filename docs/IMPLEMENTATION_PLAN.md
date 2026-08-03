@@ -1,6 +1,6 @@
 # Implementation Plan — Library Management System
 
-This document tracks the staged review and implementation plan for Project A. Each phase ends with a green build, all tests passing, docs updated if behavior changed, and a commit before continuing.
+This document tracks the staged review and implementation plan for the Library Management System. Each phase ends with a green build, all tests passing, docs updated if behavior changed, and a commit before continuing.
 
 ---
 
@@ -44,7 +44,7 @@ This document tracks the staged review and implementation plan for Project A. Ea
 
 ### Phase D — Engineering Documentation & AI Knowledge Base
 
-**Status:** Current
+**Status:** Done
 
 ### Phase 7 — v1.1 Features (email notifications, analytics enhancements, etc.)
 

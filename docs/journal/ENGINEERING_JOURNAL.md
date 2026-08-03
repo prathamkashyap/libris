@@ -1,4 +1,4 @@
-# Engineering Journal — Library Management System (Project A)
+# Engineering Journal — Library Management System
 
 A chronological record of every work session, covering objectives, completions, key commits, problems encountered, and notable findings.
 
