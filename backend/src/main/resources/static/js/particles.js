@@ -74,12 +74,12 @@ function createParticle(randomY) {
       speedY: -(Math.random() * 0.6 + 0.15),
       speedX: (Math.random() - 0.5) * 0.3,
       opacity: Math.random() * 0.6 + 0.2,
-      color: Math.random() > 0.5 ? 'rgba(240,168,48,' : 'rgba(255,120,30,',
+      color: Math.random() > 0.5 ? 'rgba(232,144,48,' : 'rgba(200,100,30,',
       life: 0,
       maxLife: Math.random() * 400 + 200,
       flicker: Math.random() * 0.3
     };
-  } else if (currentTheme === 'slate' || currentTheme === 'frost') {
+  } else if (currentTheme === 'frost') {
     return {
       x: Math.random() * w,
       y: randomY ? Math.random() * h : -10,
@@ -87,7 +87,7 @@ function createParticle(randomY) {
       speedY: Math.random() * 0.4 + 0.1,
       speedX: (Math.random() - 0.5) * 0.2,
       opacity: Math.random() * 0.4 + 0.1,
-      color: Math.random() > 0.5 ? 'rgba(56,189,248,' : 'rgba(180,220,255,',
+      color: Math.random() > 0.5 ? 'rgba(80,168,224,' : 'rgba(144,200,240,',
       life: 0,
       maxLife: Math.random() * 500 + 300,
       flicker: Math.random() * 0.2,
@@ -135,7 +135,7 @@ function tick() {
       ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
       ctx.fillStyle = p.color + (Math.max(0, alpha) * 0.15).toFixed(2) + ')';
       ctx.fill();
-    } else if (currentTheme === 'slate' || currentTheme === 'frost') {
+    } else if (currentTheme === 'frost') {
       p.wobble += p.wobbleSpeed;
       p.y += p.speedY;
       p.x += p.speedX + Math.sin(p.wobble) * 0.3;

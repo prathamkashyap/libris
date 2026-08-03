@@ -20,7 +20,6 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
 <div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 <canvas class="ambient-canvas" id="ambientCanvas" aria-hidden="true"></canvas>
@@ -294,23 +293,20 @@
   });
   reflectSwitch();
 
-  /* ---------------- Custom cursor (Star Atlas) ---------------- */
+  /* ---------------- Custom cursor (Star Atlas — single ring with ::before dot) ---------------- */
   if (!reduced && !isTouch) {
-    var dot = document.getElementById("cursorDot");
     var ring = document.getElementById("cursorRing");
     root.classList.add("cursor-ready");
     var mx = 0, my = 0, rx = 0, ry = 0;
     document.addEventListener("mousemove", function(e){
       mx = e.clientX; my = e.clientY;
-      dot.style.transform = "translate(" + (mx - 3) + "px," + (my - 3) + "px)";
-      dot.style.opacity = "1";
       ring.style.opacity = "0.7";
     });
     document.addEventListener("mouseenter", function(){
-      dot.style.opacity = "1"; ring.style.opacity = "0.7";
+      ring.style.opacity = "0.7";
     });
     document.addEventListener("mouseleave", function(){
-      dot.style.opacity = "0"; ring.style.opacity = "0";
+      ring.style.opacity = "0";
     });
     function animRing(){
       rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
@@ -351,14 +347,14 @@
       return { x: Math.random()*w, y: randomY ? Math.random()*h : -10,
         size: Math.random()*3+1, speedY: Math.random()*0.4+0.1,
         speedX: (Math.random()-0.5)*0.2, opacity: Math.random()*0.4+0.1,
-        color: Math.random()>0.5 ? "rgba(56,189,248," : "rgba(180,220,255,",
+        color: Math.random()>0.5 ? "rgba(80,168,224," : "rgba(144,200,240,",
         life: 0, maxLife: Math.random()*500+300, flicker: Math.random()*0.2,
         wobble: Math.random()*Math.PI*2, wobbleSpeed: Math.random()*0.01+0.005 };
     } else {
       return { x: Math.random()*w, y: Math.random()*h,
         size: Math.random()*1.5+0.3, speedY: 0, speedX: 0,
         opacity: 0, targetOpacity: Math.random()*0.5+0.1,
-        color: Math.random()>0.6 ? "rgba(167,139,250," : (Math.random()>0.5 ? "rgba(56,189,248," : "rgba(255,255,255,"),
+        color: Math.random()>0.6 ? "rgba(32,144,192," : (Math.random()>0.5 ? "rgba(64,160,192," : "rgba(255,255,255,"),
         life: 0, maxLife: Math.random()*300+150, flicker: Math.random()*0.5,
         twinkleSpeed: Math.random()*0.03+0.01 };
     }
@@ -448,7 +444,7 @@
   function burst(x, y){
     if (reduced) return;
     var theme = getTheme();
-    var colors = { ember: "#f0a830", frost: "#38bdf8", nebula: "#a78bfa" };
+    var colors = { ember: "#e89030", frost: "#50a8e0", nebula: "#2090c0" };
     var n = 9;
     for (var i = 0; i < n; i++){
       var bit = document.createElement("span");
