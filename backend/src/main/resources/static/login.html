@@ -4,7 +4,7 @@
 <script>
   (function(){
     var t=localStorage.getItem('theme');
-    if(t==='bloom'||t==='slate')document.documentElement.setAttribute('data-theme',t);
+    if(t==='nebula'||t==='frost')document.documentElement.setAttribute('data-theme',t);
   })();
 </script>
 <style>
@@ -20,18 +20,22 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<canvas class="ambient-canvas" id="ambientCanvas" aria-hidden="true"></canvas>
 <div class="petal-decor" aria-hidden="true"></div>
 <div class="star-decor" aria-hidden="true"></div>
 <div class="fx-layer" id="fxLayer" aria-hidden="true"></div>
 
 <div class="theme-switch" id="themeSwitch" role="group" aria-label="Theme">
-  <button type="button" class="theme-opt" data-theme-value="bloom" aria-pressed="false" title="Ivory — light &amp; professional">
+  <button type="button" class="theme-opt" data-theme-value="nebula" aria-pressed="false" title="Nebula — cosmic purple">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c1 2 .5 3.6-.6 4.7C12.6 6.9 14.3 6.6 16 7.6c-1.7 1-2.2 2.7-1.6 4.4 1.7-1 3.4-.6 4.6.6-2 1-3.6.5-4.7-.6.9 1.2 1.2 2.9.2 4.6-1-1.7-2.7-2.2-4.4-1.6 1 1.7.6 3.4-.6 4.6-1-2-.5-3.6.6-4.7-1.2.9-2.9 1.2-4.6.2 1.7-1 2.2-2.7 1.6-4.4-1.7 1-3.4.6-4.6-.6 2-1 3.6-.5 4.7.6-.9-1.2-1.2-2.9-.2-4.6 1 1.7 2.7 2.2 4.4 1.6-1-1.7-.6-3.4.6-4.6Z"/></svg>
   </button>
-  <button type="button" class="theme-opt" data-theme-value="ember" aria-pressed="true" title="Ember — warm &amp; scholarly">
+  <button type="button" class="theme-opt" data-theme-value="ember" aria-pressed="true" title="Blaze — volcanic fire">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c1.2 2.8-1.6 4.2-1.9 7a3.9 3.9 0 0 0 7.8.3c.1-1.3-.4-2.4-1.1-3.3 1.3.7 2.5 2.3 2.5 4.5a6.3 6.3 0 0 1-12.6 0c0-4.3 3.7-5.6 5.3-8.5Z"/></svg>
   </button>
-  <button type="button" class="theme-opt" data-theme-value="slate" aria-pressed="false" title="Slate — neutral &amp; focused">
+  <button type="button" class="theme-opt" data-theme-value="frost" aria-pressed="false" title="Frost — ice cyber">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 22 12 12 22 2 12Z"/></svg>
   </button>
 </div>
@@ -263,6 +267,7 @@
   "use strict";
   var root = document.documentElement;
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var isTouch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
 
   /* ---------------- Theme toggle ---------------- */
   var themeSwitch = document.getElementById("themeSwitch");
@@ -276,61 +281,138 @@
     });
   }
   function setTheme(theme){
+    root.classList.add("theme-transitioning");
     if (theme === "ember") root.removeAttribute("data-theme");
     else root.setAttribute("data-theme", theme);
     try { localStorage.setItem("theme", theme); } catch(e){}
     reflectSwitch();
-    seedParticles();
+    switchAmbient(theme);
+    setTimeout(function(){ root.classList.remove("theme-transitioning"); }, 400);
   }
   themeOpts.forEach(function(btn){
     btn.addEventListener("click", function(){ setTheme(btn.dataset.themeValue); });
   });
   reflectSwitch();
 
-  /* ---------------- Ambient particle layer (sakura / motes) ---------------- */
-  var fx = document.getElementById("fxLayer");
-  var spawnTimer = null;
-
-  function clearFx(){ fx.innerHTML = ""; }
-
-  function spawnPetal(){
-    var el = document.createElement("div");
-    el.className = "petal";
-    var size = 9 + Math.random() * 13;
-    el.style.setProperty("--size", size + "px");
-    el.style.left = (Math.random() * 100) + "vw";
-    el.style.setProperty("--drift", (Math.random() * 150 - 75) + "px");
-    el.style.setProperty("--dur", (9 + Math.random() * 9) + "s");
-    el.style.setProperty("--delay", (Math.random() * 6) + "s");
-    el.style.setProperty("--rot", (200 + Math.random() * 260) + "deg");
-    fx.appendChild(el);
+  /* ---------------- Custom cursor (Star Atlas) ---------------- */
+  if (!reduced && !isTouch) {
+    var dot = document.getElementById("cursorDot");
+    var ring = document.getElementById("cursorRing");
+    root.classList.add("cursor-ready");
+    var mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener("mousemove", function(e){
+      mx = e.clientX; my = e.clientY;
+      dot.style.transform = "translate(" + (mx - 3) + "px," + (my - 3) + "px)";
+      dot.style.opacity = "1";
+      ring.style.opacity = "0.7";
+    });
+    document.addEventListener("mouseenter", function(){
+      dot.style.opacity = "1"; ring.style.opacity = "0.7";
+    });
+    document.addEventListener("mouseleave", function(){
+      dot.style.opacity = "0"; ring.style.opacity = "0";
+    });
+    function animRing(){
+      rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+      var sz = ring.classList.contains("is-active") ? 54 : 34;
+      ring.style.width = sz + "px"; ring.style.height = sz + "px";
+      ring.style.transform = "translate(" + (rx - sz/2) + "px," + (ry - sz/2) + "px)";
+      requestAnimationFrame(animRing);
+    }
+    animRing();
+    document.querySelectorAll("a, button, [role='button'], input, select, textarea, .theme-opt").forEach(function(el){
+      el.addEventListener("mouseenter", function(){ ring.classList.add("is-active"); });
+      el.addEventListener("mouseleave", function(){ ring.classList.remove("is-active"); });
+    });
   }
-  function spawnMote(){
-    var el = document.createElement("div");
-    el.className = "mote";
-    var size = 3 + Math.random() * 5;
-    el.style.setProperty("--size", size + "px");
-    el.style.left = (Math.random() * 100) + "vw";
-    el.style.setProperty("--drift", (Math.random() * 100 - 50) + "px");
-    el.style.setProperty("--dur", (10 + Math.random() * 9) + "s");
-    el.style.setProperty("--delay", (Math.random() * 7) + "s");
-    fx.appendChild(el);
+
+  /* ---------------- Ambient particles (canvas) ---------------- */
+  var canvas = document.getElementById("ambientCanvas");
+  var ctx = canvas ? canvas.getContext("2d") : null;
+  var particles = [];
+  var running = false;
+
+  function resizeCanvas(){
+    if (!canvas) return;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
   }
 
-  function seedParticles(){
-    clearFx();
+  function createParticle(randomY){
+    var w = canvas.width, h = canvas.height;
     var theme = getTheme();
-    if (theme === "slate" || theme === "bloom") return; // Slate and Ivory stay quiet — no ambient particles
-    var count = reduced ? 6 : (window.innerWidth < 640 ? 14 : 24);
-    for (var i = 0; i < count; i++) {
-      spawnMote();
+    if (theme === "ember") {
+      return { x: Math.random()*w, y: randomY ? Math.random()*h : h+10,
+        size: Math.random()*2.5+0.8, speedY: -(Math.random()*0.6+0.15),
+        speedX: (Math.random()-0.5)*0.3, opacity: Math.random()*0.6+0.2,
+        color: Math.random()>0.5 ? "rgba(240,168,48," : "rgba(255,120,30,",
+        life: 0, maxLife: Math.random()*400+200, flicker: Math.random()*0.3 };
+    } else if (theme === "frost") {
+      return { x: Math.random()*w, y: randomY ? Math.random()*h : -10,
+        size: Math.random()*3+1, speedY: Math.random()*0.4+0.1,
+        speedX: (Math.random()-0.5)*0.2, opacity: Math.random()*0.4+0.1,
+        color: Math.random()>0.5 ? "rgba(56,189,248," : "rgba(180,220,255,",
+        life: 0, maxLife: Math.random()*500+300, flicker: Math.random()*0.2,
+        wobble: Math.random()*Math.PI*2, wobbleSpeed: Math.random()*0.01+0.005 };
+    } else {
+      return { x: Math.random()*w, y: Math.random()*h,
+        size: Math.random()*1.5+0.3, speedY: 0, speedX: 0,
+        opacity: 0, targetOpacity: Math.random()*0.5+0.1,
+        color: Math.random()>0.6 ? "rgba(167,139,250," : (Math.random()>0.5 ? "rgba(56,189,248," : "rgba(255,255,255,"),
+        life: 0, maxLife: Math.random()*300+150, flicker: Math.random()*0.5,
+        twinkleSpeed: Math.random()*0.03+0.01 };
     }
   }
-  seedParticles();
-  window.addEventListener("resize", function(){
-    clearTimeout(spawnTimer);
-    spawnTimer = setTimeout(seedParticles, 300);
-  });
+
+  function spawnParticles(){
+    particles = [];
+    for (var i = 0; i < 50; i++) particles.push(createParticle(true));
+  }
+
+  function drawParticles(){
+    if (!running || !ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var theme = getTheme();
+    for (var i = 0; i < particles.length; i++){
+      var p = particles[i]; p.life++;
+      if (theme === "ember") {
+        p.y += p.speedY; p.x += p.speedX + Math.sin(p.life*0.01)*0.15;
+        var fi = Math.min(1, p.life/40), fo = Math.max(0, 1-(p.life-p.maxLife+60)/60);
+        var a = Math.max(0, p.opacity*fi*fo + Math.sin(p.life*0.05)*p.flicker);
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+        ctx.fillStyle = p.color + a.toFixed(2) + ")"; ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.size*2.5,0,Math.PI*2);
+        ctx.fillStyle = p.color + (a*0.15).toFixed(2) + ")"; ctx.fill();
+      } else if (theme === "frost") {
+        p.wobble += p.wobbleSpeed; p.y += p.speedY; p.x += p.speedX + Math.sin(p.wobble)*0.3;
+        var fi2 = Math.min(1, p.life/50), fo2 = Math.max(0, 1-(p.life-p.maxLife+80)/80);
+        var a2 = Math.max(0, p.opacity*fi2*fo2);
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.size*0.5,0,Math.PI*2);
+        ctx.fillStyle = p.color + a2.toFixed(2) + ")"; ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.size*2,0,Math.PI*2);
+        ctx.fillStyle = p.color + (a2*0.1).toFixed(2) + ")"; ctx.fill();
+      } else {
+        var tw = Math.sin(p.life*p.twinkleSpeed)*0.5+0.5;
+        var a3 = p.targetOpacity*tw;
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+        ctx.fillStyle = p.color + a3.toFixed(2) + ")"; ctx.fill();
+        if (p.size > 1) {
+          ctx.beginPath(); ctx.arc(p.x,p.y,p.size*3,0,Math.PI*2);
+          ctx.fillStyle = p.color + (a3*0.08).toFixed(2) + ")"; ctx.fill();
+        }
+      }
+      if (p.life >= p.maxLife) particles[i] = createParticle(false);
+    }
+    requestAnimationFrame(drawParticles);
+  }
+
+  function switchAmbient(){
+    resizeCanvas();
+    spawnParticles();
+    if (!running) { running = true; drawParticles(); }
+  }
+  switchAmbient();
+  window.addEventListener("resize", function(){ resizeCanvas(); });
 
   /* ---------------- Card tilt + cursor spotlight ---------------- */
   var card = document.getElementById("loginCard");
@@ -362,16 +444,17 @@
     submitBtn.addEventListener("pointerleave", function(){ submitBtn.style.transform = ""; });
   }
 
-  /* ---------------- Click burst (sparkle / spark) — skipped for Slate ---------------- */
+  /* ---------------- Click burst — all themes ---------------- */
   function burst(x, y){
+    if (reduced) return;
     var theme = getTheme();
-    if (reduced || theme === "slate") return;
+    var colors = { ember: "#f0a830", frost: "#38bdf8", nebula: "#a78bfa" };
     var n = 9;
     for (var i = 0; i < n; i++){
       var bit = document.createElement("span");
-      bit.className = "burst-bit" + (theme === "bloom" ? "" : " spark");
-      bit.style.left = x + "px";
-      bit.style.top = y + "px";
+      bit.className = "burst-bit spark";
+      bit.style.left = x + "px"; bit.style.top = y + "px";
+      bit.style.background = "radial-gradient(circle," + (colors[theme]||"#f0a830") + ",transparent)";
       var ang = Math.random() * Math.PI * 2;
       var dist = 26 + Math.random() * 46;
       bit.style.setProperty("--dx", Math.cos(ang) * dist + "px");

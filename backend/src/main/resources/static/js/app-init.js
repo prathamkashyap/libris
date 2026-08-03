@@ -3,12 +3,14 @@
  * Import this module in every page (except login.html).
  *
  * Handles: shell loading (sidebar, topbar, palette), theme switching,
- * logout wiring, and mobile sidebar toggle.
+ * cursor system, ambient particles, logout wiring, mobile sidebar toggle.
  */
-import { initTheme, renderThemeSwitcher } from '/js/theme.js';
+import { initTheme, getTheme, renderThemeSwitcher } from '/js/theme.js';
 import { initSidebar } from '/js/sidebar.js';
 import { initPalette } from '/js/palette.js';
 import { initTopbar } from '/js/topbar.js';
+import { initCursor } from '/js/cursor.js';
+import { initParticles, switchParticles } from '/js/particles.js';
 
 const componentCache = new Map();
 
@@ -28,6 +30,12 @@ async function loadComponent(id, url) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Inject grain overlay
+  const grain = document.createElement('div');
+  grain.className = 'grain';
+  grain.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(grain);
+
   // Load shared shell components in parallel
   await Promise.all([
     loadComponent('rail', '/components/sidebar.html'),
@@ -38,18 +46,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Set topbar breadcrumb context based on document title
   const currentBreadcrumb = document.getElementById('topbar-current');
   if (currentBreadcrumb) {
-     const pageTitle = document.title.split('—')[0].trim();
+     const pageTitle = document.title.split('\u2014')[0].trim();
      currentBreadcrumb.textContent = pageTitle;
   }
 
   // Initialize all shared modules
-  initTheme();
+  const currentTheme = initTheme();
   initSidebar();
   initTopbar();
   initPalette();
 
   // Render theme switcher into topbar
   renderThemeSwitcher(document.getElementById('topbar-theme'));
+
+  // Initialize custom cursor
+  initCursor();
+
+  // Initialize ambient particles for current theme
+  initParticles(currentTheme);
+
+  // Listen for theme changes to switch particles
+  window.addEventListener('themechange', (e) => {
+    switchParticles(e.detail.theme);
+  });
 
   // Settings page tabs (if present)
   document.querySelectorAll('.tabs').forEach(tabGroup => {
@@ -72,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => el.classList.add('loaded'), 700);
   });
 
-  // Card mouse-follow glow (Ivory theme)
+  // Card mouse-follow glow (all themes)
   document.addEventListener('mousemove', (e) => {
     document.querySelectorAll('.stat-card, .book-gcard, .person-card, .quick').forEach(card => {
       const rect = card.getBoundingClientRect();

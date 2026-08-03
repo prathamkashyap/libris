@@ -79,9 +79,7 @@ class CrudIntegrationTest {
   @Order(1)
   void magazineCrud() throws Exception {
     String created =
-        authPost(
-            "/api/magazines",
-            "{\"title\":\"National Geographic\",\"publisher\":\"NatGeo\"}");
+        authPost("/api/magazines", "{\"title\":\"National Geographic\",\"publisher\":\"NatGeo\"}");
     long id = json.readTree(created).path("id").asLong();
     Assertions.assertTrue(id > 0);
 
@@ -122,9 +120,7 @@ class CrudIntegrationTest {
   @Order(2)
   void newspaperCrud() throws Exception {
     String created =
-        authPost(
-            "/api/newspapers",
-            "{\"title\":\"Daily Times\",\"publisher\":\"Times Inc\"}");
+        authPost("/api/newspapers", "{\"title\":\"Daily Times\",\"publisher\":\"Times Inc\"}");
     long id = json.readTree(created).path("id").asLong();
     Assertions.assertTrue(id > 0);
 

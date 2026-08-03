@@ -23,19 +23,15 @@ public class StudentDashboardController {
     var student = studentService.getByUsername(authentication.getName());
 
     var borrowed =
-        borrowService.listByStudentId(student.id(), "BORROWED", org.springframework.data.domain.Pageable.unpaged());
+        borrowService.listByStudentId(
+            student.id(), "BORROWED", org.springframework.data.domain.Pageable.unpaged());
     var returned =
-        borrowService.listByStudentId(student.id(), "RETURNED", org.springframework.data.domain.Pageable.unpaged());
+        borrowService.listByStudentId(
+            student.id(), "RETURNED", org.springframework.data.domain.Pageable.unpaged());
 
-    var currentBorrows =
-        borrowed.getContent().stream()
-            .map(this::toSummary)
-            .toList();
+    var currentBorrows = borrowed.getContent().stream().map(this::toSummary).toList();
 
-    var history =
-        returned.getContent().stream()
-            .map(this::toSummary)
-            .toList();
+    var history = returned.getContent().stream().map(this::toSummary).toList();
 
     return new StudentDashboardResponse(
         student.id(),

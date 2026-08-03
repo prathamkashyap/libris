@@ -2,6 +2,8 @@ package com.example.lms.security;
 
 import com.example.lms.entity.StudentProfile;
 import com.example.lms.repository.StudentProfileRepository;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
@@ -11,9 +13,6 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class CustomOidcUserService extends OidcUserService {
@@ -30,11 +29,20 @@ public class CustomOidcUserService extends OidcUserService {
     String email = oidcUser.getEmail();
 
     if (email == null) {
-      throw new OAuth2AuthenticationException(new OAuth2Error("invalid_request", "Email not found from OAuth2 provider", ""));
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("invalid_request", "Email not found from OAuth2 provider", ""));
     }
 
-    StudentProfile profile = studentProfiles.findByEmail(email)
-        .orElseThrow(() -> new OAuth2AuthenticationException(new OAuth2Error("unauthorized", "Email not registered as a library student account.", "")));
+    StudentProfile profile =
+        studentProfiles
+            .findByEmail(email)
+            .orElseThrow(
+                () ->
+                    new OAuth2AuthenticationException(
+                        new OAuth2Error(
+                            "unauthorized",
+                            "Email not registered as a library student account.",
+                            "")));
 
     List<GrantedAuthority> authorities = new ArrayList<>(oidcUser.getAuthorities());
     authorities.add(new SimpleGrantedAuthority("ROLE_" + profile.getAccount().getRole().name()));
