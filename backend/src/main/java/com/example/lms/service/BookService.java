@@ -7,6 +7,8 @@ import com.example.lms.exception.*;
 import com.example.lms.repository.*;
 import com.example.lms.util.CurrentUser;
 import com.example.lms.util.StringUtils;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,9 @@ public class BookService {
     this.currentUser = currentUser;
   }
 
+  @Cacheable(
+      cacheNames = "books",
+      key = "'list:' + (#search ?: '') + ':' + #pageable.pageNumber + ':' + #pageable.pageSize")
   @Transactional(readOnly = true)
   public org.springframework.data.domain.Page<BookResponse> list(
       String search, org.springframework.data.domain.Pageable pageable) {
@@ -41,11 +46,13 @@ public class BookService {
     return source.map(this::response);
   }
 
+  @Cacheable(cacheNames = "books", key = "'get:' + #id")
   @Transactional(readOnly = true)
   public BookResponse get(Long id) {
     return response(book(id));
   }
 
+  @CacheEvict(cacheNames = "books", allEntries = true)
   @Transactional
   public BookResponse create(BookRequest request) {
     var entity = new Book();
@@ -69,6 +76,7 @@ public class BookService {
     return saved;
   }
 
+  @CacheEvict(cacheNames = "books", allEntries = true)
   @Transactional
   public BookResponse update(Long id, BookRequest request) {
     var entity = book(id);
@@ -91,6 +99,7 @@ public class BookService {
     return saved;
   }
 
+  @CacheEvict(cacheNames = "books", allEntries = true)
   @Transactional
   public void delete(Long id) {
     var entity = book(id);

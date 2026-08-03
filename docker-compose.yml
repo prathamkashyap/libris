@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: lms-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${LMS_DB_PASSWORD:-rootpass}
+      MYSQL_DATABASE: librarydb
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lms-app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      LMS_DB_URL: jdbc:mysql://mysql:3306/librarydb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      LMS_DB_USERNAME: root
+      LMS_DB_PASSWORD: ${LMS_DB_PASSWORD:-rootpass}
+      LMS_ADMIN_PASSWORD: ${LMS_ADMIN_PASSWORD:-Admin123!}
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  mysql-data:

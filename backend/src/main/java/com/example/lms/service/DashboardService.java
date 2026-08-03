@@ -2,6 +2,7 @@ package com.example.lms.service;
 
 import com.example.lms.dto.DashboardResponse;
 import com.example.lms.repository.*;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ public class DashboardService {
     books = b;
   }
 
+  @Cacheable(cacheNames = "dashboard")
   @Transactional(readOnly = true)
   public DashboardResponse get() {
     var available = books.countByAvailable(true);
