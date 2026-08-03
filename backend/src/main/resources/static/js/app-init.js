@@ -2,25 +2,54 @@
  * Shared application initializer for all authenticated pages.
  * Import this module in every page (except login.html).
  *
- * Handles: sidebar loading, theme toggle, topbar, palette,
+ * Handles: shell loading (sidebar, topbar, palette), theme switching,
  * logout wiring, and mobile sidebar toggle.
  */
-import { loadSidebar } from '/components/sidebar-loader.js';
-import { initTheme, renderThemeToggle } from '/js/theme.js';
-import { initSidebar, initThemeToggleInSidebar } from '/js/sidebar.js';
+import { initTheme, renderThemeSwitcher } from '/js/theme.js';
+import { initSidebar } from '/js/sidebar.js';
 import { initPalette } from '/js/palette.js';
 import { initTopbar } from '/js/topbar.js';
 
+const componentCache = new Map();
+
+async function loadComponent(id, url) {
+  const root = document.getElementById(id);
+  if (!root) return;
+  try {
+    if (!componentCache.has(url)) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+      componentCache.set(url, await res.text());
+    }
+    root.innerHTML = componentCache.get(url);
+  } catch (err) {
+    console.error(`Failed to load ${url}:`, err);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load shared sidebar
-  await loadSidebar();
+  // Load shared shell components in parallel
+  await Promise.all([
+    loadComponent('rail', '/components/sidebar.html'),
+    loadComponent('topbar-root', '/components/topbar.html'),
+    loadComponent('palette-root', '/components/palette.html')
+  ]);
+
+  // Set topbar breadcrumb context based on document title
+  const currentBreadcrumb = document.getElementById('topbar-current');
+  if (currentBreadcrumb) {
+     const pageTitle = document.title.split('—')[0].trim();
+     currentBreadcrumb.textContent = pageTitle;
+  }
 
   // Initialize all shared modules
   initTheme();
   initSidebar();
-  initThemeToggleInSidebar();
   initTopbar();
   initPalette();
+
+  // Render theme switcher into topbar
+  renderThemeSwitcher(document.getElementById('topbar-theme'));
 
   // Settings page tabs (if present)
   document.querySelectorAll('.tabs').forEach(tabGroup => {

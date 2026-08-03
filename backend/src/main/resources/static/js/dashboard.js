@@ -1,6 +1,7 @@
 import { analyticsApi } from "/js/api/analytics-api.js";
 import { borrowApi } from "/js/api/borrow-api.js";
 import { authApi } from "/js/api/auth-api.js";
+import { studentDashboardApi } from "/js/api/student-dashboard-api.js";
 import { setCurrentUser } from "/js/api/http.js";
 import { esc } from "/js/utils/esc.js";
 
@@ -10,9 +11,10 @@ function fmtNum(n) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  let user;
   try {
     await authApi.csrf();
-    const user = await authApi.me();
+    user = await authApi.me();
     setCurrentUser(user);
     const name = user.name || user.username || "there";
     const greeting = document.getElementById("dashboardGreeting");
@@ -23,6 +25,56 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   } catch {}
 
+  const role = (user?.role || "").toUpperCase();
+  if (role === "STUDENT") {
+    loadStudentDashboard();
+  } else {
+    loadAdminDashboard();
+  }
+});
+
+async function loadStudentDashboard() {
+  try {
+    const data = await studentDashboardApi.getDashboard();
+
+    const el = id => document.getElementById(id);
+
+    const borrowedEl = el("statBorrowed");
+    if (borrowedEl) borrowedEl.textContent = String(data.currentBorrows?.length || 0);
+
+    const sub = document.getElementById("dashboardSub");
+    if (sub) {
+      const count = data.currentBorrows?.length || 0;
+      sub.textContent = count === 0
+        ? "You have no active borrows."
+        : `You have ${count} active borrow${count === 1 ? "" : "s"}.`;
+    }
+
+    const recentList = document.getElementById("recentBorrowsList");
+    if (recentList && data.currentBorrows?.length > 0) {
+      recentList.innerHTML = data.currentBorrows.slice(0, 5).map(r => {
+        return `<div class="activity-row"><span class="dot dot-out"></span><div><b>${esc(r.itemTitle)}</b> — borrowed ${r.borrowDate}<small>${esc(r.status)}</small></div></div>`;
+      }).join("");
+    } else if (recentList) {
+      recentList.innerHTML = '<div class="activity-row"><span class="dot dot-in"></span><div><b>No active borrows</b><small>All clear</small></div></div>';
+    }
+
+    // Hide admin-only dashboard sections
+    ["statBooks", "statStudents", "statAvailable", "statOverdue", "statOverdueDelta", "overdueList"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        const card = el.closest(".stat-card") || el.closest(".card");
+        if (card) card.style.display = "none";
+      }
+    });
+  } catch (err) {
+    console.error("Student dashboard load error:", err);
+    const sub = document.getElementById("dashboardSub");
+    if (sub) sub.textContent = "Could not load dashboard data.";
+  }
+}
+
+async function loadAdminDashboard() {
   try {
     const [stats, overdueData, recordsData] = await Promise.all([
       analyticsApi.dashboard(),
@@ -80,4 +132,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     const sub = document.getElementById("dashboardSub");
     if (sub) sub.textContent = "Could not load dashboard data.";
   }
-});
+}

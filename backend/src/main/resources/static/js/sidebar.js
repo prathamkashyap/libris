@@ -1,7 +1,6 @@
 /**
  * Sidebar behavior — mobile toggle, active link highlighting, logout wiring, role filtering.
  */
-import { renderThemeToggle } from '/js/theme.js';
 import { getCurrentUser } from '/js/api/http.js';
 
 /** Initialize sidebar interactions */
@@ -65,10 +64,4 @@ function applyRoleFilter(rail) {
       el.style.display = 'none';
     }
   });
-}
-
-/** Add a theme toggle button to the sidebar */
-export function initThemeToggleInSidebar() {
-  const container = document.getElementById('rail-theme-toggle');
-  if (container) renderThemeToggle(container);
 }
