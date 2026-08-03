@@ -3,8 +3,8 @@
 ## Quick Start for Next AI
 - Project location: /Users/prathamkashyap/Documents/Coding.nosync/projects/Library Management System
 - Branch: feature/v1.1-analytics-reports-docker
-- Latest commit: be2c43e (chore: stabilize repository and synchronize documentation)
-- Total commits: 33
+- Latest commit: 481db22 (refactor(theme): replace Bloom with Ivory)
+- Total commits: 39
 - Test status: 13 passing (BUILD SUCCESS)
 - Spotless: passing
 
@@ -36,6 +36,7 @@
 ## Technical Debt
 - See docs/TECHNICAL_DEBT.md (full list)
 - Key items: No Flyway migrations created, no JacCoCo, no caching, no rate limiting
+- Note: JaCoCo, Flyway (V1__baseline.sql), structured logging, Spring Cache have been added since this doc was last updated
 
 ## Key Decisions
 - See docs/DECISIONS.md (15 decisions documented)
@@ -55,14 +56,14 @@
 - None
 
 ## Recent Commits (last 8)
-1. be2c43e chore: stabilize repository and synchronize documentation
-2. 768e9b6 Batch 5-7: Refactored individual pages to use centralized modal
-3. bb36a41 Batch 1-4: Infrastructure extraction, dead code cleanup, shared modal/theme
-4. 892337b docs: update README with Actuator, N+1 fixes, new tests, Spotless
-5. 68f913a test: add CrudIntegrationTest
-6. 1c4c0a0 ops: Actuator + structured logging
-7. f1fcda0 perf: N+1 fix Student/Librarian
-8. bfd9341 perf: N+1 fix BorrowRecord
+1. 481db22 refactor(theme): replace Bloom with Ivory — professional warm light theme
+2. 5c41b5f fix: theme system, student dashboard, settings page, cleanup
+3. 7ea7515 ops: JaCoCo, Flyway, file logging, caching, Docker
+4. f207ed2 frontend: spacing scale, tighter radii, a11y, error pages, responsive tables, print styles, role-filtered nav
+5. c6ecb04 docs: Phase D — Engineering Knowledge Base
+6. be2c43e chore: stabilize repository and synchronize documentation
+7. 768e9b6 Batch 5-7: Refactored individual pages to use centralized modal
+8. bb36a41 Batch 1-4: Infrastructure extraction, dead code cleanup, shared modal/theme
 
 ## Next Task
 - Phase D: Complete (this document)
