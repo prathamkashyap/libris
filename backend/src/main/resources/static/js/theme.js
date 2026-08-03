@@ -1,6 +1,6 @@
 /**
  * Theme management — single source of truth for theme state.
- * Three themes: ember (dark, default), bloom (warm light), slate (neutral dark).
+ * Three themes: ember (dark, default), bloom (light/warm — labeled "Ivory"), slate (neutral dark).
  *
  * Flow:
  * 1. Inline <script> in <head> reads localStorage and sets data-theme before first paint.
@@ -74,12 +74,12 @@ export function renderThemeSwitcher(container) {
   if (!container) return;
 
   const icons = {
-    bloom: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c1 2 .5 3.6-.6 4.7C12.6 6.9 14.3 6.6 16 7.6c-1.7 1-2.2 2.7-1.6 4.4 1.7-1 3.4-.6 4.6.6-2 1-3.6.5-4.7-.6.9 1.2 1.2 2.9.2 4.6-1-1.7-2.7-2.2-4.4-1.6 1 1.7.6 3.4-.6 4.6-1-2-.5-3.6.6-4.7-1.2.9-2.9 1.2-4.6.2 1.7-1 2.2-2.7 1.6-4.4-1.7 1-3.4.6-4.6-.6 2-1 3.6-.5 4.7.6-.9-1.2-1.2-2.9-.2-4.6 1 1.7 2.7 2.2 4.4 1.6-1-1.7-.6-3.4.6-4.6Z"/></svg>`,
+    bloom: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c.8 0 1.5.3 2 .8l2.2 2.2c.5.5.8 1.2.8 2v.5l2.8 1.6c.8.5 1.1 1.5.6 2.4-.3.5-.7.9-1.2 1.1l-2.8 1.2v.5c0 .8-.3 1.5-.8 2l-2.2 2.2c-.5.5-1.2.8-2 .8s-1.5-.3-2-.8l-2.2-2.2c-.5-.5-.8-1.2-.8-2v-.5l-2.8-1.2c-.8-.4-1.1-1.4-.6-2.4.3-.5.7-.9 1.2-1.1l2.8-1.6v-.5c0-.8.3-1.5.8-2l2.2-2.2c.5-.5 1.2-.8 2-.8Z"/></svg>`,
     ember: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c1.2 2.8-1.6 4.2-1.9 7a3.9 3.9 0 0 0 7.8.3c.1-1.3-.4-2.4-1.1-3.3 1.3.7 2.5 2.3 2.5 4.5a6.3 6.3 0 0 1-12.6 0c0-4.3 3.7-5.6 5.3-8.5Z"/></svg>`,
     slate: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 22 12 12 22 2 12Z"/></svg>`
   };
 
-  const labels = { ember: 'Ember', bloom: 'Bloom', slate: 'Slate' };
+  const labels = { ember: 'Ember', bloom: 'Ivory', slate: 'Slate' };
 
   const wrapper = document.createElement('div');
   wrapper.className = 'theme-switch';
@@ -91,7 +91,7 @@ export function renderThemeSwitcher(container) {
     btn.type = 'button';
     btn.className = 'theme-opt';
     btn.dataset.themeValue = theme;
-    btn.title = `${labels[theme]} — ${theme === 'ember' ? 'warm & scholarly' : theme === 'bloom' ? 'bright & warm' : 'neutral & focused'}`;
+    btn.title = `${labels[theme]} — ${theme === 'ember' ? 'warm & scholarly' : theme === 'bloom' ? 'light & professional' : 'neutral & focused'}`;
     btn.innerHTML = icons[theme];
     btn.addEventListener('click', () => setTheme(theme));
     wrapper.appendChild(btn);

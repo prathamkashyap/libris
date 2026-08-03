@@ -71,4 +71,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.querySelectorAll('.skeleton-wrap').forEach(el => {
     setTimeout(() => el.classList.add('loaded'), 700);
   });
+
+  // Card mouse-follow glow (Ivory theme)
+  document.addEventListener('mousemove', (e) => {
+    document.querySelectorAll('.stat-card, .book-gcard, .person-card, .quick').forEach(card => {
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty('--mx', `${((e.clientX - rect.left) / rect.width) * 100}%`);
+      card.style.setProperty('--my', `${((e.clientY - rect.top) / rect.height) * 100}%`);
+    });
+  });
 });
