@@ -51,7 +51,10 @@ public class SecurityConfig {
   @Bean
   SecurityFilterChain security(
       HttpSecurity http,
-      org.springframework.beans.factory.ObjectProvider<org.springframework.security.oauth2.client.registration.ClientRegistrationRepository> clientRegistrationRepository) throws Exception {
+      org.springframework.beans.factory.ObjectProvider<
+              org.springframework.security.oauth2.client.registration.ClientRegistrationRepository>
+          clientRegistrationRepository)
+      throws Exception {
     CookieCsrfTokenRepository csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
 
     http.csrf(
@@ -94,6 +97,8 @@ public class SecurityConfig {
                     .hasAnyRole("ADMIN", "LIBRARIAN", "STUDENT")
                     .requestMatchers(
                         "/api/books/**",
+                        "/api/magazines/**",
+                        "/api/newspapers/**",
                         "/api/students/**",
                         "/api/borrow-records/**",
                         "/api/dashboard")
@@ -101,14 +106,16 @@ public class SecurityConfig {
                     .anyRequest()
                     .authenticated());
 
-    org.springframework.security.oauth2.client.registration.ClientRegistrationRepository repo = clientRegistrationRepository.getIfAvailable();
+    org.springframework.security.oauth2.client.registration.ClientRegistrationRepository repo =
+        clientRegistrationRepository.getIfAvailable();
     if (repo != null) {
-        http.oauth2Login(oauth2 -> {
+      http.oauth2Login(
+          oauth2 -> {
             oauth2.defaultSuccessUrl("/");
             if (oidcUserService != null) {
-                oauth2.userInfoEndpoint(userInfo -> userInfo.oidcUserService(oidcUserService));
+              oauth2.userInfoEndpoint(userInfo -> userInfo.oidcUserService(oidcUserService));
             }
-        });
+          });
     }
 
     http.userDetailsService(users);
