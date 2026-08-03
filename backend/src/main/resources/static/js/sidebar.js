@@ -1,7 +1,8 @@
 /**
- * Sidebar behavior — mobile toggle, active link highlighting, logout wiring.
+ * Sidebar behavior — mobile toggle, active link highlighting, logout wiring, role filtering.
  */
 import { renderThemeToggle } from '/js/theme.js';
+import { getCurrentUser } from '/js/api/http.js';
 
 /** Initialize sidebar interactions */
 export function initSidebar() {
@@ -28,6 +29,9 @@ export function initSidebar() {
     });
   }
 
+  // Role-based nav filtering
+  applyRoleFilter(rail);
+
   // Wire logout links
   document.querySelectorAll('.logout').forEach(link => {
     link.addEventListener('click', async event => {
@@ -41,6 +45,25 @@ export function initSidebar() {
         window.location.replace('/login.html');
       }
     });
+  });
+}
+
+/**
+ * Hide nav items marked with `data-role-hide` when the current user's role
+ * matches the attribute value. E.g. data-role-hide="STUDENT" hides the item
+ * for students but shows it for ADMIN and LIBRARIAN.
+ */
+function applyRoleFilter(rail) {
+  if (!rail) return;
+  const user = getCurrentUser();
+  const role = (user?.role || '').toUpperCase();
+  if (!role) return;
+
+  rail.querySelectorAll('[data-role-hide]').forEach(el => {
+    const hiddenFor = el.getAttribute('data-role-hide').toUpperCase().split(',').map(s => s.trim());
+    if (hiddenFor.includes(role)) {
+      el.style.display = 'none';
+    }
   });
 }
 

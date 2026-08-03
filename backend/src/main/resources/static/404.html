@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme');
+      if(t==='bloom'||t==='slate')document.documentElement.setAttribute('data-theme',t);
+    })();
+  </script>
+  <style>html{transition:background-color .3s ease,color .3s ease}</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — Page Not Found — Libris</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,480;9..144,680&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .error-page{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:var(--sp-6);text-align:center}
+    .error-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius-lg);padding:var(--sp-10) var(--sp-8);max-width:420px;width:100%;backdrop-filter:var(--blur)}
+    .error-code{font-family:'Fraunces',serif;font-size:4rem;font-weight:680;background:linear-gradient(135deg,var(--ink),var(--indigo));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:0;line-height:1}
+    .error-title{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:480;color:var(--ink);margin:var(--sp-3) 0 var(--sp-2)}
+    .error-desc{font-size:0.9rem;color:var(--ink-soft);margin:0 0 var(--sp-6);line-height:1.6}
+    .error-actions{display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap}
+    .error-actions a{display:inline-flex;align-items:center;gap:var(--sp-2);padding:var(--sp-2) var(--sp-4);border-radius:var(--radius-sm);font-size:0.85rem;font-weight:600;text-decoration:none;transition:all .2s ease}
+    .btn-back{background:var(--ink);color:var(--canvas)}
+    .btn-back:hover{opacity:.88}
+    .btn-home{border:1px solid var(--glass-border);color:var(--ink)}
+    .btn-home:hover{border-color:var(--glass-border-hover);background:rgba(255,255,255,.04)}
+  </style>
+</head>
+<body>
+  <div class="petal-decor" aria-hidden="true"></div>
+  <div class="star-decor" aria-hidden="true"></div>
+  <main class="error-page">
+    <div class="error-card">
+      <div class="error-code">404</div>
+      <h1 class="error-title">Page Not Found</h1>
+      <p class="error-desc">The page you're looking for doesn't exist or may have been moved. Try searching from the dashboard.</p>
+      <div class="error-actions">
+        <a href="javascript:history.back()" class="btn-back">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Go Back
+        </a>
+        <a href="index.html" class="btn-home">Dashboard</a>
+      </div>
+    </div>
+  </main>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme');
+      if(t)document.documentElement.setAttribute('data-theme',t);
+    })();
+  </script>
+</body>
+</html>
