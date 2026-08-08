@@ -3,13 +3,12 @@
  * Import this module in every page (except login.html).
  *
  * Handles: shell loading (sidebar, topbar, palette), theme switching,
- * cursor system, ambient particles, logout wiring, mobile sidebar toggle.
+ * ambient particles, logout wiring, mobile sidebar toggle.
  */
 import { initTheme, getTheme, renderThemeSwitcher } from '/js/theme.js';
 import { initSidebar } from '/js/sidebar.js';
 import { initPalette } from '/js/palette.js';
 import { initTopbar } from '/js/topbar.js';
-import { initCursor } from '/js/cursor.js';
 import { initParticles, switchParticles } from '/js/particles.js';
 
 const componentCache = new Map();
@@ -58,9 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Render theme switcher into topbar
   renderThemeSwitcher(document.getElementById('topbar-theme'));
-
-  // Initialize custom cursor
-  initCursor();
 
   // Initialize ambient particles for current theme
   initParticles(currentTheme);

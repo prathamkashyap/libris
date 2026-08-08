@@ -1,15 +1,11 @@
 /**
  * Login page initializer.
  *
- * Reuses the shared theme (theme.js), cursor (cursor.js), and
- * particle (particles.js) modules — no duplicate theme state
- * management, cursor, or particle logic.
- *
- * Login-specific interactions (card tilt, magnetic button, click
- * burst) live here because they are unique to the login UI.
+ * Reuses the shared theme (theme.js) and particle (particles.js) modules.
+ * Login-specific interactions (card tilt, magnetic button, click burst)
+ * live here because they are unique to the login UI.
  */
 import { initTheme, getTheme, renderThemeSwitcher } from '/js/theme.js';
-import { initCursor } from '/js/cursor.js';
 import { initParticles, switchParticles } from '/js/particles.js';
 
 const root = document.documentElement;
@@ -22,7 +18,6 @@ const currentTheme = initTheme();
 const themeMount = document.getElementById('topbar-theme');
 renderThemeSwitcher(themeMount);
 
-initCursor();
 initParticles(currentTheme);
 
 window.addEventListener('themechange', (e) => {

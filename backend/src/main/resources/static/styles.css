@@ -2141,107 +2141,7 @@ select:focus-visible, textarea:focus-visible {
         );
 }
 
-/* ============================================================
-   PREMIUM CURSOR SYSTEM
-   ============================================================ */
-
-.cursor-dot{
-    position:fixed;
-    top:0;
-    left:0;
-
-    width:6px;
-    height:6px;
-
-    border-radius:50%;
-
-    background:var(--accent);
-
-    pointer-events:none;
-
-    z-index:10001;
-
-    transform:translate(-50%,-50%);
-
-    opacity:0;
-
-    transition:
-        opacity .18s ease,
-        transform .18s ease;
-}
-
-.cursor-ring{
-
-    position:fixed;
-
-    top:0;
-    left:0;
-
-    width:34px;
-    height:34px;
-
-    border-radius:50%;
-
-    border:1.6px solid color-mix(in srgb,var(--accent) 55%,transparent);
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(255,255,255,.04),
-            transparent 70%
-        );
-
-    backdrop-filter:blur(2px);
-
-    pointer-events:none;
-
-    z-index:10000;
-
-    transform:translate(-50%,-50%);
-
-    will-change:transform;
-
-    opacity:0;
-
-    transition:
-        width .18s ease,
-        height .18s ease,
-        border-color .18s ease,
-        opacity .18s ease,
-        background .18s ease;
-}
-
-.cursor-ring.is-active{
-
-    width:52px;
-    height:52px;
-
-    border-color:var(--accent);
-
-    background:
-        radial-gradient(
-            circle,
-            rgba(255,255,255,.08),
-            transparent 72%
-        );
-}
-
-.cursor-dot.is-active{
-
-    transform:
-        translate(-50%,-50%)
-        scale(1.45);
-}
-
-body.cursor-ready{
-
-    cursor:none;
-}
-
-body.cursor-ready *{
-
-    cursor:none !important;
-}
+/* Custom cursor removed — native pointer used everywhere (no theme-specific cursor). */
 
 /* ============================================================
    GRAIN OVERLAY — SVG noise texture
@@ -2314,7 +2214,5 @@ html.theme-transitioning *, html.theme-transitioning *::before, html.theme-trans
 @media (prefers-reduced-motion: reduce) {
   .petal-decor, .star-decor, .petal-decor::before, .petal-decor::after,
   .star-decor::before, .star-decor::after { animation: none !important; }
-  .cursor-ring { display: none !important; }
-  body.cursor-ready, body.cursor-ready a, body.cursor-ready button { cursor: auto !important; }
   .ambient-canvas { display: none !important; }
 }
