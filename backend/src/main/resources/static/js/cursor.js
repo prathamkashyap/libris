@@ -57,6 +57,7 @@ export function initCursor() {
 function onMove(e) {
   mouseX = e.clientX;
   mouseY = e.clientY;
+  if (ringEl && ringEl.style.opacity !== '0.7') ringEl.style.opacity = '0.7';
 }
 
 function tick() {

@@ -43,9 +43,6 @@ Library Management System/
 │   ├── TESTING.md                     Test inventory and coverage
 │   ├── PROJECT_STRUCTURE.md           This file
 │   └── ...
-├── refer-themes/                      Reference theme prototypes
-│   ├── dark blue theme/               Previous dark theme (18 files)
-│   └── light pink theme/              Previous pink theme (16 files)
 └── screenshots/
     ├── desktop/                       Desktop review evidence
     └── mobile/                        Mobile review evidence
@@ -452,14 +449,14 @@ AuditableEntity (superclass)
 
 ### 6.1 Theme System
 
-Two themes controlled by `data-theme` attribute on `<html>`:
+Two themes controlled by `data-theme` attribute on `<html>` (Ember is the default; Verdigris is applied via `data-theme="verdigris"`):
 
-| Theme | Attribute | Default | Canvas Color |
-|-------|-----------|---------|-------------|
-| Dark Blue | (none — `:root`) | Default | `#0C1426` (deep navy) |
-| Rosy Pink | `data-theme="pink"` | Toggle in Settings | `#FFF0F5` (light pink) |
+| Theme | Attribute | Default |
+|-------|-----------|---------|
+| Ember | (none — `:root`) | Default |
+| Verdigris | `data-theme="verdigris"` | Toggle via topbar switcher |
 
-Theme is persisted to `localStorage.getItem('theme')` and applied synchronously via inline `<script>` in each HTML `<head>`.
+Theme is persisted to `localStorage.getItem('theme')` and applied synchronously via an inline `<script>` in each HTML `<head>` (first-paint bootstrap). `js/theme.js` is the only module that reads/writes `document.documentElement.dataset.theme` and `localStorage.theme` at runtime.
 
 ### 6.2 Design Tokens (CSS Custom Properties)
 

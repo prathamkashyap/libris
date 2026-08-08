@@ -18,9 +18,9 @@ A responsive Library Management System built with Spring Boot 3.5, MySQL, and a 
 - **Spring Boot Actuator** with health, info, and metrics endpoints for production monitoring.
 - **Structured JSON logging** via Logstash encoder with traceId/spanId MDC support.
 - **Spotless formatting** enforced in CI with Google Java Format.
-- **Dual-theme system** with a cool dark blue theme and a rosy pink theme, switchable from Settings.
+- **Dual-theme system** — Ember (dark default) and Verdigris (light), switchable from the topbar. Themes are driven by `data-theme` on `<html>` and persisted to `localStorage`; `js/theme.js` is the single source of truth.
 - **Smooth theme transitions** with CSS animations and no flash on page load.
-- **Decorative floating elements** — rose petals in pink mode, cosmic particles in blue mode.
+- **Decorative floating elements** — ambient canvas particles (embers in Ember, twinkling stars in Verdigris) and decorative overlays, theme-reactive via `js/particles.js`.
 
 ## Technology Stack
 

@@ -1,14 +1,23 @@
 /**
- * Theme management — single source of truth for theme state.
- * Three themes: ember/blaze (volcanic dark, default), nebula (cosmic purple), frost (ice blue).
+ * Theme management — single source of truth.
+ *
+ * Supported themes:
+ * - ember      (dark default)
+ * - verdigris  (light)
+ *
+ * This is the only module allowed to read/write
+ * document.documentElement.dataset.theme
+ * or localStorage.theme, except for a minimal first-paint
+ * inline <script> in <head> that reads localStorage before CSS load.
  *
  * Flow:
- * 1. Inline <script> in <head> reads localStorage and sets data-theme before first paint.
- * 2. This module handles runtime toggling, persistence, and UI rendering.
- * 3. No other module should touch document.documentElement.dataset.theme or localStorage.theme.
+ * 1. Inline first-paint <script> in <head> reads localStorage and sets data-theme.
+ * 2. initTheme() confirms/applies the persisted theme at runtime.
+ * 3. This module handles runtime toggling, persistence, and UI rendering.
+ * 4. No other module should touch document.documentElement.dataset.theme or localStorage.theme.
  */
 
-const THEMES = ['ember', 'nebula', 'frost'];
+const THEMES = ['ember', 'verdigris'];
 const STORAGE_KEY = 'theme';
 
 /** Returns current theme string. */
@@ -20,7 +29,7 @@ export function getTheme() {
 /**
  * Detects and applies the correct theme on page load.
  * - If localStorage has a stored preference, use it.
- * - Otherwise default to ember (blaze).
+ * - Otherwise default to Ember.
  * Returns the applied theme string.
  */
 export function initTheme() {
@@ -39,14 +48,16 @@ export function initTheme() {
  */
 export function setTheme(theme) {
   if (!THEMES.includes(theme)) theme = 'ember';
+  document.documentElement.classList.add('theme-transitioning');
   applyTheme(theme);
   localStorage.setItem(STORAGE_KEY, theme);
   window.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
+  setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 400);
   return theme;
 }
 
 /**
- * Cycles to the next theme: ember → nebula → frost → ember.
+ * Toggles between ember and verdigris.
  */
 export function toggleTheme() {
   const current = getTheme();
@@ -65,22 +76,23 @@ function applyTheme(theme) {
 }
 
 /**
- * Renders the three-dot theme switcher into the given container.
+ * Renders the theme switcher.
  */
 export function renderThemeSwitcher(container) {
   if (!container) return;
 
   const icons = {
     ember: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.5 2.5 1 3.5 1.8 4.5.8 1 1.2 1.8 1 3.2-.2 1.2-.8 2-1.3 2.8l2.5 1c.6.3.9 1 .6 1.7-.2.5-.5.8-1 1l-2.2.6c.3.8.4 1.6.2 2.5-.3 1.3-1.2 2.2-2.6 2.2s-2.3-.9-2.6-2.2c-.2-.9-.1-1.7.2-2.5l-2.2-.6c-.5-.2-.8-.5-1-1-.3-.7 0-1.4.6-1.7l2.5-1c-.5-.8-1.1-1.6-1.3-2.8-.2-1.4.2-2.2 1-3.2C10 5.5 10.5 4.5 11 2h1Z"/></svg>`,
-    nebula: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2c.6 0 1.2.1 1.7.3a8 8 0 0 1 4 4 8 8 0 0 1-9.4 0 8 8 0 0 1 4-4c.5-.2 1.1-.3 1.7-.3Zm0 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z"/></svg>`,
-    frost: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2v20M2 12h20M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4M12 6l-2 2 2 2 2-2-2-2Zm0 8l-2 2 2 2 2-2-2-2Z"/></svg>`
+    verdigris: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18Zm0 3v6l4 2"/></svg>`
   };
 
-  const labels = { ember: 'Blaze', nebula: 'Nebula', frost: 'Frost' };
+  const labels = {
+    ember: 'Ember',
+    verdigris: 'Verdigris'
+  };
   const tooltips = {
-    ember: 'Blaze — volcanic fire',
-    nebula: 'Nebula — cosmic purple',
-    frost: 'Frost — ice cyber'
+    ember: 'Dark theme',
+    verdigris: 'Light theme'
   };
 
   const wrapper = document.createElement('div');
@@ -94,7 +106,10 @@ export function renderThemeSwitcher(container) {
     btn.className = 'theme-opt';
     btn.dataset.themeValue = theme;
     btn.title = tooltips[theme];
-    btn.innerHTML = icons[theme];
+    btn.innerHTML = `
+    ${icons[theme]}
+    <span>${labels[theme]}</span>
+    `;
     btn.addEventListener('click', () => setTheme(theme));
     wrapper.appendChild(btn);
   });

@@ -1,6 +1,6 @@
 /**
  * Ambient particle system — theme-reactive.
- * Blaze: rising embers. Frost: drifting snowflakes. Nebula: twinkling stars.
+ * Ember: rising embers. Verdigris: twinkling stars.
  * Only runs on desktop with motion allowed.
  */
 
@@ -66,7 +66,7 @@ function createParticle(randomY) {
   var w = canvas ? canvas.width : window.innerWidth;
   var h = canvas ? canvas.height : window.innerHeight;
 
-  if (currentTheme === 'ember' || currentTheme === 'blaze') {
+  if (currentTheme === 'ember') {
     return {
       x: Math.random() * w,
       y: randomY ? Math.random() * h : h + 10,
@@ -79,22 +79,8 @@ function createParticle(randomY) {
       maxLife: Math.random() * 400 + 200,
       flicker: Math.random() * 0.3
     };
-  } else if (currentTheme === 'frost') {
-    return {
-      x: Math.random() * w,
-      y: randomY ? Math.random() * h : -10,
-      size: Math.random() * 3 + 1,
-      speedY: Math.random() * 0.4 + 0.1,
-      speedX: (Math.random() - 0.5) * 0.2,
-      opacity: Math.random() * 0.4 + 0.1,
-      color: Math.random() > 0.5 ? 'rgba(80,168,224,' : 'rgba(144,200,240,',
-      life: 0,
-      maxLife: Math.random() * 500 + 300,
-      flicker: Math.random() * 0.2,
-      wobble: Math.random() * Math.PI * 2,
-      wobbleSpeed: Math.random() * 0.01 + 0.005
-    };
   } else {
+    // verdigris — twinkling star-like particles
     return {
       x: Math.random() * w,
       y: Math.random() * h,
@@ -103,7 +89,7 @@ function createParticle(randomY) {
       speedX: 0,
       opacity: 0,
       targetOpacity: Math.random() * 0.5 + 0.1,
-      color: Math.random() > 0.6 ? 'rgba(167,139,250,' : (Math.random() > 0.5 ? 'rgba(56,189,248,' : 'rgba(255,255,255,'),
+      color: Math.random() > 0.6 ? 'rgba(42,107,98,' : (Math.random() > 0.5 ? 'rgba(94,234,212,' : 'rgba(255,255,255,'),
       life: 0,
       maxLife: Math.random() * 300 + 150,
       flicker: Math.random() * 0.5,
@@ -120,7 +106,7 @@ function tick() {
     var p = particles[i];
     p.life++;
 
-    if (currentTheme === 'ember' || currentTheme === 'blaze') {
+    if (currentTheme === 'ember') {
       p.y += p.speedY;
       p.x += p.speedX + Math.sin(p.life * 0.01) * 0.15;
       var fadeIn = Math.min(1, p.life / 40);
@@ -135,19 +121,8 @@ function tick() {
       ctx.arc(p.x, p.y, p.size * 2.5, 0, Math.PI * 2);
       ctx.fillStyle = p.color + (Math.max(0, alpha) * 0.15).toFixed(2) + ')';
       ctx.fill();
-    } else if (currentTheme === 'frost') {
-      p.wobble += p.wobbleSpeed;
-      p.y += p.speedY;
-      p.x += p.speedX + Math.sin(p.wobble) * 0.3;
-      var fadeIn2 = Math.min(1, p.life / 50);
-      var fadeOut2 = Math.max(0, 1 - (p.life - p.maxLife + 80) / 80);
-      var alpha2 = p.opacity * fadeIn2 * fadeOut2;
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.wobble);
-      drawSnowflake(ctx, 0, 0, p.size, p.color, alpha2);
-      ctx.restore();
     } else {
+      // verdigris — twinkling stars
       var twinkle = Math.sin(p.life * p.twinkleSpeed) * 0.5 + 0.5;
       var alpha3 = p.targetOpacity * twinkle;
       ctx.beginPath();
@@ -168,15 +143,4 @@ function tick() {
   }
 
   rafId = requestAnimationFrame(tick);
-}
-
-function drawSnowflake(c, x, y, size, color, alpha) {
-  c.beginPath();
-  c.arc(x, y, size * 0.5, 0, Math.PI * 2);
-  c.fillStyle = color + alpha.toFixed(2) + ')';
-  c.fill();
-  c.beginPath();
-  c.arc(x, y, size * 2, 0, Math.PI * 2);
-  c.fillStyle = color + (alpha * 0.1).toFixed(2) + ')';
-  c.fill();
 }

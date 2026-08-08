@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>
-  (function(){
-    var t=localStorage.getItem('theme');
-    if(t==='nebula'||t==='frost')document.documentElement.setAttribute('data-theme',t);
-  })();
-</script>
 <style>
   html{transition:background-color .3s ease,color .3s ease}
 </style>
@@ -27,37 +21,7 @@
 
 <main class="canvas single" id="main-content">
   <div class="shell-page">
-    <div class="topbar">
-    <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
-    <div class="breadcrumb"><a href="index.html">Libris</a> <span class="sep">/</span> <a href="students.html">Students</a> <span class="sep">/</span> <span class="current">Student profile</span></div>
-    <button class="search-trigger" id="searchTrigger">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      Search Libris&hellip;
-      <kbd>&#8984;K</kbd>
-    </button>
-    <div class="notif-wrap">
-      <button class="topbar-icon" id="notifBell"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="dot"></span></button>
-      <div class="notif-panel" id="notifPanel">
-        <div class="notif-panel-head">Notifications</div>
-        <div class="notif-item"><span class="dot" style="background:#C97355"></span><div><b>Sapiens</b> is overdue &mdash; Fatima Sheikh<small>1 hour ago</small></div></div>
-        <div class="notif-item"><span class="dot" style="background:#7FA876"></span><div>New student registered &mdash; Karan Mehta<small>5 hours ago</small></div></div>
-        <div class="notif-item"><span class="dot" style="background:#8FA8C4"></span><div>July circulation report generated<small>Yesterday</small></div></div>
-        <div class="notif-item"><span class="dot" style="background:#E3B06C"></span><div>Nightly backup completed<small>Yesterday</small></div></div>
-      </div>
-    </div>
-        <div class="theme-switch" id="themeSwitch" role="group" aria-label="Theme">
-      <button type="button" class="theme-opt" data-theme-value="nebula" aria-pressed="false" title="Nebula — cosmic purple">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c1 2 .5 3.6-.6 4.7C12.6 6.9 14.3 6.6 16 7.6c-1.7 1-2.2 2.7-1.6 4.4 1.7-1 3.4-.6 4.6.6-2 1-3.6.5-4.7-.6.9 1.2 1.2 2.9.2 4.6-1-1.7-2.7-2.2-4.4-1.6 1 1.7.6 3.4-.6 4.6-1-2-.5-3.6.6-4.7-1.2.9-2.9 1.2-4.6.2 1.7-1 2.2-2.7 1.6-4.4-1.7 1-3.4.6-4.6-.6 2-1 3.6-.5 4.7.6-.9-1.2-1.2-2.9-.2-4.6 1 1.7 2.7 2.2 4.4 1.6-1-1.7-.6-3.4.6-4.6Z"/></svg>
-      </button>
-      <button type="button" class="theme-opt" data-theme-value="ember" aria-pressed="true" title="Blaze — volcanic fire">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c1.2 2.8-1.6 4.2-1.9 7a3.9 3.9 0 0 0 7.8.3c.1-1.3-.4-2.4-1.1-3.3 1.3.7 2.5 2.3 2.5 4.5a6.3 6.3 0 0 1-12.6 0c0-4.3 3.7-5.6 5.3-8.5Z"/></svg>
-      </button>
-      <button type="button" class="theme-opt" data-theme-value="frost" aria-pressed="false" title="Frost — ice cyber">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 22 12 12 22 2 12Z"/></svg>
-      </button>
-    </div>
-    <img class="topbar-avatar" src="https://api.dicebear.com/7.x/notionists/svg?seed=Admin&amp;backgroundColor=2b2540" alt="">
-  </div>
+    <div id="topbar-root"></div>
 
   <div id="studentProfileContainer">
     <div class="loading-state" style="text-align:center;padding:64px 0;color:var(--ink-soft)">Loading student profile&hellip;</div>
@@ -68,53 +32,9 @@
 
 <div id="modal-root"></div>
 
-<div class="cmd-overlay" id="cmdPalette">
-  <div class="cmd-box">
-    <div class="cmd-input-row">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input id="cmdInput" placeholder="Search books, magazines, students, reports&hellip;">
-    </div>
-    <div class="cmd-section">
-      <div class="cmd-section-label">Go to</div>
-      <a class="cmd-item" href="index.html"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10Zm10 8h8V3h-8v18ZM3 21h8v-6H3v6Z"/></svg>Dashboard</a>
-      <a class="cmd-item" href="books.html"><svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5Z"/></svg>Books<span class="hint">G then B</span></a>
-      <a class="cmd-item" href="magazines.html"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/></svg>Magazines</a>
-      <a class="cmd-item" href="newspapers.html"><svg viewBox="0 0 24 24"><path d="M4 4h13v15a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2V4Z"/></svg>Newspapers</a>
-      <a class="cmd-item" href="students.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/></svg>Students<span class="hint">G then S</span></a>
-      <a class="cmd-item" href="reports.html"><svg viewBox="0 0 24 24"><path d="M7 3h8l5 5v13H7z"/></svg>Reports</a>
-    </div>
-    <div class="cmd-section">
-      <div class="cmd-section-label">Suggestions</div>
-      <a class="cmd-item" href="book-details.html"><svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5Z"/></svg>Sapiens &mdash; Yuval Noah Harari</a>
-      <a class="cmd-item" href="student-profile.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/></svg>Fatima Sheikh &mdash; 1 overdue</a>
-    </div>
-  </div>
-</div>
-<script type="module" src="/js/app-init.js"></script>
+<div id="palette-root"></div>
 <script type="module" src="/js/app-init.js"></script>
 <script type="module" src="js/student-profile.js"></script>
-<script>
-(function(){
-  var root = document.documentElement;
-  var sw = document.getElementById("themeSwitch");
-  if (!sw) return;
-  var opts = Array.prototype.slice.call(sw.querySelectorAll(".theme-opt"));
-  function current(){ return root.getAttribute("data-theme") || "ember"; }
-  function reflect(){
-    var c = current();
-    opts.forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.themeValue === c)); });
-  }
-  opts.forEach(function(b){
-    b.addEventListener("click", function(){
-      var v = b.dataset.themeValue;
-      if (v === "ember") root.removeAttribute("data-theme");
-      else root.setAttribute("data-theme", v);
-      try { localStorage.setItem("theme", v); } catch(e){}
-      reflect();
-    });
-  });
-  reflect();
-})();
-</script>
+
 </body>
 </html>

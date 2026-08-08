@@ -1,18 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>
-  (function(){
-    var t=localStorage.getItem('theme');
-    if(t==='nebula'||t==='frost')document.documentElement.setAttribute('data-theme',t);
-  })();
-</script>
 <style>
   html{transition:background-color .3s ease,color .3s ease}
 </style>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sign In — Libris</title>
+<script>
+  (function(){var t=localStorage.getItem('theme');if(t==='verdigris')document.documentElement.setAttribute('data-theme','verdigris')})();
+</script>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,24 +17,12 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
-<div class="grain" aria-hidden="true"></div>
-<canvas class="ambient-canvas" id="ambientCanvas" aria-hidden="true"></canvas>
-<div class="petal-decor" aria-hidden="true"></div>
-<div class="star-decor" aria-hidden="true"></div>
-<div class="fx-layer" id="fxLayer" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
 
-<div class="theme-switch" id="themeSwitch" role="group" aria-label="Theme">
-  <button type="button" class="theme-opt" data-theme-value="nebula" aria-pressed="false" title="Nebula — cosmic purple">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c1 2 .5 3.6-.6 4.7C12.6 6.9 14.3 6.6 16 7.6c-1.7 1-2.2 2.7-1.6 4.4 1.7-1 3.4-.6 4.6.6-2 1-3.6.5-4.7-.6.9 1.2 1.2 2.9.2 4.6-1-1.7-2.7-2.2-4.4-1.6 1 1.7.6 3.4-.6 4.6-1-2-.5-3.6.6-4.7-1.2.9-2.9 1.2-4.6.2 1.7-1 2.2-2.7 1.6-4.4-1.7 1-3.4.6-4.6-.6 2-1 3.6-.5 4.7.6-.9-1.2-1.2-2.9-.2-4.6 1 1.7 2.7 2.2 4.4 1.6-1-1.7-.6-3.4.6-4.6Z"/></svg>
-  </button>
-  <button type="button" class="theme-opt" data-theme-value="ember" aria-pressed="true" title="Blaze — volcanic fire">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c1.2 2.8-1.6 4.2-1.9 7a3.9 3.9 0 0 0 7.8.3c.1-1.3-.4-2.4-1.1-3.3 1.3.7 2.5 2.3 2.5 4.5a6.3 6.3 0 0 1-12.6 0c0-4.3 3.7-5.6 5.3-8.5Z"/></svg>
-  </button>
-  <button type="button" class="theme-opt" data-theme-value="frost" aria-pressed="false" title="Frost — ice cyber">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 22 12 12 22 2 12Z"/></svg>
-  </button>
-</div>
+  <div class="petal-decor" aria-hidden="true"></div>
+  <div class="star-decor" aria-hidden="true"></div>
+
+  <div id="topbar-theme"></div>
 
 <main class="login-layout" id="login-view">
   <!-- Branding panel -->
@@ -110,19 +95,15 @@
       </div>
       <div class="brand-text">
         <span class="brand-name">LIBRIS</span>
-        <span class="brand-sub"><span class="sub-blue">Enterprise LMS</span><span class="sub-pink">a quiet corner for books</span><span class="sub-slate">Library Management System</span></span>
+        <span class="brand-sub">Enterprise LMS</span>
       </div>
     </div>
 
     <h2 class="brand-headline">
-      <span class="headline-blue">Every volume awaits<br>its <em>scholar.</em></span>
-      <span class="headline-pink">Every story finds<br>its <em>reader.</em></span>
-      <span class="headline-slate">Straight to<br>the <em>shelves.</em></span>
+      <span>Every volume awaits<br>its <em>scholar.</em></span>
     </h2>
     <p class="brand-desc">
-      <span class="desc-blue">Sign in to catalogue, circulate, and care for the collection &mdash; every volume organized, every reader welcome.</span>
-      <span class="desc-pink">Sign in to borrow, discover, and find your next favorite book. Clean tools, warm design, always open.</span>
-      <span class="desc-slate">Sign in to manage the catalog, circulation, and records &mdash; fast, clear, and distraction-free.</span>
+      <span>Sign in to catalogue, circulate, and care for the collection &mdash; every volume organized, every reader welcome.</span>
     </p>
 
     <ul class="brand-capabilities">
@@ -136,9 +117,7 @@
 
     <div class="brand-trust">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      <span class="trust-blue">Built for readers, by readers.</span>
-        <span class="trust-pink">Trusted by libraries everywhere</span>
-      <span class="trust-slate">Fast, reliable, no fuss.</span>
+      <span>Built for readers, by readers.</span>
     </div>
   </aside>
 
@@ -159,7 +138,7 @@
           <path d="M37 19.4c2.4-2.4 5.5-3.9 9-3.9h.1c2.2 0 3.9 1.8 3.9 4v20.7c0 2.2-1.8 4-4 4H45.5c-3.2 0-6.2 1.2-8.5 3.3V19.4Z" fill="#FFF" fill-opacity=".72"/>
           <path d="M20 24h10M20 29h10M20 34h7M42 24h4M42 29h4M42 34h3" stroke="#4338CA" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/>
         </svg>
-        <h1 class="card-title"><span class="title-blue">Welcome back, scholar.</span><span class="title-pink">Welcome back.</span><span class="title-slate">Welcome back.</span></h1>
+        <h1 class="card-title">Welcome back, scholar.</h1>
         <p class="card-sub">Sign in to access your library portal</p>
       </div>
 
@@ -261,209 +240,6 @@
   });
 </script>
 
-<script>
-(function(){
-  "use strict";
-  var root = document.documentElement;
-  var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var isTouch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
-
-  /* ---------------- Theme toggle ---------------- */
-  var themeSwitch = document.getElementById("themeSwitch");
-  var themeOpts = Array.prototype.slice.call(themeSwitch.querySelectorAll(".theme-opt"));
-
-  function getTheme(){ return root.getAttribute("data-theme") || "ember"; }
-  function reflectSwitch(){
-    var current = getTheme();
-    themeOpts.forEach(function(btn){
-      btn.setAttribute("aria-pressed", String(btn.dataset.themeValue === current));
-    });
-  }
-  function setTheme(theme){
-    root.classList.add("theme-transitioning");
-    if (theme === "ember") root.removeAttribute("data-theme");
-    else root.setAttribute("data-theme", theme);
-    try { localStorage.setItem("theme", theme); } catch(e){}
-    reflectSwitch();
-    switchAmbient(theme);
-    setTimeout(function(){ root.classList.remove("theme-transitioning"); }, 400);
-  }
-  themeOpts.forEach(function(btn){
-    btn.addEventListener("click", function(){ setTheme(btn.dataset.themeValue); });
-  });
-  reflectSwitch();
-
-  /* ---------------- Custom cursor (Star Atlas — single ring with ::before dot) ---------------- */
-  if (!reduced && !isTouch) {
-    var ring = document.getElementById("cursorRing");
-    root.classList.add("cursor-ready");
-    var mx = 0, my = 0, rx = 0, ry = 0;
-    document.addEventListener("mousemove", function(e){
-      mx = e.clientX; my = e.clientY;
-      ring.style.opacity = "0.7";
-    });
-    document.addEventListener("mouseenter", function(){
-      ring.style.opacity = "0.7";
-    });
-    document.addEventListener("mouseleave", function(){
-      ring.style.opacity = "0";
-    });
-    function animRing(){
-      rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
-      var sz = ring.classList.contains("is-active") ? 54 : 34;
-      ring.style.width = sz + "px"; ring.style.height = sz + "px";
-      ring.style.transform = "translate(" + (rx - sz/2) + "px," + (ry - sz/2) + "px)";
-      requestAnimationFrame(animRing);
-    }
-    animRing();
-    document.querySelectorAll("a, button, [role='button'], input, select, textarea, .theme-opt").forEach(function(el){
-      el.addEventListener("mouseenter", function(){ ring.classList.add("is-active"); });
-      el.addEventListener("mouseleave", function(){ ring.classList.remove("is-active"); });
-    });
-  }
-
-  /* ---------------- Ambient particles (canvas) ---------------- */
-  var canvas = document.getElementById("ambientCanvas");
-  var ctx = canvas ? canvas.getContext("2d") : null;
-  var particles = [];
-  var running = false;
-
-  function resizeCanvas(){
-    if (!canvas) return;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-
-  function createParticle(randomY){
-    var w = canvas.width, h = canvas.height;
-    var theme = getTheme();
-    if (theme === "ember") {
-      return { x: Math.random()*w, y: randomY ? Math.random()*h : h+10,
-        size: Math.random()*2.5+0.8, speedY: -(Math.random()*0.6+0.15),
-        speedX: (Math.random()-0.5)*0.3, opacity: Math.random()*0.6+0.2,
-        color: Math.random()>0.5 ? "rgba(240,168,48," : "rgba(255,120,30,",
-        life: 0, maxLife: Math.random()*400+200, flicker: Math.random()*0.3 };
-    } else if (theme === "frost") {
-      return { x: Math.random()*w, y: randomY ? Math.random()*h : -10,
-        size: Math.random()*3+1, speedY: Math.random()*0.4+0.1,
-        speedX: (Math.random()-0.5)*0.2, opacity: Math.random()*0.4+0.1,
-        color: Math.random()>0.5 ? "rgba(80,168,224," : "rgba(144,200,240,",
-        life: 0, maxLife: Math.random()*500+300, flicker: Math.random()*0.2,
-        wobble: Math.random()*Math.PI*2, wobbleSpeed: Math.random()*0.01+0.005 };
-    } else {
-      return { x: Math.random()*w, y: Math.random()*h,
-        size: Math.random()*1.5+0.3, speedY: 0, speedX: 0,
-        opacity: 0, targetOpacity: Math.random()*0.5+0.1,
-        color: Math.random()>0.6 ? "rgba(32,144,192," : (Math.random()>0.5 ? "rgba(64,160,192," : "rgba(255,255,255,"),
-        life: 0, maxLife: Math.random()*300+150, flicker: Math.random()*0.5,
-        twinkleSpeed: Math.random()*0.03+0.01 };
-    }
-  }
-
-  function spawnParticles(){
-    particles = [];
-    for (var i = 0; i < 50; i++) particles.push(createParticle(true));
-  }
-
-  function drawParticles(){
-    if (!running || !ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    var theme = getTheme();
-    for (var i = 0; i < particles.length; i++){
-      var p = particles[i]; p.life++;
-      if (theme === "ember") {
-        p.y += p.speedY; p.x += p.speedX + Math.sin(p.life*0.01)*0.15;
-        var fi = Math.min(1, p.life/40), fo = Math.max(0, 1-(p.life-p.maxLife+60)/60);
-        var a = Math.max(0, p.opacity*fi*fo + Math.sin(p.life*0.05)*p.flicker);
-        ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-        ctx.fillStyle = p.color + a.toFixed(2) + ")"; ctx.fill();
-        ctx.beginPath(); ctx.arc(p.x,p.y,p.size*2.5,0,Math.PI*2);
-        ctx.fillStyle = p.color + (a*0.15).toFixed(2) + ")"; ctx.fill();
-      } else if (theme === "frost") {
-        p.wobble += p.wobbleSpeed; p.y += p.speedY; p.x += p.speedX + Math.sin(p.wobble)*0.3;
-        var fi2 = Math.min(1, p.life/50), fo2 = Math.max(0, 1-(p.life-p.maxLife+80)/80);
-        var a2 = Math.max(0, p.opacity*fi2*fo2);
-        ctx.beginPath(); ctx.arc(p.x,p.y,p.size*0.5,0,Math.PI*2);
-        ctx.fillStyle = p.color + a2.toFixed(2) + ")"; ctx.fill();
-        ctx.beginPath(); ctx.arc(p.x,p.y,p.size*2,0,Math.PI*2);
-        ctx.fillStyle = p.color + (a2*0.1).toFixed(2) + ")"; ctx.fill();
-      } else {
-        var tw = Math.sin(p.life*p.twinkleSpeed)*0.5+0.5;
-        var a3 = p.targetOpacity*tw;
-        ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-        ctx.fillStyle = p.color + a3.toFixed(2) + ")"; ctx.fill();
-        if (p.size > 1) {
-          ctx.beginPath(); ctx.arc(p.x,p.y,p.size*3,0,Math.PI*2);
-          ctx.fillStyle = p.color + (a3*0.08).toFixed(2) + ")"; ctx.fill();
-        }
-      }
-      if (p.life >= p.maxLife) particles[i] = createParticle(false);
-    }
-    requestAnimationFrame(drawParticles);
-  }
-
-  function switchAmbient(){
-    resizeCanvas();
-    spawnParticles();
-    if (!running) { running = true; drawParticles(); }
-  }
-  switchAmbient();
-  window.addEventListener("resize", function(){ resizeCanvas(); });
-
-  /* ---------------- Card tilt + cursor spotlight ---------------- */
-  var card = document.getElementById("loginCard");
-  if (card && !reduced) {
-    card.addEventListener("pointermove", function(e){
-      var r = card.getBoundingClientRect();
-      var px = (e.clientX - r.left) / r.width - 0.5;
-      var py = (e.clientY - r.top) / r.height - 0.5;
-      card.style.setProperty("--rx", (-py * 5) + "deg");
-      card.style.setProperty("--ry", (px * 7) + "deg");
-      card.style.setProperty("--mx", (px * 100 + 50) + "%");
-      card.style.setProperty("--my", (py * 100 + 50) + "%");
-    });
-    card.addEventListener("pointerleave", function(){
-      card.style.setProperty("--rx", "0deg");
-      card.style.setProperty("--ry", "0deg");
-    });
-  }
-
-  /* ---------------- Magnetic submit button ---------------- */
-  var submitBtn = document.getElementById("submitBtn");
-  if (submitBtn && !reduced) {
-    submitBtn.addEventListener("pointermove", function(e){
-      var r = submitBtn.getBoundingClientRect();
-      var x = (e.clientX - r.left - r.width / 2) * 0.22;
-      var y = (e.clientY - r.top - r.height / 2) * 0.35;
-      submitBtn.style.transform = "translate(" + x + "px," + y + "px)";
-    });
-    submitBtn.addEventListener("pointerleave", function(){ submitBtn.style.transform = ""; });
-  }
-
-  /* ---------------- Click burst — all themes ---------------- */
-  function burst(x, y){
-    if (reduced) return;
-    var theme = getTheme();
-    var colors = { ember: "#e89030", frost: "#50a8e0", nebula: "#2090c0" };
-    var n = 9;
-    for (var i = 0; i < n; i++){
-      var bit = document.createElement("span");
-      bit.className = "burst-bit spark";
-      bit.style.left = x + "px"; bit.style.top = y + "px";
-      bit.style.background = "radial-gradient(circle," + (colors[theme]||"#f0a830") + ",transparent)";
-      var ang = Math.random() * Math.PI * 2;
-      var dist = 26 + Math.random() * 46;
-      bit.style.setProperty("--dx", Math.cos(ang) * dist + "px");
-      bit.style.setProperty("--dy", Math.sin(ang) * dist + "px");
-      document.body.appendChild(bit);
-      (function(node){ setTimeout(function(){ node.remove(); }, 720); })(bit);
-    }
-  }
-  [submitBtn, document.getElementById("staffBtn")].concat(themeOpts).forEach(function(btn){
-    if (!btn) return;
-    btn.addEventListener("click", function(e){ burst(e.clientX, e.clientY); });
-  });
-})();
-</script>
+<script type="module" src="/js/login.js"></script>
 </body>
 </html>
