@@ -1,219 +1,97 @@
-# Library Management System
+<div align="center">
+  <img src="backend/src/main/resources/static/assets/library-mark.svg" alt="Libris Logo" width="120" />
+  <h1>Libris: Enterprise Library Management System</h1>
+  <p><strong>A modern, responsive, and robust library management platform built with Spring Boot 3.5 and Vanilla ES Modules.</strong></p>
 
-A responsive Library Management System built with Spring Boot 3.5, MySQL, and a vanilla HTML/CSS/JavaScript frontend. The browser client is served by Spring Boot and communicates with the REST API through the Fetch API. Docker Compose is the recommended way to run it.
+  [![Build Status](https://img.shields.io/github/actions/workflow/status/your-username/libris/ci.yml?branch=main&style=for-the-badge&logo=github)](https://github.com/your-username/libris/actions)
+  [![Coverage](https://img.shields.io/badge/coverage-70%25%2B-success?style=for-the-badge)](https://github.com/your-username/libris)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+  [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-6DB33F?style=for-the-badge&logo=spring-boot)](https://spring.io/projects/spring-boot)
 
-## Features
+</div>
 
-- **Session-based authentication** with Spring Security and BCrypt password hashing.
-- **Role-based authorization** for administrators, librarians, and students (three roles enforced via URL-pattern matching).
-- **Books, magazines, and newspapers** CRUD with searchable catalogues.
-- **Student and librarian management** with linked account creation and profile maintenance.
-- **Borrow and return workflow** with availability protection, ISBN uniqueness enforcement, and preserved history.
-- **Dashboard statistics** — aggregate counts of students, librarians, books, borrowed, and available.
-- **Audit logging** — server-side event tracking with `created_at` / `updated_at` timestamps on all entities.
-- **Responsive desktop and mobile interface** built with CSS custom properties and mobile-first breakpoints.
-- **Server-side validation** with field-level frontend feedback and a uniform `ApiErrorResponse` JSON shape.
-- **MockMvc integration tests**, including a browser-equivalent CSRF cookie/header flow test.
-- **Repository tests** for ISBN uniqueness constraint and auditing timestamp population.
-- **Spring Boot Actuator** with health, info, and metrics endpoints for production monitoring.
-- **Structured JSON logging** via Logstash encoder with traceId/spanId MDC support.
-- **Spotless formatting** enforced in CI with Google Java Format.
-- **Dual-theme system** — Ember (dark default) and Verdigris (light), switchable from the topbar. Themes are driven by `data-theme` on `<html>` and persisted to `localStorage`; `js/theme.js` is the single source of truth.
-- **Smooth theme transitions** with CSS animations and no flash on page load.
-- **Decorative floating elements** — ambient canvas particles (embers in Ember, twinkling stars in Verdigris) and decorative overlays, theme-reactive via `js/particles.js`.
+---
 
-## Technology Stack
+Libris is a comprehensive Library Management System designed for educational institutions. It features a secure REST API powered by Java 21 and Spring Boot, paired with an elegant, dual-theme frontend (Ember Dark / Verdigris Light) built entirely without heavy SPA frameworks.
 
-| Layer | Technology |
-|-------|------------|
-| Language | Java 21 |
-| Framework | Spring Boot 3.5, Spring Security 6.5, Spring Data JPA |
-| Database | MySQL 8 (production), H2 in MySQL-compatibility mode (tests) |
-| Frontend | Vanilla HTML, CSS (custom properties), JavaScript (ES modules), Fetch API |
-| Build | Maven, Maven Wrapper |
-| Testing | JUnit 5, MockMvc, Hamcrest, AssertJ |
-| Containerization | Docker, Docker Compose |
-| CI | GitHub Actions (`mvn spotless:check` + `mvn clean verify`) |
+## ✨ Key Features
 
-## Architecture
+| Feature Area | Description |
+|---|---|
+| **Secure Identity** | Session-based authentication (BCrypt) + Opt-in **Google OpenID Connect (SSO)**. |
+| **Role-Based Access** | Strictly enforced permissions for `ADMIN`, `LIBRARIAN`, and `STUDENT` across controllers and UI. |
+| **Complete Cataloging** | Track and manage Books, Magazines, and Newspapers with ISBN validation and availability locks. |
+| **Borrowing Workflow** | Automated checkout limits, return history tracking, and overdue analytics. |
+| **Modern UX/UI** | Fast, vanilla ES Modules frontend with dynamic shell, custom CSS properties, and responsive design. |
+| **Audit & Observability** | Automatic JPA auditing (`created_at` / `updated_at`) and **Structured JSON Logging** for ELK/Datadog. |
+| **Production Ready** | Robust Docker Compose setup, Flyway migrations, CSRF protection, and Actuator metrics. |
 
-```text
-Browser → Fetch API → REST Controllers → Transactional Services → Spring Data JPA → MySQL
-```
+## 🏗️ Architecture Overview
 
 ```mermaid
 flowchart LR
-    Browser["Browser UI"] --> Fetch["Fetch API"]
-    Fetch --> Controller["REST Controllers"]
-    Controller --> Service["Transactional Services"]
-    Service --> Repository["Spring Data JPA"]
-    Repository --> Database[("MySQL")]
+    Browser["Browser UI<br/>(Vanilla JS / ES Modules)"] --> Fetch["Fetch API<br/>(w/ CSRF Token)"]
+    Fetch --> Controller["REST Controllers<br/>(@RestController)"]
+    Controller --> Service["Transactional Services<br/>(@Service)"]
+    Service --> Repository["Spring Data JPA<br/>(@Repository)"]
+    Repository --> Database[("MySQL 8<br/>(Flyway Migrated)")]
 ```
 
-The frontend is a multi-page application served as static resources from Spring Boot. Each page is a standalone HTML file with its own JavaScript module. Roles are enforced at the URL-pattern level in `SecurityConfig` — no method-level annotations.
+For an in-depth architectural breakdown, including ADRs and schema definitions, see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the complete system design, ADRs, and database schema.
+## 🚀 Quick Start (Docker)
 
-## Project Structure
+The recommended way to run Libris locally is via Docker. Ensure you have [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed.
 
-```text
-.
-├── backend/          Spring Boot application, frontend assets, and tests
-│   ├── src/main/java/com/example/lms/
-│   │   ├── config/           PasswordConfig, AdminSeeder, OpenApiConfig
-│   │   ├── controller/       14 REST controllers
-│   │   ├── dto/              24 request/response records
-│   │   ├── entity/           8 entities + 1 superclass + 3 enums
-│   │   ├── exception/        3 custom exceptions + global handler
-│   │   ├── repository/       8 JPA repositories
-│   │   ├── security/         6 security classes
-│   │   └── service/          11 transactional services
-│   ├── src/main/resources/
-│   │   ├── static/           Frontend (HTML, JS, CSS, assets)
-│   │   └── application.properties
-│   └── src/test/             Integration and repository tests
-├── docs/             Architecture, API, setup, testing, and release documents
-├── screenshots/      Desktop and mobile review evidence
-└── README.md         This file
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/libris.git
+   cd libris/backend
+   ```
+2. **Configure Environment:**
+   ```bash
+   cp .env.example .env
+   # Edit .env and set secure values for LMS_DB_PASSWORD and LMS_ADMIN_PASSWORD
+   ```
+3. **Launch the stack:**
+   ```bash
+   docker compose up --build
+   ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#35-package-structure) for the full package map.
+Navigate to `http://localhost:8080`. Log in using the username `admin` and the password you defined in `.env`.
 
-## Roles and Permissions
+*Note: To run without Docker using the embedded H2 database, run `./mvnw spring-boot:run -Dspring-boot.run.profiles=h2`.*
 
-| Role | Books (GET) | Books (mutate) | Students | Librarians | Borrow Records | Dashboard |
-|------|:-----------:|:--------------:|:--------:|:----------:|:--------------:|:---------:|
-| **ADMIN** | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **LIBRARIAN** | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| **STUDENT** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+## 📸 Screenshots
 
-All other endpoints (profile, auth) follow standard authenticated-user rules. See [docs/SECURITY.md](docs/SECURITY.md) for the complete authorization model.
-
-## API Overview
-
-The REST API is rooted at `/api` and returns structured JSON. Key resource groups:
-
-| Endpoint Group | Purpose |
-|----------------|---------|
-| `/api/auth` | CSRF bootstrap, login, logout, current session |
-| `/api/books` | Searchable book catalogue and CRUD |
-| `/api/magazines` | Magazine catalogue and CRUD |
-| `/api/newspapers` | Newspaper catalogue and CRUD |
-| `/api/students` | Student profile management |
-| `/api/librarians` | Librarian profile management (ADMIN only) |
-| `/api/borrow-records` | Borrow, return, and history |
-| `/api/dashboard` | Aggregate statistics |
-| `/api/profile` | Current authenticated user view |
-| `/actuator` | Health, info, and metrics (production monitoring) |
-
-See [docs/API.md](docs/API.md) for the complete endpoint catalogue, request/response schemas, and error codes.
-
-## Quick Start
-
-### Docker (Recommended)
-
-Prerequisites: [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/).
-
-```bash
-cd backend
-cp .env.example .env
-# Edit .env — set LMS_DB_PASSWORD and LMS_ADMIN_PASSWORD
-docker compose up --build
-```
-
-Open <http://localhost:8080>. The admin credentials are configured via `LMS_ADMIN_PASSWORD` in `.env`.
-
-To include phpMyAdmin (port 8081):
-
-```bash
-docker compose --profile dev up --build
-```
-
-### Local Development
-
-Prerequisites: Java 21+, MySQL, and a database account that can create/use `librarydb`.
-
-```bash
-export LMS_DB_USERNAME=your_mysql_user
-export LMS_DB_PASSWORD=your_mysql_password
-export LMS_ADMIN_PASSWORD=your_admin_password   # required
-./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
-```
-
-For MySQL instead of H2, omit the profile flag and ensure the MySQL instance is running:
-
-```bash
-export LMS_DB_USERNAME=root
-export LMS_DB_PASSWORD=secret
-export LMS_ADMIN_PASSWORD=ChangeMe123!
-./mvnw spring-boot:run
-```
-
-Open <http://localhost:8080>. See [docs/SETUP.md](docs/SETUP.md) for full configuration details.
-
-### Swagger UI
-
-Once running, explore the API interactively at <http://localhost:8080/swagger-ui/index.html>.
-
-## Testing
-
-Run the full isolated test suite from the repository root:
-
-```bash
-./mvnw clean test
-```
-
-Tests use H2 in MySQL compatibility mode (`create-drop` schema strategy) and cover authentication, role restrictions, CRUD, borrow/return lifecycle, validation errors, ISBN conflicts, CSRF cookie/header exchange, repository safeguards, and full Student/Librarian delete with account cleanup.
-
-| Test File | Type | Methods | Coverage |
-|-----------|------|---------|----------|
-| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 4 | Login, full CRUD + borrow/return, validation, ISBN conflicts, 401/403 |
-| `CrudIntegrationTest` | Integration (MockMvc) | 7 | Magazine/Newspaper CRUD, Student/Librarian update+delete, Dashboard, Audit, duplicate username |
-| `BrowserCsrfFlowIntegrationTest` | Integration (real CSRF flow) | 1 | CSRF bootstrap → login → session reuse → logout → post-logout rejection |
-| `BookRepositoryTest` | Repository | 1 | Audit timestamp population, ISBN uniqueness constraint |
-
-See [docs/TESTING.md](docs/TESTING.md) for the complete test inventory and coverage gaps.
-
-## Screenshots
-
-### Desktop
-
-| | |
+| Dashboard (Ember Theme) | Catalog (Verdigris Theme) |
 |---|---|
-| ![Login](screenshots/desktop/authentication.png) | ![Dashboard](screenshots/desktop/dashboard.png) |
-| ![Books](screenshots/desktop/books.png) | ![Students](screenshots/desktop/students.png) |
-| ![Librarians](screenshots/desktop/librarians.png) | ![Borrow Records](screenshots/desktop/borrow_records.png) |
-| ![Duplicate Username](screenshots/desktop/duplicate_username.png) | ![Validation](screenshots/desktop/invalid_details.png) |
+| *![Dashboard Mockup](dashboard_mockup.png)* | *![Catalog Mockup](catalog_mockup.png)* |
+| **Analytics Overview** | **Student Management** |
+| *![Analytics Mockup](analytics_mockup.png)* | *![Student Mockup](student_mockup.png)* |
 
-### Mobile
+*(Full evidence in `screenshots/desktop` and `screenshots/mobile`)*
 
-| | |
-|---|---|
-| ![Dashboard](screenshots/mobile/mobile_dashboard.png) | ![Authentication](screenshots/mobile/mobile_authentication.png) |
-| ![Duplicate ISBN](screenshots/mobile/mobile_duplicate_isbn.png) | ![Validation](screenshots/mobile/mobile_validation_failed.png) |
+## 📚 Documentation
 
-Full evidence in [screenshots/desktop](screenshots/desktop) and [screenshots/mobile](screenshots/mobile).
+Dive deeper into the system's technical details:
 
-## Documentation
+- [API Contract](docs/API.md): Request/response schemas and error codes.
+- [Database Setup](docs/DATABASE.md): ER diagram and migration strategies.
+- [Frontend Architecture](docs/FRONTEND.md): Component injection and module boundaries.
+- [Security Model](docs/SECURITY.md): CSRF flow, OAuth implementation, and role matrices.
+- [Production Readiness](docs/PRODUCTION_READINESS.md): Audit of deployment readiness, logging, and dependency hygiene.
+- [Release Notes](docs/RELEASE_NOTES_v1.0.1.md): Latest changes in `v1.0.1`.
 
-| Document | Description |
-|----------|-------------|
-| [Architecture](docs/ARCHITECTURE.md) | System design, layering, ADRs, database schema, and endpoint catalogue |
-| [API Contract](docs/API.md) | REST endpoint reference with request/response schemas and error codes |
-| [Database](docs/DATABASE.md) | ER diagram, table definitions, relationships, and schema notes |
-| [Frontend](docs/FRONTEND.md) | MPA structure, JavaScript modules, CSS architecture, and CSRF flow |
-| [Security](docs/SECURITY.md) | Authentication, authorization, CSRF protection, and session management |
-| [Setup](docs/SETUP.md) | Local and Docker configuration, environment variables, and troubleshooting |
-| [Testing](docs/TESTING.md) | Test inventory, how to run, coverage gaps, and CI integration |
-| [Deployment](docs/DEPLOYMENT.md) | Docker production guide, environment variables, and health checks |
-| [Changelog](docs/CHANGELOG.md) | Versioned release history |
+## 🤝 Contributing
 
-## Future Improvements
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct, development environment setup, and the process for submitting Pull Requests.
 
-- **Theme toggle accessibility** — Add theme switcher to sidebar or topbar for quick access from any page.
-- **Additional themes** — Consider adding a light blue or system-preference-following theme.
-- Reservations, fines, notifications, physical-copy modelling, self-service student registration, and JWT-based API access are intentionally deferred from v1.0.0. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#12-out-of-scope-for-v100) for the full deferred scope.
+To run the test suite locally:
+```bash
+./mvnw clean verify
+```
 
-## License
+## 📄 License
 
-This project is for educational purposes.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
