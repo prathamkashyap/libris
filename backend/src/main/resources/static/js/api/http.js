@@ -51,12 +51,15 @@ export async function requestJson(path, options = {}) {
   
   if (response.status === 401) {
     currentUser = null;
-    // This is a multi-page application, so hash routing leaves the user on the
-    // protected page. Send an expired session to the real sign-in page instead.
-    if (!window.location.pathname.endsWith("/login.html")) {
+    // On pages other than login, redirect to login with a session expired message
+    if (!window.location.pathname.endsWith("/login.html") && !window.location.pathname.endsWith("/register.html")) {
       window.location.replace("/login.html");
+      throw new Error('Session expired. Please log in again.');
     }
-    throw new Error('Session expired. Please log in again.');
+    const error = new Error(body?.message || 'Invalid username or password. Please check your credentials.');
+    error.status = 401;
+    error.code = body?.code;
+    throw error;
   }
   
   if (!response.ok) {
