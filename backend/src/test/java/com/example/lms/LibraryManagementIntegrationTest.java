@@ -392,4 +392,11 @@ class LibraryManagementIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.category").value("Computer Science"));
   }
+
+  @Test
+  void actuatorHealthEndpointIsPubliclyAccessible() throws Exception {
+    mvc.perform(get("/actuator/health"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("UP"));
+  }
 }

@@ -82,6 +82,7 @@ public class SecurityConfig {
                         "/swagger-ui/**",
                         "/swagger-ui.html",
                         "/v3/api-docs/**",
+                        "/actuator/**",
                         "/api/auth/login",
                         "/api/auth/csrf",
                         "/api/auth/register")
