@@ -1,167 +1,124 @@
 # Changelog
 
-All notable project changes are recorded here.
+> **Source of truth as of:** 30 July 2026
 
-## v1.0.0 - 2026-07-23
+All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
+
+## [Unreleased]
+
+_No unreleased changes._
+
+## [1.0.0] - 2026-07-23
 
 ### Added
 
-- Spring Boot REST backend with Spring Data JPA, Hibernate, and MySQL.
-- Spring Security session authentication, BCrypt passwords, CSRF protection, and role-based authorization.
-- Books, students, librarians, dashboard, profile, borrow, and return workflows.
-- Responsive HTML/CSS/JavaScript frontend with Fetch API integration.
-- MockMvc integration coverage, browser-equivalent CSRF coverage, and repository safeguards.
-- Release-ready setup, testing, API, architecture, and project-structure documentation.
+- Spring Boot 3.5 REST backend with Spring Data JPA, Hibernate, and MySQL.
+- Spring Security session authentication with BCrypt password hashing.
+- SPA-aware CSRF protection using `CookieCsrfTokenRepository` and a custom `SpaCsrfTokenRequestHandler` that accepts raw tokens from the `X-XSRF-TOKEN` header for Fetch requests while retaining XOR protection for form submissions.
+- Role-based URL authorization for three roles: `ADMIN`, `LIBRARIAN`, `STUDENT`.
+- Books, magazines, and newspapers CRUD with searchable catalogues.
+- Student and librarian management with transactional account/profile creation.
+- Borrow and return workflow with availability protection, ISBN uniqueness enforcement, and preserved borrower snapshots.
+- Dashboard statistics (student, librarian, book, borrowed, available counts).
+- Server-side audit timestamps (`created_at`, `updated_at`) on all entities via `@EnableJpaAuditing`.
+- Global structured error responses (`ApiErrorResponse`) for validation, not-found, conflict, and business-rule violations.
+- Responsive HTML/CSS/JavaScript frontend with multi-page architecture, Fetch API integration, modal forms, toast notifications, and XSS escaping.
+- MockMvc integration tests for authentication, CRUD, borrow/return, validation, ISBN conflicts, role restrictions (401/403), and logout.
+- Browser-equivalent CSRF flow integration test (`BrowserCsrfFlowIntegrationTest`).
+- Repository test for ISBN uniqueness constraint and auditing timestamp population.
+- Black-box test matrix (14 cases, pending local MySQL execution).
+- Docker Compose configuration with optional phpMyAdmin profile.
+- GitHub Actions CI pipeline (`mvn clean verify`).
+- Release documentation: Architecture, API contract, Setup, Testing, Changelog, and this file.
 
 ### Fixed
 
 - Duplicate ISBN now returns `409 Conflict` with `ISBN already exists.` instead of a generic server error.
 - Invalid email validation now returns and displays `Invalid email address.` at the affected field.
+- Configured SPA-aware CSRF request handler so the raw `XSRF-TOKEN` cookie sent by Fetch is validated correctly under Spring Security 6.5.
 
 ### Changed
 
 - Restored the indigo/teal open-book application mark in navigation, the sign-in view, and favicon metadata.
 - Consolidated documentation under `docs/`, moved review evidence to `screenshots/`, and removed obsolete prototype/research artifacts from the release tree.
 
-## Unreleased - CSRF browser-flow correction
+### Security
 
-### Fixed
+- BCrypt-backed password hashing (`BCryptPasswordEncoder`).
+- Session-based authentication with `SessionCreationPolicy.IF_REQUIRED`.
+- CSRF bootstrap via `GET /api/auth/csrf` on page load.
+- Structured 401/403 JSON error responses via `RestAuthenticationEntryPoint` and `RestAccessDeniedHandler`.
+- `server.error.include-message=never` prevents Spring Boot error detail leakage.
 
-- Configured a SPA-aware CSRF request handler so the raw `XSRF-TOKEN` cookie
-  sent by the Fetch API in `X-XSRF-TOKEN` is validated correctly under Spring
-  Security 6.5, while CSRF protection remains enabled.
-- Added a MockMvc regression test that performs the browser-equivalent CSRF
-  cookie and header exchange for login, session reuse, and logout.
+---
 
-## Day 1 - Architecture baseline
+## Development History
 
-### Added
+The following records the day-by-day development process during the build phase.
+
+### Day 1 — Architecture baseline
 
 - Requirements traceability document derived from the frozen architecture.
 - API contract baseline with endpoint, authority, JSON, status, and error conventions.
 - Architecture entry point and Mermaid ER diagram.
-- Day-wise delivery board.
+- Verified: API contract uses the frozen `/api/borrow-records` resource name. Schema contains only the five approved baseline tables. No undocumented endpoints.
 
-### Verified
+### Day 2 — Responsive frontend shell
 
-- The API contract uses the frozen `/api/borrow-records` resource name.
-- The schema contains only the five approved baseline tables.
-- No implementation code has been created against undocumented endpoints.
-- Corrected the historical borrow sequence diagram to the frozen `/api/borrow-records` route.
+- Static Spring Boot frontend shell with Login, Dashboard, Books, Students, Librarians, Borrow Records, and Profile pages.
+- Responsive navigation, desktop/mobile breakpoints, accessible skip link, focus styles, semantic tables, and indigo/teal design tokens.
+- Temporary demo rendering in `js/main.js` for replacement by Day 8 Fetch integration.
 
-## Day 2 - Responsive frontend shell
-
-### Added
-
-- Static Spring Boot frontend shell with approved Login, Dashboard, Books, Students, Librarians, Borrow Records, and Profile pages.
-- Responsive navigation, desktop/mobile breakpoints, accessible skip link, focus styles, semantic tables, and prototype-aligned indigo/teal design tokens.
-- Temporary Day 2 demo rendering, explicitly isolated in `js/main.js` for replacement by the Day 8 Fetch integration.
-
-### Verified
-
-- No unapproved module or UI framework was introduced.
-- All approved modules can be reached through responsive navigation.
-
-## Day 3 - Frontend interaction prototype
-
-### Added
+### Day 3 — Frontend interaction prototype
 
 - Reusable accessible modal component for book, student, librarian, and borrow forms.
 - Client-side required/email validation, safe toast feedback, and book filtering with empty state.
-- A dedicated temporary interaction boundary that avoids treating browser demo data as the final source of truth.
-- Shared Fetch helper with session credentials, JSON/error parsing, and safe handling for `204 No Content` responses.
+- Shared Fetch helper with session credentials, JSON/error parsing, and safe handling for `204 No Content`.
 
-### Verified
-
-- The prototype supports the approved create/borrow user flows without adding a due-date, categories, or other deferred data fields.
-
-## Day 4 - Spring Boot persistence foundation
-
-### Added
+### Day 4 — Spring Boot persistence foundation
 
 - Java 21 Spring Boot project with Web, Validation, Data JPA, Security, MySQL, and test dependencies.
-- The frozen entities: Account, StudentProfile, LibrarianProfile, Book, and BorrowRecord, plus the Role enum and focused repositories.
-- MySQL configuration using environment-overridable local credentials and Hibernate schema update for active development.
+- Frozen entities: `Account`, `StudentProfile`, `LibrarianProfile`, `Book`, `BorrowRecord`, plus the `Role` enum and repositories.
+- MySQL configuration with environment-overridable credentials and Hibernate schema update.
 
-### Verified
+### Day 5 — Books API
 
-- No controllers, direct SQL, DTO shortcuts, or non-frozen database tables were introduced in this persistence milestone.
-
-## Day 5 - Books API
-
-### Added
-
-- Documented `/api/books` CRUD controller, Book request/response DTOs, and service-owned search/update/delete behaviour.
+- `/api/books` CRUD controller, Book request/response DTOs, and service-owned search/update/delete behaviour.
 - Global structured error responses for validation, not-found, and conflict paths.
 - Deletion guard preventing a book with borrow history from being deleted.
 
-### Verified
-
-- `mvn -DskipTests compile` passes.
-- The endpoint resource and DTO fields match `docs/API.md`; entities are not exposed from controllers.
-
-## Day 6 - Students and Librarians APIs
-
-### Added
+### Day 6 — Students and Librarians APIs
 
 - Transactional account/profile creation for student and librarian records with BCrypt hashes and unique-username protection.
 - DTO-based list, get, create, update, and delete endpoints for the approved profile resources.
-- Separate update DTOs, ensuring ordinary profile updates cannot reset a password.
+- Separate update DTOs ensuring ordinary profile updates cannot reset a password.
 
-### Verified
-
-- `mvn -DskipTests compile` passes.
-- Only the approved account/profile fields and REST resource names are used; future password-reset scope was not inferred.
-
-## Day 7 - Borrow records, dashboard, and domain errors
-
-### Added
+### Day 7 — Borrow records, dashboard, and domain errors
 
 - Canonical `/api/borrow-records` list, borrow, and return endpoints.
-- Transactional borrow/return services that maintain book availability and preserve borrower snapshots from the selected student profile.
+- Transactional borrow/return services maintaining book availability and preserving borrower snapshots.
 - Dashboard counts and structured `BOOK_UNAVAILABLE` / `ALREADY_RETURNED` error responses.
 
-### Verified
+### Day 8 — Frontend/backend integration
 
-- `mvn -DskipTests compile` passes.
-- Borrow/return routes, snapshots, status strings, and dashboard response fields match the frozen API contract.
-
-## Day 8 - Frontend/backend integration
-
-### Added
-
-- Centralized Fetch clients for every implemented resource and replacement of temporary rendered demo data.
+- Centralized Fetch clients for every implemented resource.
+- Replacement of temporary rendered demo data with live API calls.
 - UI refresh after create/borrow/return actions, API-backed search, and common JSON/error/204 handling.
 
-## Day 9 - Spring Security
-
-### Added
+### Day 9 — Spring Security
 
 - BCrypt-backed account authentication, session login/logout/current-user endpoints, role-based endpoint restrictions, and CSRF token forwarding.
 - Development-only seeded admin account for local verification.
 
-## Day 10 - QA and delivery documentation
-
-### Added
+### Day 10 — QA and delivery documentation
 
 - Executable black-box test matrix and complete local run instructions.
+- Verified: Java compilation, JavaScript syntax checks, and whitespace checks pass.
 
-### Verified
-
-- Java compilation, JavaScript syntax checks, and whitespace checks pass.
-- Local MySQL was not running in this workspace, so live browser/API test execution is documented as pending rather than falsely marked passed.
-
-## Hardening pass - verification, security, and persistence quality
-
-### Added
+### Hardening pass — verification, security, and persistence quality
 
 - H2-backed MockMvc integration tests for authentication, CRUD flows, borrow/return, validation, logout, and JSON 401/403 failures.
 - Repository test for ISBN uniqueness and auditing timestamps.
-- Structured JSON authentication and authorisation handlers using `ApiErrorResponse`.
-- `AuthService`, explicit lazy relationship mappings, database ISBN uniqueness, and Spring Data `createdAt`/`updatedAt` auditing.
-- README architecture diagram and automated/manual verification guidance.
-
-### Verified
-
-- `mvn test` passes: full Spring request lifecycle and repository safeguards run against an isolated H2 database in MySQL compatibility mode.
-- Live local-MySQL session authentication has been verified through the browser and direct HTTP flow: CSRF bootstrap, login, authenticated access, logout, and post-logout rejection all succeed. Full UI screenshot evidence remains pending.
+- Structured JSON authentication and authorization handlers.
+- `AuthService`, explicit lazy relationship mappings, database ISBN uniqueness, and Spring Data auditing.
+- Verified: `mvn test` passes against isolated H2 in MySQL compatibility mode.

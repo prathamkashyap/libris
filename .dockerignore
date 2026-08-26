@@ -1,0 +1,13 @@
+**/target/
+**/.git
+**/.idea
+**/.vscode
+**/node_modules
+**/*.md
+**/docs/
+**/.github/
+**/logs/
+**/*.log
+**/docker-compose.yml
+**/.env
+**/.env.*

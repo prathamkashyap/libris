@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workspace preferences — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to content</a><nav class="rail" id="rail"></nav>
+  <main class="canvas" id="main-content"><div class="shell-page"><div id="topbar-root"></div>
+    <header class="page-head"><p class="eyebrow">Workspace</p><h1 class="serif">Preferences</h1><p class="page-sub">Personal display choices available in this browser.</p></header>
+    <div class="bento"><section class="card span-6"><div class="card-head"><div><h3>Colour theme</h3><p class="muted">The selection is stored locally in this browser.</p></div></div><div class="mini-row"><span>Current theme</span><strong id="currentTheme">Loading…</strong></div><button class="btn-primary" id="toggleThemeButton" type="button">Switch theme</button></section><section class="card span-6"><div class="card-head"><div><h3>API & Documentation</h3><p class="muted">Explore interactive OpenAPI / Swagger specifications.</p></div></div><p class="muted">Test REST endpoints, review data contracts, and integrate external clients.</p><div style="margin-top:1rem;display:flex;gap:0.75rem;"><a class="btn-primary" href="/swagger-ui.html" target="_blank" rel="noopener">Open Swagger UI</a><a class="btn-ghost" href="/v3/api-docs" target="_blank" rel="noopener">OpenAPI JSON</a></div></section><section class="card span-12"><div class="card-head"><div><h3>Accessibility & Infrastructure</h3><p class="muted">Libris provides visible keyboard focus, a responsive navigation menu, reduced-motion support, and full Docker/Cloud container compatibility.</p></div></div></section></div>
+  </div></main>
+  <div id="palette-root"></div><script type="module" src="/js/app-init.js"></script><script type="module" src="/js/settings.js"></script>
+</body>
+</html>

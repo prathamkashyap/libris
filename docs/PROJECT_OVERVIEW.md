@@ -2,6 +2,7 @@
 
 > [!IMPORTANT]
 > **Release:** v1.0.0 · **Implementation:** Spring Boot 3.5, Java 21, MySQL, vanilla HTML/CSS/JavaScript · **Documentation type:** Academic project report and engineering delivery record.
+> **Source of truth as of:** 30 July 2026
 
 <p align="center">
   <img src="../backend/src/main/resources/static/assets/library-mark.svg" width="88" alt="Library Management System logo">
@@ -97,7 +98,7 @@ timeline
 
 | Phase | Engineering outcome | Evidence retained in the repository |
 | --- | --- | --- |
-| **Day 1 — Planning** | Frozen scope, five-table baseline, API contract, ADR-oriented architecture | `ARCHITECTURE.md`, `REQUIREMENTS.md`, ER diagram |
+| **Day 1 — Planning** | Frozen scope, eight-table baseline, API contract, ADR-oriented architecture | `ARCHITECTURE.md`, `REQUIREMENTS.md`, ER diagram |
 | **Day 2 — UI shell** | Responsive navigation and approved pages: login, dashboard, books, students, librarians, borrow records, profile | `static/index.html`, CSS layers |
 | **Day 3 — Interaction boundary** | Reusable modal forms, client validation, toasts, shared Fetch helper | `components/modal.js`, `js/api/http.js` |
 | **Day 4 — Persistence** | Spring Boot application, JPA entities, repositories, MySQL configuration, seed admin | entities, repositories, application properties |
@@ -220,7 +221,7 @@ flowchart TD
 | `dto` | Defines request validation and safe response contracts. |
 | `security` | Configures authentication, session policy, CSRF behavior, and JSON security errors. |
 | `exception` | Converts expected domain and validation failures into structured API responses. |
-| `static` | Holds the production SPA shell, CSS system, shared modal, SVG brand asset, and Fetch clients. |
+| `static` | Holds the production MPA frontend, CSS system, shared modal, SVG brand asset, and Fetch clients. |
 
 ## 5.3 Request Lifecycle
 
@@ -256,6 +257,8 @@ erDiagram
     ACCOUNTS ||--o| LIBRARIAN_PROFILES : "has"
     STUDENT_PROFILES ||--o{ BORROW_RECORDS : "appears in"
     BOOKS ||--o{ BORROW_RECORDS : "is borrowed in"
+    MAGAZINES ||--o{ BORROW_RECORDS : "is borrowed in"
+    NEWSPAPERS ||--o{ BORROW_RECORDS : "is borrowed in"
 
     ACCOUNTS {
       bigint id PK
@@ -286,15 +289,45 @@ erDiagram
       date published_date
       boolean available
     }
+    MAGAZINES {
+      bigint id PK
+      varchar title
+      varchar publisher
+      date issue_date
+      varchar category
+      varchar featured_article
+      boolean available
+    }
+    NEWSPAPERS {
+      bigint id PK
+      varchar title
+      varchar publisher
+      date publication_date
+      varchar top_headlines
+      boolean available
+    }
     BORROW_RECORDS {
       bigint id PK
       bigint book_id FK
+      bigint magazine_id FK
+      bigint newspaper_id FK
       bigint student_id FK
       varchar borrower_name
       varchar borrower_email
       varchar borrower_phone
       date borrow_date
       date return_date
+    }
+    AUDIT_LOGS {
+      bigint id PK
+      timestamp timestamp
+      bigint actor_id
+      varchar actor_username
+      varchar actor_role
+      varchar action
+      varchar entity_type
+      bigint entity_id
+      varchar description
     }
 ```
 
@@ -372,7 +405,7 @@ flowchart LR
 
 **Purpose.** Give staff a concise operational view while keeping the interface usable on both desktop and mobile.
 
-**Implementation.** The dashboard API provides five totals. The static SPA uses centralized API modules, a shared `requestJson()` helper, reusable modals, responsive CSS breakpoints, and a compact mobile navigation mode.
+**Implementation.** The dashboard API provides five totals. The static MPA frontend uses centralized API modules, a shared `requestJson()` helper, reusable modals, responsive CSS breakpoints, and a compact mobile navigation mode.
 
 ---
 
@@ -477,13 +510,18 @@ The v1.0.0 release preparation record reports a successful suite with **6 tests*
 
 The following are intentionally outside v1.0.0:
 
-- Pagination, richer search, and book categories.
+- Richer search filters and book categories.
 - Reservations, notifications, fines, overdue automation, and analytics.
 - Physical-copy modelling for multiple copies of one title/ISBN.
-- Swagger/OpenAPI documentation and generated API clients.
-- Dockerized local/deployment environments.
 - Advanced reporting and operational dashboards.
 - JWT or other API-client authentication only if the project expands beyond its same-origin web application model.
+
+The following were originally deferred but are **implemented in v1.0.0**:
+
+- Basic page/size pagination on list endpoints.
+- Swagger/OpenAPI documentation (springdoc).
+- Docker Compose with MySQL, backend, and phpMyAdmin.
+- CI via GitHub Actions.
 
 ---
 

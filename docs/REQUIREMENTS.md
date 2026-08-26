@@ -1,5 +1,7 @@
 # Library Management System - Requirements Traceability
 
+> **Source of truth as of:** 30 July 2026
+
 **Status:** v1.0.0 release baseline  
 **Authority:** Derived from [Architecture](ARCHITECTURE.md). The master document is authoritative if this file conflicts with it.
 

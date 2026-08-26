@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access model — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to content</a><nav class="rail" id="rail"></nav>
+  <main class="canvas" id="main-content"><div class="shell-page"><div id="topbar-root"></div>
+    <header class="page-head"><p class="eyebrow">Access</p><h1 class="serif">Access model</h1><p class="page-sub">Server-enforced application roles. This reference does not imply configurable permissions.</p></header>
+    <div class="bento"><section class="card span-4"><div class="role-card-head"><span class="role-dot role-admin"></span><h3>Administrator</h3></div><p class="muted">Can manage team accounts as well as catalog, member, circulation, analytics, and report routes.</p></section><section class="card span-4"><div class="role-card-head"><span class="role-dot role-libn"></span><h3>Librarian</h3></div><p class="muted">Can manage catalog, member, and circulation routes, and view analytics and reports. Team-account routes remain administrator-only.</p></section><section class="card span-4"><div class="role-card-head"><span class="role-dot role-stu"></span><h3>Student</h3></div><p class="muted">Can use the personal student dashboard, view the catalog, and access their own borrowing information.</p></section><section class="card span-12"><div class="card-head"><div><h3>How authorization works</h3><p class="muted">The backend authorizes API URL patterns for every request. The interface adapts navigation for clarity, but it is not the security boundary.</p></div></div></section></div>
+  </div></main>
+  <div id="palette-root"></div><script type="module" src="/js/app-init.js"></script><script type="module" src="/js/page-auth.js"></script>
+</body>
+</html>

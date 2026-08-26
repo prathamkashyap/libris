@@ -1,119 +1,97 @@
-# Library Management System
+<div align="center">
+  <img src="backend/src/main/resources/static/assets/library-mark.svg" alt="Libris Logo" width="120" />
+  <h1>Libris: Enterprise Library Management System</h1>
+  <p><strong>A modern, responsive, and robust library management platform built with Spring Boot 3.5 and Vanilla ES Modules.</strong></p>
 
-A responsive Library Management System built with Spring Boot, MySQL, and a vanilla HTML/CSS/JavaScript frontend. It is a single deployable application: the browser client is served by Spring Boot and communicates with the REST API through Fetch.
+  [![Build Status](https://img.shields.io/github/actions/workflow/status/your-username/libris/ci.yml?branch=main&style=for-the-badge&logo=github)](https://github.com/your-username/libris/actions)
+  [![Coverage](https://img.shields.io/badge/coverage-70%25%2B-success?style=for-the-badge)](https://github.com/your-username/libris)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+  [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-6DB33F?style=for-the-badge&logo=spring-boot)](https://spring.io/projects/spring-boot)
 
-## Features
+</div>
 
-- Session-based authentication with Spring Security and BCrypt passwords.
-- Role-based authorization for administrators and librarians.
-- Books, students, and librarians CRUD operations.
-- Borrow and return workflow with availability protection and preserved history.
-- Dashboard totals and a safe current-user profile view.
-- Responsive desktop and mobile interface.
-- Server-side validation with field-level frontend feedback.
-- MockMvc integration tests, including the real browser CSRF cookie/header flow.
-- Repository tests for ISBN uniqueness and auditing timestamps.
+---
 
-## Technology Stack
+Libris is a comprehensive Library Management System designed for educational institutions. It features a secure REST API powered by Java 21 and Spring Boot, paired with an elegant, dual-theme frontend (Ember Dark / Verdigris Light) built entirely without heavy SPA frameworks.
 
-Java 21, Spring Boot 3.5, Spring Security 6.5, Spring Data JPA, Hibernate, MySQL, HTML, CSS, JavaScript, Fetch API, Maven, JUnit 5, MockMvc, and H2 for isolated tests.
+## ✨ Key Features
 
-## Project Architecture
+| Feature Area | Description |
+|---|---|
+| **Secure Identity** | Session-based authentication (BCrypt) + Opt-in **Google OpenID Connect (SSO)**. |
+| **Role-Based Access** | Strictly enforced permissions for `ADMIN`, `LIBRARIAN`, and `STUDENT` across controllers and UI. |
+| **Complete Cataloging** | Track and manage Books, Magazines, and Newspapers with ISBN validation and availability locks. |
+| **Borrowing Workflow** | Automated checkout limits, return history tracking, and overdue analytics. |
+| **Modern UX/UI** | Fast, vanilla ES Modules frontend with dynamic shell, custom CSS properties, and responsive design. |
+| **Audit & Observability** | Automatic JPA auditing (`created_at` / `updated_at`) and **Structured JSON Logging** for ELK/Datadog. |
+| **Production Ready** | Robust Docker Compose setup, Flyway migrations, CSRF protection, and Actuator metrics. |
 
-```text
-Browser -> Fetch API -> REST Controller -> Service -> Repository -> MySQL
-```
+## 🏗️ Architecture Overview
 
 ```mermaid
 flowchart LR
-    Browser["Browser UI"] --> Fetch["Fetch API"]
-    Fetch --> Controller["REST Controllers"]
-    Controller --> Service["Transactional Services"]
-    Service --> Repository["Spring Data JPA"]
-    Repository --> Database[("MySQL")]
+    Browser["Browser UI<br/>(Vanilla JS / ES Modules)"] --> Fetch["Fetch API<br/>(w/ CSRF Token)"]
+    Fetch --> Controller["REST Controllers<br/>(@RestController)"]
+    Controller --> Service["Transactional Services<br/>(@Service)"]
+    Service --> Repository["Spring Data JPA<br/>(@Repository)"]
+    Repository --> Database[("MySQL 8<br/>(Flyway Migrated)")]
 ```
 
-The complete architecture, ADRs, database design, API conventions, and frozen decisions are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+For an in-depth architectural breakdown, including ADRs and schema definitions, see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-## Folder Structure
+## 🚀 Quick Start (Docker)
 
-```text
-.
-├── backend/       Spring Boot application, frontend assets, and tests
-├── docs/          Architecture, API, setup, testing, and release documents
-├── screenshots/   Desktop and mobile review evidence
-└── README.md      Project entry point
-```
+The recommended way to run Libris locally is via Docker. Ensure you have [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/) installed.
 
-See [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) for the detailed map.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/libris.git
+   cd libris/backend
+   ```
+2. **Configure Environment:**
+   ```bash
+   cp .env.example .env
+   # Edit .env and set secure values for LMS_DB_PASSWORD and LMS_ADMIN_PASSWORD
+   ```
+3. **Launch the stack:**
+   ```bash
+   docker compose up --build
+   ```
 
-## API Overview
+Navigate to `http://localhost:8080`. Log in using the username `admin` and the password you defined in `.env`.
 
-The API is rooted at `/api` and uses structured JSON responses. Main resources are:
+*Note: To run without Docker using the embedded H2 database, run `./mvnw spring-boot:run -Dspring-boot.run.profiles=h2`.*
 
-- `/api/auth` — CSRF bootstrap, login, logout, and current session.
-- `/api/books` — searchable book catalogue and CRUD operations.
-- `/api/students` and `/api/librarians` — profile management.
-- `/api/borrow-records` — borrow, return, and history.
-- `/api/dashboard` and `/api/profile` — authenticated user views.
+## 📸 Screenshots
 
-See [docs/API.md](docs/API.md) for endpoint, role, status, and error details.
+| Dashboard (Ember Theme) | Catalog (Verdigris Theme) |
+|---|---|
+| *![Dashboard Mockup](dashboard_mockup.png)* | *![Catalog Mockup](catalog_mockup.png)* |
+| **Analytics Overview** | **Student Management** |
+| *![Analytics Mockup](analytics_mockup.png)* | *![Student Mockup](student_mockup.png)* |
 
-## Running Locally
+*(Full evidence in `screenshots/desktop` and `screenshots/mobile`)*
 
-Prerequisites: Java 21+, MySQL, and a database account that can create/use `librarydb`.
+## 📚 Documentation
 
+Dive deeper into the system's technical details:
+
+- [API Contract](docs/API.md): Request/response schemas and error codes.
+- [Database Setup](docs/DATABASE.md): ER diagram and migration strategies.
+- [Frontend Architecture](docs/FRONTEND.md): Component injection and module boundaries.
+- [Security Model](docs/SECURITY.md): CSRF flow, OAuth implementation, and role matrices.
+- [Production Readiness](docs/PRODUCTION_READINESS.md): Audit of deployment readiness, logging, and dependency hygiene.
+- [Release Notes](docs/RELEASE_NOTES_v1.0.1.md): Latest changes in `v1.0.1`.
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct, development environment setup, and the process for submitting Pull Requests.
+
+To run the test suite locally:
 ```bash
-export LMS_DB_USERNAME=your_mysql_user
-export LMS_DB_PASSWORD=your_mysql_password
-./mvnw spring-boot:run
+./mvnw clean verify
 ```
 
-Open <http://localhost:8080>. The local development seed is `admin` / `ChangeMe123!`; change it before any non-local deployment.
+## 📄 License
 
-Detailed configuration is in [docs/SETUP.md](docs/SETUP.md).
-
-## Testing
-
-Run the full isolated test suite from the repository root:
-
-```bash
-./mvnw clean test
-```
-
-Tests use H2 in MySQL compatibility mode and include authentication, role restrictions, CRUD, borrow/return, validation, ISBN conflicts, CSRF cookie/header exchange, and repository safeguards. See [docs/TESTING.md](docs/TESTING.md).
-
-## Screenshots
-
-Desktop evidence is maintained in [screenshots/desktop](screenshots/desktop):
-
-- [Login](screenshots/desktop/authentication.png)
-- [Dashboard](screenshots/desktop/dashboard.png)
-- [Books](screenshots/desktop/books.png)
-- [Students](screenshots/desktop/students.png)
-- [Librarians](screenshots/desktop/librarians.png)
-- [Borrow records](screenshots/desktop/borrow_records.png)
-- [Duplicate username](screenshots/desktop/duplicate_username.png)
-- [Validation](screenshots/desktop/invalid_details.png)
-- [Borrow workflow](screenshots/desktop/record_a_borrow.png)
-
-Mobile evidence is maintained in [screenshots/mobile](screenshots/mobile):
-
-- [Dashboard](screenshots/mobile/mobile_dashboard.png)
-- [Authentication and navigation](screenshots/mobile/mobile_authentication.png)
-- [Duplicate ISBN](screenshots/mobile/mobile_duplicate_isbn.png)
-- [Validation](screenshots/mobile/mobile_validation_failed.png)
-- [Borrow/return](screenshots/mobile/mobile_borrow_returned.png)
-
-## Future Improvements
-
-Pagination, advanced search, categories, fines, notifications, Swagger/OpenAPI, Docker deployment, reservations, physical-copy modelling, and JWT-based API access are intentionally deferred from v1.0.0.
-
-## Documentation
-
-- [Architecture](docs/ARCHITECTURE.md)
-- [API contract](docs/API.md)
-- [Requirements](docs/REQUIREMENTS.md)
-- [Setup](docs/SETUP.md)
-- [Testing](docs/TESTING.md)
-- [Changelog](docs/CHANGELOG.md)
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

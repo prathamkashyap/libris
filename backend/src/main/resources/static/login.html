@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <script>(function(){var t=localStorage.getItem('theme');if(t==='verdigris')document.documentElement.setAttribute('data-theme','verdigris')})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="topbar-theme" class="login-theme-mount"></div>
+  <main class="login-layout" id="login-view">
+    <aside class="login-branding" aria-label="About Libris">
+      <div class="brand-mark"><div class="brand-mark-icon"><svg viewBox="0 0 48 48" fill="none"><rect x="3" y="3" width="42" height="42" rx="13" fill="#57d1b1"/><path d="M12 13h11a6 6 0 0 1 6 6v17H18a6 6 0 0 1-6-6V13Z" fill="#082823"/><path d="M29 19h7v17h-7" fill="#0d6659"/></svg></div><div class="brand-text"><span class="brand-name">LIBRIS</span><span class="brand-sub">Library workspace</span></div></div>
+      <div><h2 class="brand-headline">A clearer way to care for your <em>collection.</em></h2><p class="brand-desc">One workspace for the catalog, circulation, members, and the details that keep a library moving.</p></div>
+      <p class="brand-trust"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>Secure access for your library community</p>
+    </aside>
+    <section class="login-panel" aria-label="Sign in">
+      <div class="login-card" id="loginCard">
+        <div class="card-logo"><svg viewBox="0 0 48 48" fill="none"><rect x="3" y="3" width="42" height="42" rx="13" fill="#57d1b1"/><path d="M12 13h11a6 6 0 0 1 6 6v17H18a6 6 0 0 1-6-6V13Z" fill="#082823"/><path d="M29 19h7v17h-7" fill="#0d6659"/></svg><h1 class="card-title">Welcome back</h1><p class="card-sub">Sign in with your Libris account.</p></div>
+        <p id="login-error" class="form-error login-error" role="alert" hidden></p>
+        <form id="login-form" novalidate>
+          <label class="login-field" for="login-username">Username or student ID<div class="login-input-wrap"><svg class="login-input-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input id="login-username" name="username" type="text" required autocomplete="username" placeholder="Enter your username"></div></label>
+          <label class="login-field" for="login-password">Password<div class="login-input-wrap"><svg class="login-input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="Enter your password"><button type="button" class="login-pw-toggle" aria-label="Show password" aria-pressed="false" data-target="login-password"><svg class="pw-eye-open" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="pw-eye-closed" viewBox="0 0 24 24" hidden><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="m1 1 22 22"/></svg></button></div></label>
+          <button class="login-submit" type="submit" id="submitBtn">Sign in<svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+        </form>
+        <p class="login-footer-note"><a href="/register.html">Create a student account</a><br>Librarian accounts are managed by an administrator.</p>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/js/login.js"></script>
+</body>
+</html>

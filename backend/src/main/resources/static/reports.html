@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to content</a><nav class="rail" id="rail"></nav>
+  <main class="canvas" id="main-content"><div class="shell-page"><div id="topbar-root"></div>
+    <header class="page-head"><p class="eyebrow">Exports</p><h1 class="serif">Reports</h1><p class="page-sub">Download the current library records as CSV files.</p></header>
+    <div class="bento"><section class="card span-4 report-card"><span class="report-icon" aria-hidden="true">↻</span><div><b>Circulation report</b><p class="muted">Borrow and return records in the current system.</p></div><a class="btn-primary" href="/api/reports/borrowing?format=csv">Download CSV</a></section><section class="card span-4 report-card"><span class="report-icon" aria-hidden="true">▤</span><div><b>Inventory report</b><p class="muted">Catalog inventory data currently stored in Libris.</p></div><a class="btn-primary" href="/api/reports/inventory?format=csv">Download CSV</a></section><section class="card span-4 report-card"><span class="report-icon" aria-hidden="true">!</span><div><b>Overdue report</b><p class="muted">Loans that are currently past the configured 14-day period.</p></div><a class="btn-primary" href="/api/reports/overdue?format=csv">Download CSV</a></section><section class="card span-12"><div class="card-head"><div><h3>Export format</h3><p class="muted">Libris currently provides server-generated CSV exports. There are no fabricated PDF, spreadsheet, scheduled-export, or export-history controls in this workspace.</p></div></div></section></div>
+  </div></main>
+  <div id="palette-root"></div><script type="module" src="/js/app-init.js"></script><script type="module" src="/js/reports.js"></script>
+</body>
+</html>
