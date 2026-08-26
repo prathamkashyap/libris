@@ -350,23 +350,8 @@ class LibraryManagementIntegrationTest {
 
   @Test
   void profileEndpointReturnsAuthenticatedUserProfile() throws Exception {
-    MvcResult csrfResult =
-        mvc.perform(get("/api/auth/csrf")).andExpect(status().isOk()).andReturn();
-    Cookie csrfCookie = csrfResult.getResponse().getCookie("XSRF-TOKEN");
-
-    MvcResult loginResult =
-        mvc.perform(
-                post("/api/auth/login")
-                    .cookie(csrfCookie)
-                    .header("X-XSRF-TOKEN", csrfCookie.getValue())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"username\":\"admin\",\"password\":\"admin123\"}"))
-            .andExpect(status().isOk())
-            .andReturn();
-
-    MockHttpSession session = (MockHttpSession) loginResult.getRequest().getSession();
-
-    mvc.perform(get("/api/profile").session(session))
+    // Re-uses adminSession established in @BeforeEach (password read from ${lms.admin.password})
+    mvc.perform(get("/api/profile").session(adminSession))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.username").value("admin"))
         .andExpect(jsonPath("$.role").value("ADMIN"));
