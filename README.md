@@ -59,7 +59,7 @@ Swagger UI: <http://localhost:8080/swagger-ui.html>
 
 ```bash
 export LMS_ADMIN_PASSWORD=ChangeMe123!
-./mvnw spring-boot:run -Dspring-boot.run.profiles=h2 -f backend/pom.xml
+./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
 ```
 
 ### Option C — Deploy to Railway (Recommended)
@@ -82,7 +82,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for Render, Fly.io, and Hugging Fac
 ## 🧪 Running Tests
 
 ```bash
-./mvnw clean verify -f backend/pom.xml
+./mvnw clean verify
 ```
 
 - **20 tests** across 4 test classes (integration, CSRF flow, repository, unit)
