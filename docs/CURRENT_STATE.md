@@ -18,12 +18,12 @@
 
 ## 2. Test Suite
 
-**13 passing tests** across 4 test classes:
+**20 passing tests** across 4 test classes:
 
 | Test File | Type | Methods | Coverage |
 |-----------|------|---------|----------|
-| `CrudIntegrationTest` | Integration (MockMvc) | 7 | Magazine/Newspaper CRUD, Student/Librarian update+delete, Dashboard, Audit, duplicate username |
-| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 4 | Login, full CRUD + borrow/return, validation, ISBN conflicts, 401/403 |
+| `CrudIntegrationTest` | Integration (MockMvc) | 8 | Magazine/Newspaper CRUD, Student/Librarian update+delete, Dashboard, Audit, duplicate username, duplicate email |
+| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 10 | Login, full CRUD + borrow/return, validation, ISBN conflicts, 401/403, self-registration, registration validation, register CSRF, profile endpoint, Swagger UI/OpenAPI docs public access, book category CRUD |
 | `BrowserCsrfFlowIntegrationTest` | Integration (real CSRF flow) | 1 | CSRF bootstrap → login → session reuse → logout → post-logout rejection |
 | `BookRepositoryTest` | Repository | 1 | Audit timestamp population, ISBN uniqueness constraint |
 

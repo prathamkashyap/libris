@@ -7,5 +7,6 @@ import java.time.LocalDate;
 public record BookRequest(
     @NotBlank @Size(max = 200) String title,
     @Size(max = 200) String author,
+    @Size(max = 100) String category,
     @Size(max = 50) String isbn,
     LocalDate publishedDate) {}

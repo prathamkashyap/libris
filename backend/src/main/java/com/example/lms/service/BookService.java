@@ -147,12 +147,19 @@ public class BookService {
   private void apply(Book entity, BookRequest r) {
     entity.setTitle(r.title().trim());
     entity.setAuthor(StringUtils.blankToNull(r.author()));
+    entity.setCategory(StringUtils.blankToNull(r.category()));
     entity.setIsbn(StringUtils.blankToNull(r.isbn()));
     entity.setPublishedDate(r.publishedDate());
   }
 
   private BookResponse response(Book b) {
     return new BookResponse(
-        b.getId(), b.getTitle(), b.getAuthor(), b.getIsbn(), b.getPublishedDate(), b.isAvailable());
+        b.getId(),
+        b.getTitle(),
+        b.getAuthor(),
+        b.getCategory(),
+        b.getIsbn(),
+        b.getPublishedDate(),
+        b.isAvailable());
   }
 }

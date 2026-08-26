@@ -16,6 +16,9 @@ public class Book extends AuditableEntity {
   @Column(length = 200)
   private String author;
 
+  @Column(length = 100)
+  private String category;
+
   @Column(length = 50, unique = true)
   private String isbn;
 
@@ -43,6 +46,14 @@ public class Book extends AuditableEntity {
 
   public void setAuthor(String v) {
     author = v;
+  }
+
+  public String getCategory() {
+    return category;
+  }
+
+  public void setCategory(String v) {
+    category = v;
   }
 
   public String getIsbn() {

@@ -1,59 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<style>
-  html{transition:background-color .3s ease,color .3s ease}
-</style>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Borrow records — Libris</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Circulation — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to content</a>
-<div class="petal-decor" aria-hidden="true"></div>
-<div class="star-decor" aria-hidden="true"></div>
-
-<nav class="rail" id="rail"></nav>
-
-<main class="canvas single" id="main-content">
-  <div class="shell-page">
-    <div id="topbar-root"></div>
-    
-<header class="page-head">
-  <div class="eyebrow">Circulation</div>
-  <h1 class="serif">Borrow records</h1>
-  <p class="page-sub">Every issue and return, in order.</p>
-</header>
-
-<div class="toolbar">
-  <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="Search by student or title&hellip;"></div>
-  <div class="filter-row">
-    <button class="filter-chip">Date range <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="filter-chip">Status <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="btn-primary" id="issueItemBtn">+ Issue item</button>
-  </div>
-</div>
-
-<div class="card">
-  <div class="timeline">
-    <div class="tl-row"><div class="tl-dot dot-warn"></div><div class="tl-body"><b>Sapiens</b> issued to <a href="student-profile.html">Fatima Sheikh</a> <span class="badge badge-warn">Overdue &mdash; 4 days</span><small>Issued 12 Jul &middot; Due 26 Jul</small></div><button class="btn-ghost sm">Quick return</button></div>
-    <div class="tl-row"><div class="tl-dot dot-out"></div><div class="tl-body"><b>Clean Architecture</b> issued to Arjun Verma <span class="badge badge-out">Active</span><small>Issued 20 Jul &middot; Due 03 Aug</small></div><button class="btn-ghost sm">Quick return</button></div>
-    <div class="tl-row"><div class="tl-dot dot-in"></div><div class="tl-body"><b>The Design of Everyday Things</b> returned by Meera Kulkarni <span class="badge badge-return">Returned</span><small>Issued 06 Jul &middot; Returned 21 Jul</small></div><button class="btn-ghost sm" disabled>Closed</button></div>
-    <div class="tl-row"><div class="tl-dot dot-in"></div><div class="tl-body"><b>The Pragmatic Programmer</b> returned by Rohan Das <span class="badge badge-return">Returned</span><small>Issued 01 Jul &middot; Returned 20 Jul</small></div><button class="btn-ghost sm" disabled>Closed</button></div>
-  </div>
-</div>
-
-  </div>
-</main>
-
-<div id="palette-root"></div>
-<div id="modal-root"></div>
-<script type="module" src="/js/app-init.js"></script>
-<script type="module" src="js/borrow.js"></script>
-
+  <a href="#main-content" class="skip-link">Skip to content</a><nav class="rail" id="rail"></nav>
+  <main class="canvas" id="main-content"><div class="shell-page"><div id="topbar-root"></div>
+    <header class="page-head"><p class="eyebrow">Circulation</p><div class="page-title-row"><div><h1 class="serif">Borrow records</h1><p class="page-sub">Issue items, process returns, and follow active circulation.</p></div><button class="btn-primary" id="issueItemBtn" type="button">Issue item</button></div></header>
+    <div class="toolbar"><label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span class="sr-only">Search borrow records</span><input type="search" placeholder="Search by student or item title"></label></div>
+    <section class="card"><div class="timeline" aria-live="polite"><div class="loading-state">Loading borrow records…</div></div></section>
+  </div></main>
+  <div id="palette-root"></div><div id="modal-root"></div><script type="module" src="/js/app-init.js"></script><script type="module" src="/js/borrow.js"></script>
 </body>
 </html>

@@ -27,7 +27,7 @@ erDiagram
         BIGINT id PK
         BIGINT account_id FK_UK
         VARCHAR name
-        VARCHAR email
+        VARCHAR email UK
         VARCHAR phone
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -45,6 +45,7 @@ erDiagram
         BIGINT id PK
         VARCHAR title
         VARCHAR author
+        VARCHAR category
         VARCHAR isbn UK
         DATE published_date
         BOOLEAN available
@@ -82,6 +83,7 @@ erDiagram
         VARCHAR borrower_email
         VARCHAR borrower_phone
         DATE borrow_date
+        DATE due_date
         DATE return_date
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -136,7 +138,7 @@ Student display and contact data. One-to-one with `accounts`.
 | `id` | `BIGINT` | PK, auto-increment | |
 | `account_id` | `BIGINT` | `UNIQUE`, `NOT NULL`, FK → `accounts.id` | One profile per account |
 | `name` | `VARCHAR(100)` | `NOT NULL` | Display name |
-| `email` | `VARCHAR(100)` | `NOT NULL` | Contact email (no unique constraint) |
+| `email` | `VARCHAR(100)` | `UNIQUE`, `NOT NULL` | Contact email (`uk_student_profiles_email`) |
 | `phone` | `VARCHAR(20)` | `NOT NULL` | Contact phone |
 | `created_at` | `TIMESTAMP` | Auto-populated | |
 | `updated_at` | `TIMESTAMP` | Auto-populated | |
@@ -164,6 +166,7 @@ Library catalogue. The `available` flag is a denormalized current-state field.
 | `id` | `BIGINT` | PK, auto-increment | |
 | `title` | `VARCHAR(200)` | `NOT NULL` | Book title |
 | `author` | `VARCHAR(200)` | | Book author |
+| `category` | `VARCHAR(100)` | | Book category / genre |
 | `isbn` | `VARCHAR(50)` | `UNIQUE` | ISBN identifier |
 | `published_date` | `DATE` | | Publication date |
 | `available` | `BOOLEAN` | `NOT NULL`, default `true` | `true` = available for borrow |
@@ -216,6 +219,7 @@ Durable loan history. Never deleted — records are preserved for audit.
 | `borrower_email` | `VARCHAR(100)` | `NOT NULL` | Snapshot from student profile |
 | `borrower_phone` | `VARCHAR(20)` | `NOT NULL` | Snapshot from student profile |
 | `borrow_date` | `DATE` | `NOT NULL` | When the item was borrowed |
+| `due_date` | `DATE` | nullable | Expected return date (default 14 days) |
 | `return_date` | `DATE` | nullable | `NULL` = currently borrowed |
 | `created_at` | `TIMESTAMP` | Auto-populated | |
 | `updated_at` | `TIMESTAMP` | Auto-populated | |

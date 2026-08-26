@@ -1,201 +1,131 @@
-# Deployment
+# Deployment Guide
 
-> **Source of truth as of:** 30 July 2026
-
-How to build, containerize, and deploy the Library Management System.
-
-See [SETUP.md](SETUP.md) for local development and [SECURITY.md](SECURITY.md) for security configuration.
+Comprehensive instructions for containerizing and deploying the Libris Library Management System across cloud providers (Railway, Render, Fly.io, Hugging Face Spaces, and Docker VPS).
 
 ---
 
-## Docker
+## 1. Architecture & Platform Overview
 
-### Multi-stage Dockerfile
+- **Stack:** Spring Boot 3.5 (Java 21) + Spring Security (CSRF + Session) + Spring Data JPA + Flyway migrations + vanilla JS MPA frontend.
+- **Database:** MySQL 8+ in production (`ddl-auto=none`, Flyway versioned migrations). H2 in-memory for testing/development.
+- **Dynamic Port:** Configured via `server.port=${PORT:8080}` to automatically bind to cloud platform port assignments.
+- **Health Checks & Actuator:** Built-in Spring Boot Actuator at `/actuator/health` and `/actuator/info`.
+- **API Documentation:** Interactive Swagger UI at `/swagger-ui.html` and OpenAPI 3 spec at `/v3/api-docs`.
 
-The Dockerfile uses a multi-stage build for a small production image:
+---
 
-```dockerfile
-# Stage 1: Build
-FROM maven:3.9-eclipse-temurin-21 AS builder
-WORKDIR /build
-COPY pom.xml .
-RUN mvn dependency:go-offline -q
-COPY src ./src
-RUN mvn package -DskipTests -q
+## 2. Recommended Cloud Platforms
 
-# Stage 2: Runtime
-FROM eclipse-temurin:21-jre
-WORKDIR /app
-COPY --from=builder /build/target/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-```
+### Platform A: Railway (Recommended — Fastest & Easiest)
 
-**Image size:** The runtime stage uses `eclipse-temurin:21-jre` (not full JDK), keeping the production image small.
+Railway natively provisions both the Spring Boot Docker container and a managed MySQL instance in the same project.
 
-### Docker Compose
+1. **Create a Railway Project:**
+   - Go to [railway.app](https://railway.app) and click **New Project** → **Deploy from GitHub repo**.
+   - Select the repository.
+2. **Add a MySQL Database:**
+   - Click **+ New** → **Database** → **Add MySQL**.
+3. **Configure Environment Variables:**
+   - In the application service **Variables** tab, set:
+     - `LMS_DB_URL`: `${{MySQL.MYSQL_URL}}` (or `jdbc:mysql://${{MySQL.MYSQLHOST}}:${{MySQL.MYSQLPORT}}/${{MySQL.MYSQLDATABASE}}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC`)
+     - `LMS_DB_USERNAME`: `${{MySQL.MYSQLUSER}}`
+     - `LMS_DB_PASSWORD`: `${{MySQL.MYSQLPASSWORD}}`
+     - `LMS_ADMIN_PASSWORD`: `<your-secure-admin-password>`
+     - `SPRING_PROFILES_ACTIVE`: `docker`
+4. **Deploy:**
+   - Railway uses `railway.json` and the multi-stage `Dockerfile` automatically.
+   - Generate a public domain under service **Settings** → **Networking**.
+   - Visit `https://<your-app>.up.railway.app` and `https://<your-app>.up.railway.app/swagger-ui.html`.
 
-```yaml
-services:
-  mysql:
-    image: mysql:9
-    environment:
-      MYSQL_ROOT_PASSWORD: ${LMS_DB_PASSWORD}
-      MYSQL_DATABASE: librarydb
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+---
 
-  backend:
-    build: .
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      LMS_DB_PASSWORD: ${LMS_DB_PASSWORD}
-      LMS_ADMIN_PASSWORD: ${LMS_ADMIN_PASSWORD}
-    ports:
-      - "8080:8080"
-    depends_on:
-      mysql:
-        condition: service_healthy
+### Platform B: Render
 
-  phpmyadmin:            # Optional (profile: dev)
-    image: phpmyadmin:latest
-    environment:
-      PMA_HOST: mysql
-      PMA_USER: root
-      PMA_PASSWORD: ${LMS_DB_PASSWORD}
-    ports:
-      - "8081:80"
-    profiles:
-      - dev
+Render deploys the Docker container as a Web Service and connects to a managed MySQL instance.
 
-volumes:
-  mysql-data:
-```
+1. **Deploy with `render.yaml`:**
+   - Push code to GitHub.
+   - On [render.com](https://render.com), go to **Blueprints** → **New Blueprint Instance** and connect the repository.
+2. **Manual Web Service:**
+   - Create a **New Web Service** from your Git repository.
+   - Choose **Docker** runtime.
+   - Set environment variables:
+     - `LMS_ADMIN_PASSWORD`: `<secure-password>`
+     - `LMS_DB_URL`: `jdbc:mysql://<host>:<port>/<dbname>?createDatabaseIfNotExist=true&useSSL=false`
+     - `LMS_DB_USERNAME`: `<db-user>`
+     - `LMS_DB_PASSWORD`: `<db-password>`
+     - `SPRING_PROFILES_ACTIVE`: `docker`
+   - Health check path: `/actuator/health`.
 
-### Quick start
+---
+
+### Platform C: Fly.io
+
+1. Install Fly CLI: `curl -L https://fly.io/install.sh | sh`
+2. Run `fly launch` in the repository root.
+3. Attach MySQL database: `fly mysql create` and attach it.
+4. Set secrets:
+   ```bash
+   fly secrets set LMS_ADMIN_PASSWORD="YourAdminPassword123!" LMS_DB_PASSWORD="your-db-password"
+   ```
+5. Deploy: `fly deploy`.
+
+---
+
+### Platform D: Hugging Face Spaces (Docker Space)
+
+1. Create a new Space on [huggingface.co/spaces](https://huggingface.co/spaces) and choose **Docker** SDK.
+2. Under Space **Settings** → **Variables and secrets**, add:
+   - Secret `LMS_ADMIN_PASSWORD`: `<secure-password>`
+   - Secret `LMS_DB_URL` / `LMS_DB_PASSWORD`: Remote MySQL URI (e.g. from Aiven, PlanetScale, or Supabase).
+3. Push the repository to the Hugging Face Space git remote.
+
+---
+
+### Platform E: Self-Hosted Docker Compose (VPS / Server)
 
 ```bash
-cd backend
+# 1. Clone repository
+git clone https://github.com/prathamkashyap/library-management-system.git
+cd library-management-system
+
+# 2. Configure environment
 cp .env.example .env
-# Edit .env — set LMS_DB_PASSWORD and LMS_ADMIN_PASSWORD
-docker compose up --build
+# Edit .env and set secure passwords:
+# LMS_DB_PASSWORD=your_db_password
+# LMS_ADMIN_PASSWORD=your_admin_password
+
+# 3. Start stack with MySQL and App
+docker compose up -d --build
+
+# 4. View logs
+docker compose logs -f backend
 ```
 
-Open <http://localhost:8080>.
-
-### With phpMyAdmin
-
-```bash
-docker compose --profile dev up --build
-```
-
-phpMyAdmin available at <http://localhost:8081>.
+Access at <http://localhost:8080>.
 
 ---
 
-## Environment Variables
+## 3. Required Environment Variables Reference
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `LMS_DB_PASSWORD` | **Yes** | MySQL root password (also used for `MYSQL_ROOT_PASSWORD` in Compose) |
-| `LMS_ADMIN_PASSWORD` | **Yes** | Initial admin password (BCrypt-hashed on first startup) |
-| `SPRING_PROFILES_ACTIVE` | For Docker | Set to `docker` in Compose; `h2` for H2 profile |
-| `GOOGLE_CLIENT_ID` | No | Google OAuth2 client ID |
-| `GOOGLE_CLIENT_SECRET` | No | Google OAuth2 client secret |
-
----
-
-## Health Checks
-
-### MySQL
-
-Docker Compose includes a health check:
-
-```yaml
-healthcheck:
-  test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-  interval: 10s
-  timeout: 5s
-  retries: 5
-```
-
-The `backend` service waits for MySQL to be healthy before starting (`condition: service_healthy`).
-
-### Application
-
-The application does not expose a dedicated health endpoint. Spring Boot Actuator is not included in the current dependencies. For production, consider adding:
-
-```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-```
-
-This would provide `/actuator/health` for load balancer probes.
+| Variable | Required | Default | Notes |
+|---|---|---|---|
+| `LMS_ADMIN_PASSWORD` | **Yes** | — | Password used by `AdminSeeder` to bootstrap the initial `admin` account |
+| `LMS_DB_PASSWORD` | Prod / Docker | — | Password for the MySQL database |
+| `LMS_DB_USERNAME` | No | `root` | MySQL username |
+| `LMS_DB_URL` | No | `jdbc:mysql://localhost:3306/librarydb...` | JDBC connection URL |
+| `PORT` | No | `8080` | Server HTTP port (auto-set by Railway, Render, Fly.io, Cloud Run) |
+| `SPRING_PROFILES_ACTIVE` | No | (default) | Set to `h2` for standalone in-memory dev; `docker` for MySQL container |
+| `GOOGLE_CLIENT_ID` | Optional | — | Google OAuth2 client ID for student login |
+| `GOOGLE_CLIENT_SECRET` | Optional | — | Google OAuth2 client secret |
 
 ---
 
-## CI/CD
+## 4. Health Checks & Verification
 
-### GitHub Actions
-
-```yaml
-name: CI
-on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          java-version: 21
-          distribution: temurin
-          cache: maven
-      - name: Build and test
-        run: mvn clean verify
-        working-directory: backend
-```
-
-**Trigger:** Push or PR to `main`.  
-**Action:** Compiles the project and runs all tests with `mvn clean verify`.  
-**No deployment step:** CI verifies correctness only; deployment is manual.
-
----
-
-## Production Considerations
-
-| Concern | Current State | Recommendation |
-|---------|---------------|----------------|
-| Schema management | `ddl-auto=update` | Adopt Flyway or Liquibase for versioned migrations |
-| Health checks | None exposed | Add Spring Boot Actuator |
-| Logging | Default Spring Boot logging | Configure structured logging (JSON) for production |
-| HTTPS | Not configured | Add reverse proxy (nginx, Caddy) or configure TLS in Spring Boot |
-| Session persistence | In-memory (single instance) | Fine for single-instance; for clustering, use Spring Session with Redis/JDBC |
-| Database backups | Not automated | Schedule `mysqldump` or use cloud-managed backups |
-| Resource limits | Not configured | Set JVM heap (`-Xmx`), container memory limits |
-| Graceful shutdown | Not configured | Add `server.shutdown=graceful` for zero-downtime deploys |
-
----
-
-## Build Commands
-
-| Command | Purpose |
-|---------|---------|
-| `./mvnw clean package -DskipTests` | Build JAR without tests |
-| `./mvnw clean verify` | Build and run all tests (CI command) |
-| `docker compose build` | Build Docker images |
-| `docker compose up --build` | Build and start all services |
-| `docker compose down -v` | Stop and remove volumes (data loss) |
+- **Liveness & Readiness:** `GET /actuator/health`
+- **Swagger Documentation:** `GET /swagger-ui.html`
+- **OpenAPI JSON Spec:** `GET /v3/api-docs`
+- **CSRF Token Bootstrap:** `GET /api/auth/csrf`
+- **Actuator Metrics:** `GET /actuator/metrics`
+ |

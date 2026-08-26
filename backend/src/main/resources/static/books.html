@@ -1,77 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<style>
-  html{transition:background-color .3s ease,color .3s ease}
-</style>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Books — Libris</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Books — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to content</a>
-<div class="petal-decor" aria-hidden="true"></div>
-<div class="star-decor" aria-hidden="true"></div>
-
-<nav class="rail" id="rail"></nav>
-
-<main class="canvas single" id="main-content">
-  <div class="shell-page">
-    <div id="topbar-root"></div>
-    
-<header class="page-head">
-  <div class="eyebrow">Collection</div>
-  <h1 class="serif">Books</h1>
-  <p class="page-sub">18,204 volumes. Search the full catalog or filter by shelf, status and category.</p>
-</header>
-
-<div class="toolbar">
-  <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="Search title, author, ISBN&hellip;"></div>
-  <div class="filter-row">
-    <button class="filter-chip">Category <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="filter-chip">Availability <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <div class="view-toggle">
-      <button id="viewGrid" class="active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
-      <button id="viewList"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-    </div>
-    <button class="btn-primary" id="addBookBtn">+ Add Book</button>
-  </div>
-</div>
-
-<div class="book-cards-grid" id="booksGrid">
-  <a class="book-gcard" href="book-details.html"><div class="cov cov-1"></div><b>Sapiens</b><small>Yuval Noah Harari</small><span class="badge badge-avail">Available</span></a>
-  <a class="book-gcard" href="book-details.html"><div class="cov cov-2"></div><b>Atomic Habits</b><small>James Clear</small><span class="badge badge-avail">Available</span></a>
-  <a class="book-gcard" href="book-details.html"><div class="cov cov-3"></div><b>Clean Code</b><small>Robert C. Martin</small><span class="badge badge-out">Checked out</span></a>
-  <a class="book-gcard" href="book-details.html"><div class="cov cov-4"></div><b>Dune</b><small>Frank Herbert</small><span class="badge badge-avail">Available</span></a>
-  <a class="book-gcard" href="book-details.html"><div class="cov cov-5"></div><b>The Design of Everyday Things</b><small>Don Norman</small><span class="badge badge-hold">On hold</span></a>
-  <a class="book-gcard" href="book-details.html"><div class="cov cov-6"></div><b>Educated</b><small>Tara Westover</small><span class="badge badge-out">Checked out</span></a>
-  <a class="book-gcard" href="book-details.html"><div class="cov cov-7"></div><b>Clean Architecture</b><small>Robert C. Martin</small><span class="badge badge-out">Checked out</span></a>
-  <a class="book-gcard" href="book-details.html"><div class="cov cov-1"></div><b>The Pragmatic Programmer</b><small>Hunt &amp; Thomas</small><span class="badge badge-avail">Available</span></a>
-</div>
-
-<div class="card table-card" id="booksList" style="display:none">
-  <table>
-    <thead><tr><th></th><th>Title</th><th>Author</th><th>Category</th><th>ISBN</th><th>Status</th><th></th></tr></thead>
-    <tbody>
-      <tr><td><input type="checkbox"></td><td class="ttl"><div class="cov cov-1"></div><a href="book-details.html">Sapiens</a></td><td>Yuval Noah Harari</td><td><span class="tag">History</span></td><td class="mono">978-0062316097</td><td><span class="badge badge-avail">Available</span></td><td class="row-actions">View &middot; Edit</td></tr>
-      <tr><td><input type="checkbox"></td><td class="ttl"><div class="cov cov-2"></div><a href="book-details.html">Atomic Habits</a></td><td>James Clear</td><td><span class="tag">Self-Help</span></td><td class="mono">978-0735211292</td><td><span class="badge badge-avail">Available</span></td><td class="row-actions">View &middot; Edit</td></tr>
-      <tr><td><input type="checkbox"></td><td class="ttl"><div class="cov cov-3"></div><a href="book-details.html">Clean Code</a></td><td>Robert C. Martin</td><td><span class="tag">Technology</span></td><td class="mono">978-0132350884</td><td><span class="badge badge-out">Checked out</span></td><td class="row-actions">View &middot; Edit</td></tr>
-    </tbody>
-  </table>
-  <div class="table-foot"><span class="muted">Showing 1&ndash;3 of 18,204</span><div class="pager"><button>&lsaquo;</button><button class="active">1</button><button>2</button><span>&hellip;</span><button>3,034</button><button>&rsaquo;</button></div></div>
-</div>
-
-  </div>
-</main>
-
-<div id="palette-root"></div>
-<div id="modal-root"></div>
-<script type="module" src="/js/app-init.js"></script>
-<script type="module" src="js/books.js"></script>
-
+  <a href="#main-content" class="skip-link">Skip to content</a><nav class="rail" id="rail"></nav>
+  <main class="canvas" id="main-content"><div class="shell-page"><div id="topbar-root"></div>
+    <header class="page-head"><p class="eyebrow">Collection</p><div class="page-title-row"><div><h1 class="serif">Books</h1><p class="page-sub">Search, add, update, and review the live catalog.</p></div><a class="btn-primary" href="#booksGrid" id="addBookBtn" hidden>Add book</a></div></header>
+    <div class="toolbar"><label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span class="sr-only">Search books</span><input type="search" placeholder="Search by title, author, or ISBN"></label><div class="filter-row"><div class="view-toggle" aria-label="View options"><button id="viewGrid" class="active" type="button" aria-label="Grid view"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button><button id="viewList" type="button" aria-label="Table view"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button></div></div></div>
+    <section class="book-cards-grid" id="booksGrid" aria-live="polite"><div class="loading-state">Loading the catalog…</div></section>
+    <section class="card table-card" id="booksList" hidden><table><thead><tr><th>Title</th><th>Author</th><th>ISBN</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody><tr><td colspan="5">Loading the catalog…</td></tr></tbody></table><div class="table-foot"><span class="muted">Loading results…</span><div class="pager"></div></div></section>
+  </div></main>
+  <div id="palette-root"></div><div id="modal-root"></div><script type="module" src="/js/app-init.js"></script><script type="module" src="/js/books.js"></script>
 </body>
 </html>

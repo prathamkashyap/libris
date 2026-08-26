@@ -1,60 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<style>
-  html{transition:background-color .3s ease,color .3s ease}
-</style>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Students — Libris</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Students — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to content</a>
-<div class="petal-decor" aria-hidden="true"></div>
-<div class="star-decor" aria-hidden="true"></div>
-
-<nav class="rail" id="rail"></nav>
-
-<main class="canvas single" id="main-content">
-  <div class="shell-page">
-    <div id="topbar-root"></div>
-    
-<header class="page-head">
-  <div class="eyebrow">Members</div>
-  <h1 class="serif">Students</h1>
-  <p class="page-sub">4,912 registered members across 12 departments.</p>
-</header>
-
-<div class="toolbar">
-  <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="Search by name, roll no., department&hellip;"></div>
-  <div class="filter-row">
-    <button class="filter-chip">Department <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="filter-chip">Status <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="btn-primary" id="addStudentBtn">+ Add Student</button>
-    <button class="btn-ghost">Export CSV</button>
-  </div>
-</div>
-
-<div class="people-grid">
-  <a class="person-card" href="student-profile.html"><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Meera-Kulkarni&amp;backgroundColor=2b2540" alt=""><b>Meera Kulkarni</b><small>Dept. of Design &middot; Roll 21DS114</small><div class="person-stats"><span>17 borrowed</span><span class="badge badge-avail">Active</span></div></a>
-  <a class="person-card" href="student-profile.html"><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Arjun-Verma&amp;backgroundColor=2b2540" alt=""><b>Arjun Verma</b><small>Dept. of CS &middot; Roll 22CS081</small><div class="person-stats"><span>9 borrowed</span><span class="badge badge-avail">Active</span></div></a>
-  <a class="person-card" href="student-profile.html"><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Fatima-Sheikh&amp;backgroundColor=2b2540" alt=""><b>Fatima Sheikh</b><small>Dept. of Literature &middot; Roll 20LT033</small><div class="person-stats"><span>24 borrowed</span><span class="badge badge-warn">1 overdue</span></div></a>
-  <a class="person-card" href="student-profile.html"><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Rohan-Das&amp;backgroundColor=2b2540" alt=""><b>Rohan Das</b><small>Dept. of Physics &middot; Roll 21PH062</small><div class="person-stats"><span>12 borrowed</span><span class="badge badge-avail">Active</span></div></a>
-  <a class="person-card" href="student-profile.html"><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Ishita-Rao&amp;backgroundColor=2b2540" alt=""><b>Ishita Rao</b><small>Dept. of Economics &middot; Roll 23EC008</small><div class="person-stats"><span>5 borrowed</span><span class="badge badge-avail">Active</span></div></a>
-  <a class="person-card" href="student-profile.html"><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Karan-Mehta&amp;backgroundColor=2b2540" alt=""><b>Karan Mehta</b><small>Dept. of Design &middot; Roll 22DS047</small><div class="person-stats"><span>3 borrowed</span><span class="badge badge-muted">Inactive</span></div></a>
-</div>
-
-  </div>
-</main>
-
-<div id="palette-root"></div>
-<div id="modal-root"></div>
-<script type="module" src="/js/app-init.js"></script>
-<script type="module" src="js/students.js"></script>
-
+  <a href="#main-content" class="skip-link">Skip to content</a><nav class="rail" id="rail"></nav>
+  <main class="canvas" id="main-content"><div class="shell-page"><div id="topbar-root"></div>
+    <header class="page-head"><p class="eyebrow">Members</p><div class="page-title-row"><div><h1 class="serif">Students</h1><p class="page-sub">Find and manage student accounts in the live library directory.</p></div><button class="btn-primary" id="addStudentBtn" type="button" hidden>Add student</button></div></header>
+    <div class="toolbar"><label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span class="sr-only">Search students</span><input type="search" placeholder="Search by name, email, or username"></label></div>
+    <section class="collection-panel" aria-label="Student directory"><div class="people-grid" aria-live="polite"><div class="loading-state">Loading students…</div></div></section>
+  </div></main>
+  <div id="palette-root"></div><div id="modal-root"></div><script type="module" src="/js/app-init.js"></script><script type="module" src="/js/students.js"></script>
 </body>
 </html>

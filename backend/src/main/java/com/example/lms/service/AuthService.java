@@ -3,31 +3,42 @@ package com.example.lms.service;
 import com.example.lms.dto.*;
 import com.example.lms.entity.*;
 import com.example.lms.event.EntityAuditEvent;
+import com.example.lms.exception.ConflictException;
 import com.example.lms.repository.AccountRepository;
+import com.example.lms.repository.StudentProfileRepository;
 import com.example.lms.util.CurrentUser;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.*;
 import org.springframework.security.core.context.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
   private final AuthenticationManager authenticationManager;
   private final AccountRepository accounts;
+  private final StudentProfileRepository studentProfiles;
   private final ApplicationEventPublisher events;
   private final CurrentUser currentUser;
+  private final PasswordEncoder passwordEncoder;
 
   public AuthService(
       AuthenticationManager authenticationManager,
       AccountRepository accounts,
+      StudentProfileRepository studentProfiles,
       ApplicationEventPublisher events,
-      CurrentUser currentUser) {
+      CurrentUser currentUser,
+      PasswordEncoder passwordEncoder) {
     this.authenticationManager = authenticationManager;
     this.accounts = accounts;
+    this.studentProfiles = studentProfiles;
     this.events = events;
     this.currentUser = currentUser;
+    this.passwordEncoder = passwordEncoder;
   }
 
   public AuthenticatedUserResponse login(LoginRequest request, HttpServletRequest servletRequest) {
@@ -85,5 +96,44 @@ public class AuthService {
     var session = request.getSession(false);
     if (session != null) session.invalidate();
     SecurityContextHolder.clearContext();
+  }
+
+  @Transactional
+  public void registerStudent(RegisterRequest request) {
+    if (accounts.findByUsername(request.username()).isPresent())
+      throw new ConflictException("Username is already in use.");
+    if (studentProfiles.findByEmail(request.email()).isPresent())
+      throw new ConflictException("Email is already registered.");
+
+    StudentProfile profile;
+    try {
+      Account account = new Account();
+      account.setUsername(request.username());
+      account.setPasswordHash(passwordEncoder.encode(request.password()));
+      account.setRole(Role.STUDENT);
+      account = accounts.save(account);
+
+      profile = new StudentProfile();
+      profile.setAccount(account);
+      profile.setName(request.name());
+      profile.setEmail(request.email());
+      profile.setPhone(request.phone());
+      profile = studentProfiles.save(profile);
+    } catch (DataIntegrityViolationException e) {
+      throw new ConflictException("Username or email is already in use.");
+    }
+
+    events.publishEvent(
+        new EntityAuditEvent(
+            this,
+            AuditAction.CREATE,
+            AuditEntityType.STUDENT,
+            profile.getId(),
+            "Student self-registered: " + request.name(),
+            null, // No actor yet as they are unauthenticated
+            "system",
+            "SYSTEM",
+            "unknown",
+            "unknown"));
   }
 }

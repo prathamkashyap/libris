@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: libris-lms
+    env: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: LMS_ADMIN_PASSWORD
+        generateValue: true
+      - key: LMS_DB_URL
+        sync: false
+      - key: LMS_DB_USERNAME
+        sync: false
+      - key: LMS_DB_PASSWORD
+        sync: false

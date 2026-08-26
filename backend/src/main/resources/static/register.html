@@ -1,21 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-  <style>
-    html{transition:background-color .3s ease,color .3s ease}
-  </style>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Account Access — Libris</title>
-  <link rel="stylesheet" href="styles.css">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create account — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <script>(function(){var t=localStorage.getItem('theme');if(t==='verdigris')document.documentElement.setAttribute('data-theme','verdigris')})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
 </head>
-<body style="background:var(--canvas);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
-<div class="petal-decor" aria-hidden="true"></div>
-<div class="star-decor" aria-hidden="true"></div>
-  <main class="card login-card" style="width:100%;max-width:420px;margin:0 auto;padding:32px;text-align:center">
-    <h1 class="serif" style="font-size:28px;margin:0 0 12px">Accounts are administrator-managed</h1>
-    <p class="muted" style="margin:0 0 24px">Ask a library administrator to create your account, then sign in with the credentials they provide.</p>
-    <a class="btn-primary full" href="/login.html">Go to sign in</a>
+<body>
+  <div id="topbar-theme" class="login-theme-mount"></div>
+  <main class="login-layout">
+    <aside class="login-branding" aria-label="About Libris">
+      <div class="brand-mark"><div class="brand-mark-icon"><svg viewBox="0 0 48 48" fill="none"><rect x="3" y="3" width="42" height="42" rx="13" fill="#57d1b1"/><path d="M12 13h11a6 6 0 0 1 6 6v17H18a6 6 0 0 1-6-6V13Z" fill="#082823"/><path d="M29 19h7v17h-7" fill="#0d6659"/></svg></div><div class="brand-text"><span class="brand-name">LIBRIS</span><span class="brand-sub">Library workspace</span></div></div>
+      <div><h1 class="brand-headline">Start your library journey with <em>clarity.</em></h1><p class="brand-desc">A student account lets you keep track of your loans and use the Libris collection with confidence.</p></div>
+      <p class="brand-trust"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>Your information is handled through the library's secure account system</p>
+    </aside>
+    <section class="login-panel" aria-label="Create student account">
+      <div class="login-card registration-card">
+        <div class="card-logo"><svg viewBox="0 0 48 48" fill="none"><rect x="3" y="3" width="42" height="42" rx="13" fill="#57d1b1"/><path d="M12 13h11a6 6 0 0 1 6 6v17H18a6 6 0 0 1-6-6V13Z" fill="#082823"/><path d="M29 19h7v17h-7" fill="#0d6659"/></svg><h2 class="card-title">Create your account</h2><p class="card-sub">Student registration takes less than a minute.</p></div>
+        <p id="alert" class="form-error" role="alert" hidden></p>
+        <form id="registerForm" novalidate>
+          <div class="registration-grid">
+            <label class="field span-all" for="name">Full name<input type="text" id="name" required maxlength="100" autocomplete="name" placeholder="Jane Doe" aria-describedby="name-error"><span class="field-error" id="name-error" data-field-error="name"></span></label>
+            <label class="field span-all" for="email">Email address<input type="email" id="email" required maxlength="100" autocomplete="email" placeholder="jane@example.com" aria-describedby="email-error"><span class="field-error" id="email-error" data-field-error="email"></span></label>
+            <label class="field" for="phone">Phone number<input type="tel" id="phone" required maxlength="20" autocomplete="tel" placeholder="555 123 4567" aria-describedby="phone-error"><span class="field-error" id="phone-error" data-field-error="phone"></span></label>
+            <label class="field" for="username">Username<input type="text" id="username" required minlength="3" maxlength="50" autocomplete="username" placeholder="janedoe" aria-describedby="username-error"><span class="field-error" id="username-error" data-field-error="username"></span></label>
+            <label class="field span-all" for="password">Password<input type="password" id="password" required minlength="8" maxlength="100" autocomplete="new-password" placeholder="At least 8 characters" aria-describedby="password-error"><span class="field-error" id="password-error" data-field-error="password"></span></label>
+          </div>
+          <button type="submit" class="btn-primary full">Create student account</button>
+        </form>
+        <p class="auth-note">Already have an account? <a href="/login.html">Sign in</a></p>
+      </div>
+    </section>
   </main>
+  <script type="module" src="/js/register.js"></script>
 </body>
 </html>

@@ -31,7 +31,8 @@ public class ReportService {
 
   @Transactional(readOnly = true)
   public String inventoryCsv() {
-    var header = csvLine("Type", "ID", "Title", "Author/Publisher", "ISBN", "Date", "Available");
+    var header =
+        csvLine("Type", "ID", "Title", "Author/Publisher", "Category", "ISBN", "Date", "Available");
     var bookRows =
         books.findAll().stream()
             .map(
@@ -41,6 +42,7 @@ public class ReportService {
                         b.getId(),
                         b.getTitle(),
                         b.getAuthor(),
+                        b.getCategory() != null ? b.getCategory() : "",
                         b.getIsbn(),
                         b.getPublishedDate() != null ? b.getPublishedDate().toString() : "",
                         b.isAvailable() ? "Yes" : "No"));
@@ -53,6 +55,7 @@ public class ReportService {
                         m.getId(),
                         m.getTitle(),
                         m.getPublisher(),
+                        m.getCategory() != null ? m.getCategory() : "",
                         "",
                         m.getIssueDate() != null ? m.getIssueDate().toString() : "",
                         m.isAvailable() ? "Yes" : "No"));
@@ -65,6 +68,7 @@ public class ReportService {
                         n.getId(),
                         n.getTitle(),
                         n.getPublisher(),
+                        "",
                         "",
                         n.getPublicationDate() != null ? n.getPublicationDate().toString() : "",
                         n.isAvailable() ? "Yes" : "No"));
@@ -89,6 +93,7 @@ public class ReportService {
             "Borrower Email",
             "Borrower Phone",
             "Borrow Date",
+            "Due Date",
             "Return Date",
             "Status");
     var rows =
@@ -105,6 +110,8 @@ public class ReportService {
                           : r.getMagazine() != null
                               ? r.getMagazine().getTitle()
                               : r.getNewspaper() != null ? r.getNewspaper().getTitle() : "";
+                  var dueDate =
+                      r.getDueDate() != null ? r.getDueDate() : r.getBorrowDate().plusDays(14);
                   return csvLine(
                       r.getId(),
                       itemTitle,
@@ -113,6 +120,7 @@ public class ReportService {
                       r.getBorrowerEmail(),
                       r.getBorrowerPhone(),
                       r.getBorrowDate().toString(),
+                      dueDate.toString(),
                       r.getReturnDate() != null ? r.getReturnDate().toString() : "",
                       r.getReturnDate() == null ? "BORROWED" : "RETURNED");
                 });

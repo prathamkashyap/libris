@@ -7,5 +7,6 @@ public record BorrowRecordSummary(
     String itemTitle,
     String itemType,
     LocalDate borrowDate,
+    LocalDate dueDate,
     LocalDate returnDate,
     String status) {}

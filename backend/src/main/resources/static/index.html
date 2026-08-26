@@ -1,119 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<style>
-  html{transition:background-color .3s ease,color .3s ease}
-</style>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard — Libris</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Libris</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to content</a>
-<div class="petal-decor" aria-hidden="true"></div>
-<div class="star-decor" aria-hidden="true"></div>
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <nav class="rail" id="rail"></nav>
 
-<nav class="rail" id="rail"></nav>
+  <main class="canvas" id="main-content">
+    <div class="shell-page">
+      <div id="topbar-root"></div>
+      <header class="page-head">
+        <div class="page-title-row">
+          <div>
+            <p class="eyebrow">Library overview</p>
+            <h1 class="serif" id="dashboardGreeting">Welcome to Libris.</h1>
+            <p class="page-sub" id="dashboardSub">Loading your library workspace…</p>
+          </div>
+          <div class="page-actions" data-role-hide="STUDENT">
+            <a class="btn-ghost" href="/books.html">Manage books</a>
+            <a class="btn-primary" href="/borrow.html">Issue an item</a>
+          </div>
+        </div>
+      </header>
 
-<main class="canvas single" id="main-content">
-  <div class="shell-page">
-    <div id="topbar-root"></div>
-    
-<header class="page-head">
-  <div class="eyebrow">Overview</div>
-  <h1 class="serif banner-title" id="dashboardGreeting">Good morning.</h1>
-  <p class="page-sub" id="dashboardSub">Loading library data&hellip;</p>
-</header>
+      <div class="dashboard-notice">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 10v6M12 7h.01"/></svg>
+        <span>Live collection and circulation data is shown below. Figures update whenever you refresh this page.</span>
+      </div>
 
-<div class="stat-grid" id="statGrid">
-  <div class="stat-card">
-    <span class="stat-icon icon-rose"><svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5Z"/><path d="M8 2v18"/></svg></span>
-    <span class="stat-label">Books in collection</span><span class="stat-value" id="statBooks">—</span><span class="stat-delta" id="statBooksDelta"></span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-icon icon-sky"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></span>
-    <span class="stat-label">Registered students</span><span class="stat-value" id="statStudents">—</span><span class="stat-delta" id="statStudentsDelta"></span>
-  </div>
-  <div class="stat-card accent">
-    <span class="stat-icon icon-onaccent"><svg viewBox="0 0 24 24"><path d="M4 6h13a3 3 0 0 1 3 3v10H7a3 3 0 0 1-3-3V6Z"/><path d="M16 6V4a1 1 0 0 0-1-1H4"/></svg></span>
-    <span class="stat-label">Active borrows</span><span class="stat-value" id="statBorrowed">—</span><span class="stat-delta" id="statBorrowedDelta"></span>
-  </div>
-  <div class="stat-card">
-    <span class="stat-icon icon-sage"><svg viewBox="0 0 24 24"><path d="M3 10h18M3 10l2-6h14l2 6M3 10v9a1 1 0 0 0 1 1h4v-6h8v6h4a1 1 0 0 0 1-1v-9"/></svg></span>
-    <span class="stat-label">Available copies</span><span class="stat-value" id="statAvailable">—</span><span class="stat-delta" id="statAvailableDelta"></span>
-  </div>
-  <div class="stat-card warn">
-    <span class="stat-icon icon-terracotta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></span>
-    <span class="stat-label">Overdue</span><span class="stat-value" id="statOverdue">—</span><span class="stat-delta" id="statOverdueDelta"></span>
-  </div>
-</div>
+      <section class="stat-grid" aria-label="Library summary">
+        <article class="stat-card"><span class="stat-icon icon-rose"><svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5Z"/><path d="M8 2v18"/></svg></span><span class="stat-label">Books in collection</span><strong class="stat-value" id="statBooks">—</strong><span class="stat-delta" id="statBooksDelta"></span></article>
+        <article class="stat-card"><span class="stat-icon icon-sky"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg></span><span class="stat-label">Registered students</span><strong class="stat-value" id="statStudents">—</strong><span class="stat-delta" id="statStudentsDelta"></span></article>
+        <article class="stat-card accent"><span class="stat-icon icon-onaccent"><svg viewBox="0 0 24 24"><path d="M3 6h13a3 3 0 0 1 3 3v10H6a2 2 0 0 1-3-3V6Z"/><path d="M16 6V4a1 1 0 0 0-1-1H4"/></svg></span><span class="stat-label">Active borrows</span><strong class="stat-value" id="statBorrowed">—</strong><span class="stat-delta" id="statBorrowedDelta"></span></article>
+        <article class="stat-card"><span class="stat-icon icon-sage"><svg viewBox="0 0 24 24"><path d="M3 10h18M3 10l2-6h14l2 6M3 10v9a1 1 0 0 0 1 1h4v-6h8v6h4a1 1 0 0 0 1-1v-9"/></svg></span><span class="stat-label">Available copies</span><strong class="stat-value" id="statAvailable">—</strong><span class="stat-delta" id="statAvailableDelta"></span></article>
+        <article class="stat-card warn"><span class="stat-icon icon-terracotta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/></svg></span><span class="stat-label">Needs attention</span><strong class="stat-value" id="statOverdue">—</strong><span class="stat-delta" id="statOverdueDelta"></span></article>
+      </section>
 
-<div class="bento">
-  <div class="card span-8">
-    <div class="card-head"><div><h3>Monthly borrow trend</h3><p class="muted">Volumes issued over the last 12 months</p></div>
-      <div class="chip-row"><span class="chip chip-active">Issued</span><span class="chip">Returned</span></div>
+      <section class="bento" aria-label="Library activity">
+        <article class="card span-7">
+          <div class="card-head"><div><h3>Recent circulation</h3><p class="muted">Latest issues and returns</p></div><a class="btn-ghost sm" href="/borrow.html" data-role-hide="STUDENT">View all</a></div>
+          <div class="activity-list" id="recentBorrowsList"><div class="activity-row"><span class="dot dot-out"></span><div><b>Loading activity</b><small>Please wait a moment.</small></div></div></div>
+        </article>
+        <article class="card span-5">
+          <div class="card-head"><div><h3>Overdue alerts</h3><p class="muted">Items that may need follow-up</p></div><a class="btn-ghost sm" href="/borrow.html" data-role-hide="STUDENT">Open records</a></div>
+          <div class="activity-list" id="overdueList"><div class="activity-row"><span class="dot dot-warn"></span><div><b>Checking overdue items</b><small>Loading current status.</small></div></div></div>
+        </article>
+        <article class="card span-12" data-role-hide="STUDENT">
+          <div class="card-head"><div><h3>Common tasks</h3><p class="muted">Start the work you need without hunting through menus.</p></div></div>
+          <div class="quick-grid">
+            <a class="quick" href="/books.html"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add or edit books</a>
+            <a class="quick" href="/borrow.html"><svg viewBox="0 0 24 24"><path d="M3 6h13a3 3 0 0 1 3 3v10H6a2 2 0 0 1-3-3V6Z"/></svg>Issue or return an item</a>
+            <a class="quick" href="/students.html" data-role-hide="STUDENT"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>Manage students</a>
+            <a class="quick" href="/analytics.html" data-role-hide="STUDENT"><svg viewBox="0 0 24 24"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>Review analytics</a>
+            <a class="quick" href="/reports.html" data-role-hide="STUDENT"><svg viewBox="0 0 24 24"><path d="M7 3h8l5 5v13H7z"/><path d="M15 3v5h5"/></svg>Export a report</a>
+          </div>
+        </article>
+      </section>
     </div>
-    <svg class="line-chart" viewBox="0 0 560 210" preserveAspectRatio="none">
-      <defs><linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--indigo)" stop-opacity="0.28"/><stop offset="100%" stop-color="var(--indigo)" stop-opacity="0"/></linearGradient></defs>
-      <g class="grid"><line x1="0" y1="20" x2="560" y2="20"/><line x1="0" y1="70" x2="560" y2="70"/><line x1="0" y1="120" x2="560" y2="120"/><line x1="0" y1="170" x2="560" y2="170"/></g>
-      <path d="M0,150 L51,130 L102,140 L153,95 L204,110 L255,75 L306,90 L357,55 L408,65 L459,40 L510,50 L560,25 L560,210 L0,210 Z" fill="url(#lg1)"/>
-      <polyline points="0,150 51,130 102,140 153,95 204,110 255,75 306,90 357,55 408,65 459,40 510,50 560,25" fill="none" stroke="var(--indigo)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <div class="axis-row"><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span></div>
-  </div>
+  </main>
 
-  <div class="card span-4">
-    <div class="card-head"><h3>Overdue alerts</h3></div>
-    <div class="activity-list" id="overdueList">
-      <div class="activity-row"><span class="dot dot-warn"></span><div><b>No overdue items</b><small>All clear</small></div></div>
-    </div>
-    <a href="borrow.html" class="btn-ghost full" style="text-align:center; display:block; margin-top:14px;">View all borrows</a>
-  </div>
-
-  <div class="card span-4">
-    <div class="card-head"><h3>Recent borrowings</h3></div>
-    <div class="activity-list" id="recentBorrowsList">
-      <div class="activity-row"><span class="dot dot-in"></span><div><b>Loading...</b><small></small></div></div>
-    </div>
-  </div>
-
-  <div class="card span-4">
-    <div class="card-head"><h3>Category split</h3></div>
-    <div class="donut-wrap">
-      <svg viewBox="0 0 120 120" class="donut">
-        <circle cx="60" cy="60" r="46" fill="none" stroke="var(--panel-solid)" stroke-width="16"/>
-        <circle cx="60" cy="60" r="46" fill="none" stroke="var(--indigo)" stroke-width="16" pathLength="289" stroke-dasharray="98 191" transform="rotate(-90 60 60)"/>
-        <circle cx="60" cy="60" r="46" fill="none" stroke="var(--violet)" stroke-width="16" pathLength="289" stroke-dasharray="65 224" stroke-dashoffset="-98" transform="rotate(-90 60 60)"/>
-        <circle cx="60" cy="60" r="46" fill="none" stroke="var(--lilac)" stroke-width="16" pathLength="289" stroke-dasharray="52 237" stroke-dashoffset="-163" transform="rotate(-90 60 60)"/>
-        <circle cx="60" cy="60" r="46" fill="none" stroke="var(--amber)" stroke-width="16" pathLength="289" stroke-dasharray="74 215" stroke-dashoffset="-215" transform="rotate(-90 60 60)"/>
-        <text x="60" y="56" text-anchor="middle" class="donut-num">18.2k</text><text x="60" y="72" text-anchor="middle" class="donut-lbl">volumes</text>
-      </svg>
-      <ul class="legend"><li><i style="background:var(--indigo)"></i>Literature <span>34%</span></li><li><i style="background:var(--violet)"></i>Science <span>23%</span></li><li><i style="background:var(--lilac)"></i>History <span>18%</span></li><li><i style="background:var(--amber)"></i>Design &amp; Arts <span>25%</span></li></ul>
-    </div>
-  </div>
-
-  <div class="card span-12">
-    <div class="card-head"><h3>Quick actions</h3></div>
-    <div class="quick-grid">
-      <a class="quick" href="books.html"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add Book</a>
-      <a class="quick" href="borrow.html"><svg viewBox="0 0 24 24"><path d="M4 6h13a3 3 0 0 1 3 3v10H7a3 3 0 0 1-3-3V6Z"/><path d="M16 6V4a1 1 0 0 0-1-1H4"/></svg>Issue Book</a>
-      <a class="quick" href="students.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>Register Student</a>
-      <a class="quick" href="librarians.html"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6.4 6.5-6.4s6.5 2.8 6.5 6.4"/></svg>Register Librarian</a>
-      <a class="quick" href="reports.html"><svg viewBox="0 0 24 24"><path d="M7 3h8l5 5v13H7z"/><path d="M15 3v5h5"/></svg>Generate Report</a>
-    </div>
-  </div>
-</div>
-
-  </div>
-</main>
-
-<div id="palette-root"></div>
-<script type="module" src="/js/app-init.js"></script>
-<script type="module" src="js/dashboard.js"></script>
-
+  <div id="palette-root"></div>
+  <script type="module" src="/js/app-init.js"></script>
+  <script type="module" src="/js/dashboard.js"></script>
 </body>
 </html>

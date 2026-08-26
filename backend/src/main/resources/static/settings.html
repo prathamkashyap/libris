@@ -1,61 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<style>
-  html{transition:background-color .3s ease,color .3s ease}
-</style>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Settings — Libris</title>
-<link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workspace preferences — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to content</a>
-<div class="petal-decor" aria-hidden="true"></div>
-<div class="star-decor" aria-hidden="true"></div>
-
-<nav class="rail" id="rail"></nav>
-
-<main class="canvas single" id="main-content">
-  <div class="shell-page">
-    <div id="topbar-root"></div>
-
-<header class="page-head">
-  <div class="eyebrow">Configuration</div>
-  <h1 class="serif">Settings</h1>
-  <p class="page-sub">Branch details, loan periods and system behaviour.</p>
-</header>
-
-<div class="tabs">
-  <button class="tab-btn active" data-tab="general">General</button>
-  <button class="tab-btn" data-tab="rules">Library Rules</button>
-  <button class="tab-btn" data-tab="notifications">Notifications</button>
-  <button class="tab-btn" data-tab="fines">Fine Policy</button>
-  <button class="tab-btn" data-tab="appearance">Appearance</button>
-  <button class="tab-btn" data-tab="security">Security</button>
-  <button class="tab-btn" data-tab="backup">Backup</button>
-  <button class="tab-btn" data-tab="integrations">Integrations</button>
-  <button class="tab-btn" data-tab="system">System Info</button>
-</div>
-
-<div data-tab-panel="general"><div class="card"><div class="mini-row"><span>Branch name</span><span>Libris Central</span></div><div class="mini-row"><span>Timezone</span><span>Asia/Kolkata</span></div><div class="mini-row"><span>Operating hours</span><span>8:00 &ndash; 22:00</span></div><div class="mini-row"><span>Default language</span><span>English</span></div></div></div>
-<div data-tab-panel="rules" style="display:none"><div class="card"><div class="mini-row"><span>Standard loan period</span><span>14 days</span></div><div class="mini-row"><span>Max renewals</span><span>2</span></div><div class="mini-row"><span>Max books per student</span><span>5</span></div><div class="mini-row"><span>Reservation hold window</span><span>48 hours</span></div></div></div>
-<div data-tab-panel="notifications" style="display:none"><div class="card"><div class="mini-row"><span>Overdue reminders</span><span>3 days before due</span></div><div class="mini-row"><span>Email digest</span><span>Weekly, Monday 8am</span></div><div class="mini-row"><span>SMS alerts</span><span>Enabled</span></div></div></div>
-<div data-tab-panel="fines" style="display:none"><div class="card"><div class="mini-row"><span>Late fine</span><span>&#8377;5 / day</span></div><div class="mini-row"><span>Damage fee</span><span>Cost of replacement</span></div><div class="mini-row"><span>Lost book fee</span><span>150% of cover price</span></div></div></div>
-<div data-tab-panel="appearance" style="display:none"><div class="card"><div class="mini-row"><span>Theme</span><span class="muted">Use the Ember / Verdigris switch in the top bar</span></div><div class="mini-row"><span>Accent color</span><span>Brass</span></div><div class="mini-row"><span>Density</span><span>Comfortable</span></div></div></div>
-<div data-tab-panel="security" style="display:none"><div class="card"><div class="mini-row"><span>Two-factor auth</span><span>Required for staff</span></div><div class="mini-row"><span>Session timeout</span><span>30 minutes</span></div><div class="mini-row"><span>Password policy</span><span>Min. 10 characters</span></div></div></div>
-<div data-tab-panel="backup" style="display:none"><div class="card"><div class="mini-row"><span>Nightly backup</span><span>03:41 IST daily</span></div><div class="mini-row"><span>Retention</span><span>30 days</span></div><div class="mini-row"><span>Last backup</span><span>Today, 03:41 IST</span></div></div></div>
-<div data-tab-panel="integrations" style="display:none"><div class="card"><div class="mini-row"><span>SSO provider</span><span>Not connected</span></div><div class="mini-row"><span>SMS gateway</span><span>Twilio &mdash; connected</span></div><div class="mini-row"><span>Payment gateway</span><span>Razorpay &mdash; connected</span></div></div></div>
-<div data-tab-panel="system" style="display:none"><div class="card"><div class="mini-row"><span>Version</span><span>Libris 1.4.0</span></div><div class="mini-row"><span>Uptime</span><span>99.98%, last 30 days</span></div><div class="mini-row"><span>Storage used</span><span>62% of 500GB</span></div></div></div>
-
-  </div>
-</main>
-
-<div id="palette-root"></div>
-<script type="module" src="/js/app-init.js"></script>
+  <a href="#main-content" class="skip-link">Skip to content</a><nav class="rail" id="rail"></nav>
+  <main class="canvas" id="main-content"><div class="shell-page"><div id="topbar-root"></div>
+    <header class="page-head"><p class="eyebrow">Workspace</p><h1 class="serif">Preferences</h1><p class="page-sub">Personal display choices available in this browser.</p></header>
+    <div class="bento"><section class="card span-6"><div class="card-head"><div><h3>Colour theme</h3><p class="muted">The selection is stored locally in this browser.</p></div></div><div class="mini-row"><span>Current theme</span><strong id="currentTheme">Loading…</strong></div><button class="btn-primary" id="toggleThemeButton" type="button">Switch theme</button></section><section class="card span-6"><div class="card-head"><div><h3>API & Documentation</h3><p class="muted">Explore interactive OpenAPI / Swagger specifications.</p></div></div><p class="muted">Test REST endpoints, review data contracts, and integrate external clients.</p><div style="margin-top:1rem;display:flex;gap:0.75rem;"><a class="btn-primary" href="/swagger-ui.html" target="_blank" rel="noopener">Open Swagger UI</a><a class="btn-ghost" href="/v3/api-docs" target="_blank" rel="noopener">OpenAPI JSON</a></div></section><section class="card span-12"><div class="card-head"><div><h3>Accessibility & Infrastructure</h3><p class="muted">Libris provides visible keyboard focus, a responsive navigation menu, reduced-motion support, and full Docker/Cloud container compatibility.</p></div></div></section></div>
+  </div></main>
+  <div id="palette-root"></div><script type="module" src="/js/app-init.js"></script><script type="module" src="/js/settings.js"></script>
 </body>
 </html>

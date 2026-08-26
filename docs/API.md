@@ -27,6 +27,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [DATABASE.md](DATA
 |--------|------|-----------|---------|------------------|
 | GET | `/auth/csrf` | Public | — | `200` Spring `CsrfToken` (sets `XSRF-TOKEN` cookie) |
 | POST | `/auth/login` | Public | `LoginRequest` JSON | `200` `AuthenticatedUserResponse`; session established |
+| POST | `/auth/register` | Public | `RegisterRequest` JSON | `201 Created`; new student account created |
 | POST | `/auth/logout` | Any authenticated | — | `204`; session invalidated |
 | GET | `/auth/me` | Any authenticated | — | `200` `AuthenticatedUserResponse` |
 
@@ -38,6 +39,26 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [DATABASE.md](DATA
   "password": "example-password"
 }
 ```
+
+### RegisterRequest
+
+```json
+{
+  "username": "janedoe",
+  "password": "Password123!",
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "phone": "555-0199"
+}
+```
+
+| Field | Validation |
+|-------|------------|
+| `username` | `@NotBlank`, `@Size(min=3, max=50)` |
+| `password` | `@NotBlank`, `@Size(min=8, max=100)` |
+| `name` | `@NotBlank`, `@Size(max=100)` |
+| `email` | `@NotBlank`, `@Email`, `@Size(max=100)` |
+| `phone` | `@NotBlank`, `@Size(max=20)` |
 
 ### AuthenticatedUserResponse
 
@@ -99,6 +120,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [DATABASE.md](DATA
 |-------|------------|
 | `title` | `@NotBlank`, `@Size(max=200)` |
 | `author` | `@Size(max=200)` |
+| `category` | `@Size(max=100)` |
 | `isbn` | `@Size(max=50)` |
 | `publishedDate` | No constraint |
 
@@ -109,6 +131,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [DATABASE.md](DATA
   "id": 5,
   "title": "Clean Code",
   "author": "Robert C. Martin",
+  "category": "Computer Science",
   "isbn": "9780132350884",
   "publishedDate": "2008-08-01",
   "available": true
@@ -272,19 +295,22 @@ Same as `LibrarianRequest` minus `password`. The `username` field is included an
 ```json
 {
   "id": 7,
-  "bookId": 5,
-  "bookTitle": "Clean Code",
+  "itemId": 5,
+  "itemTitle": "Clean Code",
+  "itemType": "BOOK",
   "studentId": 12,
   "borrowerName": "Alice Smith",
   "borrowerEmail": "alice@example.com",
   "borrowerPhone": "555-0101",
   "borrowDate": "2026-07-22",
+  "dueDate": "2026-08-05",
   "returnDate": null,
-  "status": "BORROWED"
+  "status": "BORROWED",
+  "daysOverdue": 0
 }
 ```
 
-**Status derivation:** `status` is derived — `"BORROWED"` if `returnDate` is null, `"RETURNED"` otherwise.
+**Status derivation:** `status` is derived — `"BORROWED"` if `returnDate` is null, `"RETURNED"` otherwise. `daysOverdue` computes days past `dueDate`.
 
 ---
 

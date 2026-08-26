@@ -256,4 +256,23 @@ class CrudIntegrationTest {
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.code").value("CONFLICT"));
   }
+
+  @Test
+  @Order(8)
+  void duplicateEmailReturnsConflict() throws Exception {
+    authPost(
+        "/api/students",
+        "{\"username\":\"dupemail\",\"password\":\"Password123!\",\"name\":\"First\",\"email\":\"dup@example.com\",\"phone\":\"555-0012\"}");
+    mvc.perform(
+            post("/api/students")
+                .session(adminSession)
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"username\":\"dupemail2\",\"password\":\"Password123!\",\"name\":\"Second\",\"email\":\"dup@example.com\",\"phone\":\"555-0013\"}"))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.code").value("CONFLICT"))
+        .andExpect(jsonPath("$.message").value("Email is already registered."));
+  }
 }

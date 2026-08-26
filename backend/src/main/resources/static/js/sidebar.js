@@ -1,38 +1,53 @@
-/**
- * Sidebar behavior — mobile toggle, active link highlighting, logout wiring, role filtering.
- */
+/** Navigation, account display, and sign-out behavior. */
 import { getCurrentUser } from '/js/api/http.js';
 
-/** Initialize sidebar interactions */
+function closeNavigation(rail, menuButton) {
+  rail?.classList.remove('open');
+  menuButton?.setAttribute('aria-expanded', 'false');
+  menuButton?.setAttribute('aria-label', 'Open navigation');
+}
+
+function applyRoleFilter(rail) {
+  if (!rail) return;
+  const role = (getCurrentUser()?.role || '').toUpperCase();
+  rail.ownerDocument.querySelectorAll('[data-role-hide]').forEach(element => {
+    const hiddenFor = element.dataset.roleHide.toUpperCase().split(',').map(value => value.trim());
+    element.hidden = Boolean(role && hiddenFor.includes(role));
+  });
+}
+
 export function initSidebar() {
   const rail = document.getElementById('rail');
-  const menuBtn = document.getElementById('menuToggle');
+  const menuButton = document.getElementById('menuToggle');
+  if (!rail) return;
 
-  // Mobile hamburger toggle
-  if (menuBtn && rail) {
-    menuBtn.addEventListener('click', () => rail.classList.toggle('open'));
-    document.addEventListener('click', (e) => {
-      if (rail.classList.contains('open') && !rail.contains(e.target) && e.target !== menuBtn) {
-        rail.classList.remove('open');
-      }
-    });
-  }
-
-  // Highlight active link
+  rail.setAttribute('aria-label', 'Primary navigation');
   const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-  if (rail) {
-    rail.querySelectorAll('a[data-page]').forEach(link => {
-      if (link.dataset.page === currentPage) {
-        link.classList.add('active');
-      }
-    });
-  }
+  rail.querySelectorAll('a[data-page]').forEach(link => {
+    const active = link.dataset.page === currentPage;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'page');
+    link.addEventListener('click', () => closeNavigation(rail, menuButton));
+  });
 
-  // Role-based nav filtering
+  menuButton?.addEventListener('click', () => {
+    const open = rail.classList.toggle('open');
+    menuButton.setAttribute('aria-expanded', String(open));
+    menuButton.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+  });
+  document.addEventListener('click', event => {
+    if (rail.classList.contains('open') && !rail.contains(event.target) && !menuButton?.contains(event.target)) {
+      closeNavigation(rail, menuButton);
+    }
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeNavigation(rail, menuButton);
+  });
+
   applyRoleFilter(rail);
+  window.addEventListener('userchange', () => applyRoleFilter(rail));
 
-  // Wire logout links
-  document.querySelectorAll('.logout').forEach(link => {
+  rail.querySelectorAll('.logout').forEach(link => {
     link.addEventListener('click', async event => {
       event.preventDefault();
       try {
@@ -44,24 +59,5 @@ export function initSidebar() {
         window.location.replace('/login.html');
       }
     });
-  });
-}
-
-/**
- * Hide nav items marked with `data-role-hide` when the current user's role
- * matches the attribute value. E.g. data-role-hide="STUDENT" hides the item
- * for students but shows it for ADMIN and LIBRARIAN.
- */
-function applyRoleFilter(rail) {
-  if (!rail) return;
-  const user = getCurrentUser();
-  const role = (user?.role || '').toUpperCase();
-  if (!role) return;
-
-  rail.querySelectorAll('[data-role-hide]').forEach(el => {
-    const hiddenFor = el.getAttribute('data-role-hide').toUpperCase().split(',').map(s => s.trim());
-    if (hiddenFor.includes(role)) {
-      el.style.display = 'none';
-    }
   });
 }

@@ -1,63 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<style>
-  html{transition:background-color .3s ease,color .3s ease}
-</style>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Newspapers — Libris</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Newspapers — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to content</a>
-<div class="petal-decor" aria-hidden="true"></div>
-<div class="star-decor" aria-hidden="true"></div>
-
-<nav class="rail" id="rail"></nav>
-
-<main class="canvas single" id="main-content">
-  <div class="shell-page">
-    <div id="topbar-root"></div>
-    
-<header class="page-head">
-  <div class="eyebrow">Catalog</div>
-  <h1 class="serif">Newspapers</h1>
-  <p class="page-sub">18 mastheads, archived daily since 2011.</p>
-</header>
-
-<div class="toolbar">
-  <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="Search masthead or edition&hellip;"></div>
-  <div class="filter-row">
-    <button class="filter-chip">Language <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="filter-chip">Date archive <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="btn-primary">+ Add Edition</button>
-  </div>
-</div>
-
-<div class="card table-card">
-  <table>
-    <thead><tr><th></th><th>Masthead</th><th>Latest edition</th><th>Language</th><th>Status</th><th></th></tr></thead>
-    <tbody>
-      <tr><td><input type="checkbox"></td><td class="ttl"><div class="cov cov-6"></div>The Times of India</td><td>26 Jul 2026</td><td><span class="tag">English</span></td><td><span class="badge badge-avail">In reading room</span></td><td class="row-actions">View &middot; Edit</td></tr>
-      <tr><td><input type="checkbox"></td><td class="ttl"><div class="cov cov-3"></div>The Hindu</td><td>26 Jul 2026</td><td><span class="tag">English</span></td><td><span class="badge badge-avail">In reading room</span></td><td class="row-actions">View &middot; Edit</td></tr>
-      <tr><td><input type="checkbox"></td><td class="ttl"><div class="cov cov-4"></div>Divya Bhaskar</td><td>26 Jul 2026</td><td><span class="tag">Gujarati</span></td><td><span class="badge badge-avail">In reading room</span></td><td class="row-actions">View &middot; Edit</td></tr>
-      <tr><td><input type="checkbox"></td><td class="ttl"><div class="cov cov-2"></div>Financial Express</td><td>25 Jul 2026</td><td><span class="tag">English</span></td><td><span class="badge badge-return">Archived</span></td><td class="row-actions">View &middot; Edit</td></tr>
-    </tbody>
-  </table>
-  <div class="table-foot"><span class="muted">Showing 1&ndash;4 of 18 mastheads</span><div class="pager"><button>&lsaquo;</button><button class="active">1</button><button>2</button><button>&rsaquo;</button></div></div>
-</div>
-
-  </div>
-</main>
-
-<div id="palette-root"></div>
-<div id="modal-root"></div>
-<script type="module" src="/js/app-init.js"></script>
-<script type="module" src="js/newspapers.js"></script>
-
+  <a href="#main-content" class="skip-link">Skip to content</a><nav class="rail" id="rail"></nav>
+  <main class="canvas" id="main-content"><div class="shell-page"><div id="topbar-root"></div>
+    <header class="page-head"><p class="eyebrow">Collection</p><div class="page-title-row"><div><h1 class="serif">Newspapers</h1><p class="page-sub">Maintain current editions and the archive with clear publication details.</p></div><button class="btn-primary" id="addNewspaperBtn" type="button" hidden>Add newspaper</button></div></header>
+    <div class="toolbar"><label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span class="sr-only">Search newspapers</span><input type="search" placeholder="Search by title or publisher"></label></div>
+    <section class="card table-card" aria-label="Newspaper catalog"><table><thead><tr><th>Title</th><th>Publisher</th><th>Publication date</th><th>Top headlines</th><th>Availability</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody><tr><td colspan="6" class="table-state">Loading newspapers…</td></tr></tbody></table><div class="table-foot"><span class="muted">Loading results…</span><div class="pager"></div></div></section>
+  </div></main>
+  <div id="palette-root"></div><div id="modal-root"></div><script type="module" src="/js/app-init.js"></script><script type="module" src="/js/newspapers.js"></script>
 </body>
 </html>

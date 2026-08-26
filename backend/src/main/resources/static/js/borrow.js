@@ -4,7 +4,7 @@ import { magazinesApi } from "/js/api/magazines-api.js";
 import { newspapersApi } from "/js/api/newspapers-api.js";
 import { studentsApi } from "/js/api/students-api.js";
 import { authApi } from "/js/api/auth-api.js";
-import { setCurrentUser } from "/js/api/http.js";
+import { getCurrentUser, setCurrentUser } from "/js/api/http.js";
 import { esc } from "/js/utils/esc.js";
 import { toast } from "/js/utils/toast.js";
 import { renderPagination, renderPageInfo } from "/js/utils/pagination.js";
@@ -13,6 +13,8 @@ let state = { page: 0, size: 10, search: "", totalPages: 0, totalElements: 0, re
 
 const timelineEl = document.querySelector(".timeline");
 const searchInput = document.querySelector(".search input");
+const toolbarEl = document.querySelector(".toolbar");
+const issueButton = document.getElementById("issueItemBtn");
 const pageInfoEl = document.createElement("div");
 const pagerEl = document.createElement("div");
 const tableFoot = document.createElement("div");
@@ -29,17 +31,18 @@ function setupFooter() {
 
 function showLoading() {
   if (!timelineEl) return;
-  timelineEl.innerHTML = '<div style="text-align:center;padding:48px;color:var(--ink-soft)">Loading records&hellip;</div>';
+  timelineEl.innerHTML = '<div class="loading-state">Loading records…</div>';
 }
 
 function showEmpty() {
   if (!timelineEl) return;
-  timelineEl.innerHTML = '<div style="text-align:center;padding:48px;color:var(--ink-soft)">No borrow records found.</div>';
+  timelineEl.innerHTML = '<div class="empty-state"><p>No borrow records match this view.</p></div>';
 }
 
 function showError(msg) {
   if (!timelineEl) return;
-  timelineEl.innerHTML = `<div style="text-align:center;padding:48px;color:var(--red)">${esc(msg)}<br><button class="btn-ghost sm" style="margin-top:8px" onclick="location.reload()">Try again</button></div>`;
+  timelineEl.innerHTML = `<div class="error-state"><p>${esc(msg)}</p><button class="btn-ghost sm" type="button" data-retry>Try again</button></div>`;
+  timelineEl.querySelector("[data-retry]")?.addEventListener("click", loadRecords);
 }
 
 async function loadRecords() {
@@ -67,16 +70,17 @@ function renderTimeline() {
   timelineEl.innerHTML = state.records.map(r => {
     const isBorrowed = r.status === "BORROWED";
     const isReturned = r.status === "RETURNED";
-    const dotClass = isBorrowed ? "dot-out" : isReturned ? "dot-in" : "dot-warn";
-    const badgeClass = isBorrowed ? "badge-out" : isReturned ? "badge-return" : "badge-warn";
-    const label = r.status === "BORROWED" ? "Active" : r.status === "RETURNED" ? "Returned" : r.status;
+    const isOverdue = isBorrowed && (r.daysOverdue > 0);
+    const dotClass = isOverdue ? "dot-warn" : isBorrowed ? "dot-out" : "dot-in";
+    const badgeClass = isOverdue ? "badge-warn" : isBorrowed ? "badge-out" : "badge-return";
+    const label = isOverdue ? `${r.daysOverdue}d Overdue` : isBorrowed ? "Active" : "Returned";
     return `
       <div class="tl-row">
         <div class="tl-dot ${dotClass}"></div>
         <div class="tl-body">
           ${r.itemType === "BOOK" ? `<a href="book-details.html?id=${r.itemId}">${esc(r.itemTitle)}</a>` : `<b>${esc(r.itemTitle)}</b>`} (${esc(r.itemType)}) ${isBorrowed ? "issued to" : "returned by"} <a href="student-profile.html?id=${r.studentId}">${esc(r.borrowerName)}</a>
           <span class="badge ${badgeClass}">${label}</span>
-          <small>${r.borrowDate} ${r.returnDate ? "— " + r.returnDate : ""}</small>
+          <small>Issued ${r.borrowDate}${r.dueDate ? ` · Due ${r.dueDate}` : ""}${r.returnDate ? ` · Returned ${r.returnDate}` : ""}</small>
         </div>
         ${isBorrowed ? `<button class="btn-ghost sm return-book" data-id="${r.id}">Quick return</button>` : `<button class="btn-ghost sm" disabled>Closed</button>`}
       </div>
@@ -105,10 +109,24 @@ function optionList(items, type, label) {
   ).join("");
 }
 
+function canManageCirculation() {
+  return ["ADMIN", "LIBRARIAN"].includes((getCurrentUser()?.role || "").toUpperCase());
+}
+
+function showStudentAccessState() {
+  toolbarEl?.setAttribute("hidden", "");
+  issueButton?.setAttribute("hidden", "");
+  if (timelineEl) timelineEl.innerHTML = '<div class="empty-state"><p>Circulation management is available to library staff. Use your student dashboard to view your own borrowing information.</p><a class="btn-ghost sm" href="/index.html">Open student dashboard</a></div>';
+}
+
 async function openBorrowModal() {
   const root = document.getElementById("modal-root");
-  root.innerHTML = '<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true"><div class="modal-header"><h2 class="serif">Issue an item</h2><button class="modal-close borrow-modal-close" type="button" aria-label="Close">&times;</button></div><p style="padding:24px;text-align:center;color:var(--ink-soft)">Loading available items&hellip;</p></section></div>';
-  const close = () => { root.innerHTML = ""; };
+  const opener = document.activeElement;
+  root.innerHTML = '<div class="modal-backdrop" role="presentation"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="borrow-modal-title"><div class="modal-header"><h2 id="borrow-modal-title" class="serif">Issue an item</h2><button class="modal-close borrow-modal-close" type="button" aria-label="Close">&times;</button></div><div class="loading-state">Loading available items…</div></section></div>';
+  let escHandler;
+  const close = () => { root.innerHTML = ""; document.removeEventListener("keydown", escHandler); opener?.focus?.(); };
+  escHandler = event => { if (event.key === "Escape") close(); };
+  document.addEventListener("keydown", escHandler);
   root.querySelectorAll(".borrow-modal-close").forEach(button => button.addEventListener("click", close));
 
   try {
@@ -125,29 +143,38 @@ async function openBorrowModal() {
     ).join("");
 
     if (!items || !readers) {
-      root.querySelector("section").innerHTML = `<div class="modal-header"><h2 class="serif">Issue an item</h2><button class="modal-close borrow-modal-close" type="button" aria-label="Close">&times;</button></div><div class="empty-state" style="padding:32px"><p>${!items ? "Add an available item" : "Add a student"} before creating a borrow record.</p></div>`;
+      root.querySelector("section").innerHTML = `<div class="modal-header"><h2 id="borrow-modal-title" class="serif">Issue an item</h2><button class="modal-close borrow-modal-close" type="button" aria-label="Close">&times;</button></div><div class="empty-state"><p>${!items ? "Add an available item" : "Add a student"} before creating a borrow record.</p></div>`;
       root.querySelector(".borrow-modal-close").addEventListener("click", close);
       return;
     }
 
+    const defaultIssue = new Date();
+    const defaultDue = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
     root.querySelector("section").innerHTML = `
-      <div class="modal-header"><h2 class="serif">Issue an item</h2><button class="modal-close borrow-modal-close" type="button" aria-label="Close">&times;</button></div>
+      <div class="modal-header"><h2 id="borrow-modal-title" class="serif">Issue an item</h2><button class="modal-close borrow-modal-close" type="button" aria-label="Close">&times;</button></div>
       <p class="form-error" data-borrow-error hidden></p>
       <form id="borrow-form" novalidate>
         <div class="form-grid">
           <label class="field span-all"><span>Item *</span><select name="item" required><option value="">Select an available item</option>${items}</select></label>
           <label class="field span-all"><span>Student *</span><select name="studentId" required><option value="">Select a student</option>${readers}</select></label>
-          <label class="field"><span>Issue date *</span><input name="borrowDate" type="date" value="${new Date().toISOString().slice(0, 10)}" required></label>
+          <label class="field"><span>Issue date *</span><input name="borrowDate" type="date" value="${defaultIssue.toISOString().slice(0, 10)}" required></label>
+          <label class="field"><span>Due date</span><input name="dueDate" type="date" value="${defaultDue.toISOString().slice(0, 10)}"></label>
         </div>
         <div class="modal-footer"><button class="btn-ghost borrow-modal-close" type="button">Cancel</button><button class="btn-primary" type="submit">Issue item</button></div>
       </form>`;
     root.querySelectorAll(".borrow-modal-close").forEach(button => button.addEventListener("click", close));
     root.querySelector(".modal-backdrop").addEventListener("click", event => { if (event.target === event.currentTarget) close(); });
+    root.querySelector("select")?.focus();
     root.querySelector("form").addEventListener("submit", async event => {
       event.preventDefault();
       const data = new FormData(event.currentTarget);
       const [type, id] = String(data.get("item")).split(":");
-      const request = { studentId: Number(data.get("studentId")), borrowDate: data.get("borrowDate") };
+      const request = {
+        studentId: Number(data.get("studentId")),
+        borrowDate: data.get("borrowDate"),
+        dueDate: data.get("dueDate") || null
+      };
       if (type === "book") request.bookId = Number(id);
       if (type === "magazine") request.magazineId = Number(id);
       if (type === "newspaper") request.newspaperId = Number(id);
@@ -168,19 +195,23 @@ async function openBorrowModal() {
       }
     });
   } catch (err) {
-    root.querySelector("section").innerHTML = `<div class="modal-header"><h2 class="serif">Issue an item</h2><button class="modal-close borrow-modal-close" type="button" aria-label="Close">&times;</button></div><div class="error-state" style="padding:32px;text-align:center;color:var(--red)">${esc(err.message || "Could not load issue form.")}</div>`;
+    root.querySelector("section").innerHTML = `<div class="modal-header"><h2 id="borrow-modal-title" class="serif">Issue an item</h2><button class="modal-close borrow-modal-close" type="button" aria-label="Close">&times;</button></div><div class="error-state"><p>${esc(err.message || "Could not load issue form.")}</p></div>`;
     root.querySelector(".borrow-modal-close").addEventListener("click", close);
   }
 }
 
 let searchTimer;
-document.addEventListener("DOMContentLoaded", () => {
-  initAuth();
+document.addEventListener("DOMContentLoaded", async () => {
+  await initAuth();
+  if (!canManageCirculation()) {
+    showStudentAccessState();
+    return;
+  }
   setupFooter();
   if (searchInput) searchInput.addEventListener("input", () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => { state.search = searchInput.value.trim(); state.page = 0; loadRecords(); }, 300);
   });
-  document.getElementById("issueItemBtn")?.addEventListener("click", openBorrowModal);
+  issueButton?.addEventListener("click", openBorrowModal);
   loadRecords();
 });

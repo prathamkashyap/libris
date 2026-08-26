@@ -1,67 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<style>
-  html{transition:background-color .3s ease,color .3s ease}
-</style>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reports — Libris</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to content</a>
-<div class="petal-decor" aria-hidden="true"></div>
-<div class="star-decor" aria-hidden="true"></div>
-
-<nav class="rail" id="rail"></nav>
-
-<main class="canvas single" id="main-content">
-  <div class="shell-page">
-    <div id="topbar-root"></div>
-    
-<header class="page-head">
-  <div class="eyebrow">Records</div>
-  <h1 class="serif">Reports</h1>
-  <p class="page-sub">Generate and export a snapshot of any period.</p>
-</header>
-
-<div class="toolbar">
-  <div class="filter-row">
-    <button class="filter-chip">Date range <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="filter-chip">Department <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="filter-chip">Category <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="filter-chip">Status <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-  </div>
-</div>
-
-<div class="bento">
-  <div class="card span-4"><div class="report-icon">&#128202;</div><b>Monthly circulation</b><p class="muted">Issues, returns and fines for July 2026.</p>
-    <div style="display:flex; gap:8px; margin-top:12px"><button class="btn-ghost sm">PDF</button><button class="btn-ghost sm">CSV</button><button class="btn-ghost sm">Excel</button></div>
-  </div>
-  <div class="card span-4"><div class="report-icon">&#128218;</div><b>Collection audit</b><p class="muted">Full inventory reconciliation.</p>
-    <div style="display:flex; gap:8px; margin-top:12px"><button class="btn-ghost sm">PDF</button><button class="btn-ghost sm">CSV</button><button class="btn-ghost sm">Excel</button></div>
-  </div>
-  <div class="card span-4"><div class="report-icon">&#9201;</div><b>Overdue summary</b><p class="muted">All 57 overdue items with contact details.</p>
-    <div style="display:flex; gap:8px; margin-top:12px"><button class="btn-ghost sm">PDF</button><button class="btn-ghost sm">CSV</button><button class="btn-ghost sm">Excel</button></div>
-  </div>
-  <div class="card span-12"><div class="card-head"><h3>Recent exports</h3></div>
-    <div class="mini-table">
-      <div class="mini-row"><span>June circulation.pdf</span><span class="muted">Generated 01 Jul</span><span class="badge badge-return">Ready</span></div>
-      <div class="mini-row"><span>Q2 collection audit.xlsx</span><span class="muted">Generated 28 Jun</span><span class="badge badge-return">Ready</span></div>
-    </div>
-  </div>
-</div>
-
-  </div>
-</main>
-
-<div id="palette-root"></div>
-<script type="module" src="/js/app-init.js"></script>
-<script type="module" src="js/reports.js"></script>
-
+  <a href="#main-content" class="skip-link">Skip to content</a><nav class="rail" id="rail"></nav>
+  <main class="canvas" id="main-content"><div class="shell-page"><div id="topbar-root"></div>
+    <header class="page-head"><p class="eyebrow">Exports</p><h1 class="serif">Reports</h1><p class="page-sub">Download the current library records as CSV files.</p></header>
+    <div class="bento"><section class="card span-4 report-card"><span class="report-icon" aria-hidden="true">↻</span><div><b>Circulation report</b><p class="muted">Borrow and return records in the current system.</p></div><a class="btn-primary" href="/api/reports/borrowing?format=csv">Download CSV</a></section><section class="card span-4 report-card"><span class="report-icon" aria-hidden="true">▤</span><div><b>Inventory report</b><p class="muted">Catalog inventory data currently stored in Libris.</p></div><a class="btn-primary" href="/api/reports/inventory?format=csv">Download CSV</a></section><section class="card span-4 report-card"><span class="report-icon" aria-hidden="true">!</span><div><b>Overdue report</b><p class="muted">Loans that are currently past the configured 14-day period.</p></div><a class="btn-primary" href="/api/reports/overdue?format=csv">Download CSV</a></section><section class="card span-12"><div class="card-head"><div><h3>Export format</h3><p class="muted">Libris currently provides server-generated CSV exports. There are no fabricated PDF, spreadsheet, scheduled-export, or export-history controls in this workspace.</p></div></div></section></div>
+  </div></main>
+  <div id="palette-root"></div><script type="module" src="/js/app-init.js"></script><script type="module" src="/js/reports.js"></script>
 </body>
 </html>

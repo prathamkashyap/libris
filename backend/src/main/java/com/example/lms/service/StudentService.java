@@ -61,6 +61,8 @@ public class StudentService {
   public StudentResponse create(StudentRequest r) {
     if (accounts.existsByUsername(r.username()))
       throw new ConflictException("Username is already in use.");
+    if (students.findByEmail(r.email()).isPresent())
+      throw new ConflictException("Email is already registered.");
     var a = new Account();
     a.setUsername(r.username().trim());
     a.setPasswordHash(passwords.encode(r.password()));

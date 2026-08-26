@@ -80,48 +80,18 @@ function applyTheme(theme) {
  */
 export function renderThemeSwitcher(container) {
   if (!container) return;
-
-  const icons = {
-    ember: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.5 2.5 1 3.5 1.8 4.5.8 1 1.2 1.8 1 3.2-.2 1.2-.8 2-1.3 2.8l2.5 1c.6.3.9 1 .6 1.7-.2.5-.5.8-1 1l-2.2.6c.3.8.4 1.6.2 2.5-.3 1.3-1.2 2.2-2.6 2.2s-2.3-.9-2.6-2.2c-.2-.9-.1-1.7.2-2.5l-2.2-.6c-.5-.2-.8-.5-1-1-.3-.7 0-1.4.6-1.7l2.5-1c-.5-.8-1.1-1.6-1.3-2.8-.2-1.4.2-2.2 1-3.2C10 5.5 10.5 4.5 11 2h1Z"/></svg>`,
-    verdigris: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18Zm0 3v6l4 2"/></svg>`
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'theme-opt';
+  button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.64 5.64l1.41 1.41M16.95 16.95l1.41 1.41M18.36 5.64l-1.41 1.41M7.05 16.95l-1.41 1.41"/><circle cx="12" cy="12" r="4"/></svg><span class="sr-only">Toggle colour theme</span>';
+  const sync = () => {
+    const light = getTheme() === 'verdigris';
+    button.setAttribute('aria-pressed', String(light));
+    button.setAttribute('aria-label', light ? 'Use dark theme' : 'Use light theme');
+    button.title = light ? 'Use dark theme' : 'Use light theme';
   };
-
-  const labels = {
-    ember: 'Ember',
-    verdigris: 'Verdigris'
-  };
-  const tooltips = {
-    ember: 'Dark theme',
-    verdigris: 'Light theme'
-  };
-
-  const wrapper = document.createElement('div');
-  wrapper.className = 'theme-switch';
-  wrapper.setAttribute('role', 'group');
-  wrapper.setAttribute('aria-label', 'Theme');
-
-  THEMES.forEach(theme => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'theme-opt';
-    btn.dataset.themeValue = theme;
-    btn.title = tooltips[theme];
-    btn.innerHTML = `
-    ${icons[theme]}
-    <span>${labels[theme]}</span>
-    `;
-    btn.addEventListener('click', () => setTheme(theme));
-    wrapper.appendChild(btn);
-  });
-
-  const updatePressed = () => {
-    const current = getTheme();
-    wrapper.querySelectorAll('.theme-opt').forEach(b => {
-      b.setAttribute('aria-pressed', String(b.dataset.themeValue === current));
-    });
-  };
-
-  updatePressed();
-  window.addEventListener('themechange', updatePressed);
-  container.appendChild(wrapper);
+  button.addEventListener('click', toggleTheme);
+  window.addEventListener('themechange', sync);
+  sync();
+  container.replaceChildren(button);
 }

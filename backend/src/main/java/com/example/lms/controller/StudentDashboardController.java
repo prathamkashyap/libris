@@ -45,6 +45,12 @@ public class StudentDashboardController {
 
   private BorrowRecordSummary toSummary(com.example.lms.dto.BorrowRecordResponse r) {
     return new BorrowRecordSummary(
-        r.id(), r.itemTitle(), r.itemType(), r.borrowDate(), r.returnDate(), r.status());
+        r.id(),
+        r.itemTitle(),
+        r.itemType(),
+        r.borrowDate(),
+        r.dueDate(),
+        r.returnDate(),
+        r.status());
   }
 }

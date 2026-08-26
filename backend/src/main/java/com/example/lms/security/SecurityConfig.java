@@ -72,15 +72,19 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(
                         "/login.html",
+                        "/register.html",
                         "/styles.css",
                         "/css/**",
                         "/js/**",
                         "/components/**",
                         "/assets/**",
+                        "/favicon.svg",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/v3/api-docs/**",
                         "/api/auth/login",
                         "/api/auth/csrf",
-                        "/login.html",
-                        "/register.html")
+                        "/api/auth/register")
                     .permitAll()
                     .requestMatchers("/api/auth/logout", "/api/auth/me", "/api/profile")
                     .authenticated()

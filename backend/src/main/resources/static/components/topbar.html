@@ -1,21 +1,10 @@
-<div class="topbar">
-  <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
-  <div class="breadcrumb"><a href="index.html">Libris</a> <span class="sep">/</span> <span class="current" id="topbar-current"></span></div>
-  <button class="search-trigger" id="searchTrigger">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-    Search Libris&hellip;
-    <kbd>&#8984;K</kbd>
+<header class="topbar">
+  <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="rail"><svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+  <div class="breadcrumb" aria-label="Breadcrumb"><a href="/index.html">Libris</a><span aria-hidden="true">/</span><span class="current" id="topbar-current" aria-current="page"></span></div>
+  <div class="topbar-spacer"></div>
+  <button class="search-trigger" id="searchTrigger" type="button" aria-haspopup="dialog" aria-controls="cmdPalette">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span>Search workspace</span><kbd>⌘ K</kbd>
   </button>
-  <div class="notif-wrap">
-    <button class="topbar-icon" id="notifBell"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="dot"></span></button>
-    <div class="notif-panel" id="notifPanel">
-      <div class="notif-panel-head">Notifications</div>
-      <div class="notif-item"><span class="dot" style="background:#C97355"></span><div><b>Sapiens</b> is overdue &mdash; Fatima Sheikh<small>1 hour ago</small></div></div>
-      <div class="notif-item"><span class="dot" style="background:#7FA876"></span><div>New student registered &mdash; Karan Mehta<small>5 hours ago</small></div></div>
-      <div class="notif-item"><span class="dot" style="background:#8FA8C4"></span><div>July circulation report generated<small>Yesterday</small></div></div>
-      <div class="notif-item"><span class="dot" style="background:#E3B06C"></span><div>Nightly backup completed<small>Yesterday</small></div></div>
-    </div>
-  </div>
   <div id="topbar-theme"></div>
-  <img class="topbar-avatar" src="https://api.dicebear.com/7.x/notionists/svg?seed=Admin&amp;backgroundColor=2b2540" alt="">
-</div>
+  <a class="topbar-profile" href="/profile.html" aria-label="Open profile"><span class="avatar-initials" id="topbar-user-initials" aria-hidden="true">L</span><span class="topbar-profile-copy"><strong id="topbar-user-name">Library account</strong><small id="topbar-user-role">Account</small></span></a>
+</header>

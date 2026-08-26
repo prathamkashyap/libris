@@ -1,6 +1,6 @@
 import { booksApi } from "/js/api/books-api.js";
 import { authApi } from "/js/api/auth-api.js";
-import { setCurrentUser } from "/js/api/http.js";
+import { getCurrentUser, setCurrentUser } from "/js/api/http.js";
 import { esc } from "/js/utils/esc.js";
 import { toast } from "/js/utils/toast.js";
 import { confirmDialog } from "/js/utils/confirm.js";
@@ -26,32 +26,47 @@ const pageInfo = tableFoot?.querySelector(".muted");
 const pagerEl = tableFoot?.querySelector(".pager");
 const searchInput = document.querySelector(".search input");
 const addBtn = document.querySelector(".btn-primary");
+const gridViewBtn = document.getElementById("viewGrid");
+const listViewBtn = document.getElementById("viewList");
+
+function setView(view) {
+  state.view = view;
+  const useGrid = view === "grid";
+  if (gridEl) gridEl.hidden = !useGrid;
+  if (listEl) listEl.hidden = useGrid;
+  gridViewBtn?.classList.toggle("active", useGrid);
+  listViewBtn?.classList.toggle("active", !useGrid);
+  gridViewBtn?.setAttribute("aria-pressed", String(useGrid));
+  listViewBtn?.setAttribute("aria-pressed", String(!useGrid));
+}
+
+function canManage() {
+  return ["ADMIN", "LIBRARIAN"].includes((getCurrentUser()?.role || "").toUpperCase());
+}
+
+function syncManagementControls() {
+  if (addBtn) addBtn.hidden = !canManage();
+}
 
 function showLoading() {
   if (!gridEl) return;
-  gridEl.innerHTML = '<div class="loading-state" style="grid-column:1/-1;text-align:center;padding:48px 0;color:var(--ink-soft)">Loading books&hellip;</div>';
-  if (listTbody) listTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--ink-soft)">Loading books&hellip;</td></tr>';
+  gridEl.innerHTML = '<div class="loading-state">Loading books…</div>';
+  if (listTbody) listTbody.innerHTML = '<tr><td colspan="5" class="table-state">Loading books…</td></tr>';
 }
 
 function showEmpty() {
   if (!gridEl) return;
-  const msg = `<div class="empty-state" style="grid-column:1/-1;text-align:center;padding:48px 0">
-    <svg viewBox="0 0 24 24" style="width:40px;height:40px;stroke:var(--ink-soft);fill:none;stroke-width:1.5;margin-bottom:12px"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5Z"/><path d="M8 2v18"/></svg>
-    <p style="color:var(--ink-soft);font-size:14px;margin:0">${state.search ? "No books match your search." : "No books in the collection yet."}</p>
-    ${state.search ? "" : '<p style="color:var(--ink-soft);font-size:13px;margin-top:4px">Add your first book to get started.</p>'}
-  </div>`;
+  const msg = `<div class="empty-state"><p>${state.search ? "No books match your search." : "No books in the collection yet."}</p>${state.search || !canManage() ? "" : '<p>Add the first catalog title to get started.</p>'}</div>`;
   gridEl.innerHTML = msg;
-  if (listTbody) listTbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--ink-soft)">${state.search ? "No books match your search." : "No books in the collection yet."}</td></tr>`;
+  if (listTbody) listTbody.innerHTML = `<tr><td colspan="5" class="table-state">${state.search ? "No books match your search." : "No books in the collection yet."}</td></tr>`;
 }
 
 function showError(msg) {
   if (!gridEl) return;
-  const html = `<div class="error-state" style="grid-column:1/-1;text-align:center;padding:48px 0">
-    <p style="color:var(--red);font-size:14px;margin:0">${esc(msg)}</p>
-    <button class="btn-ghost sm" style="margin-top:12px" onclick="location.reload()">Try again</button>
-  </div>`;
+  const html = `<div class="error-state"><p>${esc(msg)}</p><button class="btn-ghost sm" type="button" data-retry>Try again</button></div>`;
   gridEl.innerHTML = html;
-  if (listTbody) listTbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:48px;color:var(--red)">${esc(msg)}</td></tr>`;
+  gridEl.querySelector("[data-retry]")?.addEventListener("click", loadBooks);
+  if (listTbody) listTbody.innerHTML = `<tr><td colspan="5" class="table-state table-state-error">${esc(msg)}</td></tr>`;
 }
 
 async function loadBooks() {
@@ -84,12 +99,12 @@ function renderGrid() {
     <div class="book-gcard" data-id="${b.id}" tabindex="0" role="button">
       <div class="cov cov-${(b.id % 7) + 1}"></div>
       <b>${esc(b.title)}</b>
-      <small>${esc(b.author || "Unknown")}</small>
+      <small>${esc(b.author || "Unknown")}${b.category ? ` · ${esc(b.category)}` : ""}</small>
       <span class="badge ${b.available ? "badge-avail" : "badge-out"}">${b.available ? "Available" : "Checked out"}</span>
-      <div class="gcard-actions">
+      ${canManage() ? `<div class="gcard-actions">
         <button class="btn-ghost sm edit-book" data-id="${b.id}">Edit</button>
-        <button class="btn-ghost sm delete-book" data-id="${b.id}" style="color:var(--red)">Delete</button>
-      </div>
+        <button class="btn-ghost sm delete-book" data-id="${b.id}">Delete</button>
+      </div>` : ""}
     </div>
   `).join("");
 
@@ -97,6 +112,12 @@ function renderGrid() {
     if (e.target.closest("button")) return;
     const id = card.dataset.id;
     if (id) window.location.href = `book-details.html?id=${id}`;
+  }));
+  gridEl.querySelectorAll(".book-gcard").forEach(card => card.addEventListener("keydown", event => {
+    if ((event.key === "Enter" || event.key === " ") && !event.target.closest("button")) {
+      event.preventDefault();
+      card.click();
+    }
   }));
   gridEl.querySelectorAll(".edit-book").forEach(btn => btn.addEventListener("click", e => {
     e.preventDefault();
@@ -114,16 +135,13 @@ function renderList() {
   if (!listTbody) return;
   listTbody.innerHTML = state.books.map(b => `
     <tr>
-      <td><input type="checkbox"></td>
       <td class="ttl"><div class="cov cov-${(b.id % 7) + 1}"></div><a href="book-details.html?id=${b.id}">${esc(b.title)}</a></td>
-      <td>${esc(b.author || "—")}</td>
-      <td><span class="tag">Book</span></td>
+      <td>${esc(b.author || "—")}${b.category ? ` <small class="muted">(${esc(b.category)})</small>` : ""}</td>
       <td class="mono">${esc(b.isbn || "—")}</td>
       <td><span class="badge ${b.available ? "badge-avail" : "badge-out"}">${b.available ? "Available" : "Checked out"}</span></td>
-      <td class="row-actions">
+      <td class="row-actions">${canManage() ? `
         <button class="btn-ghost sm edit-book" data-id="${b.id}">Edit</button>
-        <button class="btn-ghost sm delete-book" data-id="${b.id}" style="color:var(--red)">Delete</button>
-      </td>
+        <button class="btn-ghost sm delete-book" data-id="${b.id}">Delete</button>` : ""}</td>
     </tr>
   `).join("");
 
@@ -187,12 +205,16 @@ async function initAuth() {
   try { await authApi.csrf(); const u = await authApi.me(); setCurrentUser(u); } catch {}
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  initAuth();
+document.addEventListener("DOMContentLoaded", async () => {
+  await initAuth();
+  syncManagementControls();
   if (searchInput) searchInput.addEventListener("input", onSearchInput);
+  gridViewBtn?.addEventListener("click", () => setView("grid"));
+  listViewBtn?.addEventListener("click", () => setView("list"));
   if (addBtn) addBtn.addEventListener("click", e => {
     e.preventDefault();
     openBookModal(null);
   });
+  setView(state.view);
   loadBooks();
 });

@@ -12,5 +12,7 @@ public record BorrowRecordResponse(
     String borrowerEmail,
     String borrowerPhone,
     LocalDate borrowDate,
+    LocalDate dueDate,
     LocalDate returnDate,
-    String status) {}
+    String status,
+    Long daysOverdue) {}

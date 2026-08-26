@@ -18,6 +18,7 @@ output/
 
 # Runtime logs
 *.log
+backend/logs/
 
 # Maven wrapper (root convenience wrapper is tracked; backend/.mvn/wrapper is tracked)
 # backend/target/ already covered above

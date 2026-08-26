@@ -114,6 +114,8 @@ async function loadAdminDashboard() {
         const action = isReturn ? "returned" : "borrowed";
         return `<div class="activity-row"><span class="dot ${dotClass}"></span><div><b>${esc(r.borrowerName)}</b> ${action} <i>${esc(r.itemTitle)}</i><small>${r.borrowDate}${r.returnDate ? " &mdash; " + r.returnDate : ""}</small></div></div>`;
       }).join("");
+    } else if (recentList) {
+      recentList.innerHTML = '<div class="activity-row"><span class="dot dot-in"></span><div><b>No recent circulation</b><small>New issues and returns will appear here.</small></div></div>';
     }
 
     const overdueList = document.getElementById("overdueList");

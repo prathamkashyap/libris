@@ -85,6 +85,7 @@ public class BorrowRecordService {
     record.setBorrowerEmail(student.getEmail());
     record.setBorrowerPhone(student.getPhone());
     record.setBorrowDate(r.borrowDate());
+    record.setDueDate(r.dueDate() != null ? r.dueDate() : r.borrowDate().plusDays(14));
 
     String itemTitle = null;
     if (r.bookId() != null) {
@@ -195,6 +196,18 @@ public class BorrowRecordService {
       itemType = "NEWSPAPER";
     }
 
+    LocalDate dueDate = r.getDueDate() != null ? r.getDueDate() : r.getBorrowDate().plusDays(14);
+    long daysOverdue = 0L;
+    if (r.getReturnDate() == null) {
+      if (LocalDate.now().isAfter(dueDate)) {
+        daysOverdue = java.time.temporal.ChronoUnit.DAYS.between(dueDate, LocalDate.now());
+      }
+    } else {
+      if (r.getReturnDate().isAfter(dueDate)) {
+        daysOverdue = java.time.temporal.ChronoUnit.DAYS.between(dueDate, r.getReturnDate());
+      }
+    }
+
     return new BorrowRecordResponse(
         r.getId(),
         itemId,
@@ -205,7 +218,9 @@ public class BorrowRecordService {
         r.getBorrowerEmail(),
         r.getBorrowerPhone(),
         r.getBorrowDate(),
+        dueDate,
         r.getReturnDate(),
-        r.getReturnDate() == null ? "BORROWED" : "RETURNED");
+        r.getReturnDate() == null ? "BORROWED" : "RETURNED",
+        daysOverdue);
   }
 }

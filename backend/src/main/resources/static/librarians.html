@@ -1,62 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<style>
-  html{transition:background-color .3s ease,color .3s ease}
-</style>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Librarians — Libris</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,340;9..144,480;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library team — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to content</a>
-<div class="petal-decor" aria-hidden="true"></div>
-<div class="star-decor" aria-hidden="true"></div>
-
-<nav class="rail" id="rail"></nav>
-
-<main class="canvas single" id="main-content">
-  <div class="shell-page">
-    <div id="topbar-root"></div>
-    
-<header class="page-head">
-  <div class="eyebrow">Staff</div>
-  <h1 class="serif">Librarians</h1>
-  <p class="page-sub">Manage library staff accounts and permissions.</p>
-</header>
-
-<div class="toolbar">
-  <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="Search by name, role, username&hellip;"></div>
-  <div class="filter-row">
-    <button class="filter-chip">Role <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="filter-chip">Status <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
-    <button class="btn-primary" id="addLibrarianBtn">+ Add Librarian</button>
-  </div>
-</div>
-
-<div class="card table-card">
-  <table>
-    <thead><tr><th>Name</th><th>Department</th><th>Role</th><th>Last login</th><th>Status</th><th></th></tr></thead>
-    <tbody>
-      <tr><td class="person-row"><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Admin&amp;backgroundColor=f7e6e9" alt=""><a href="profile.html">Administrator</a></td><td>Administration</td><td><span class="tag tag-role">Administrator</span></td><td>Just now</td><td><span class="badge badge-avail">Online</span></td><td class="row-actions">&#8942;</td></tr>
-      <tr><td class="person-row"><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Ananya-Iyer&amp;backgroundColor=2b2540" alt=""><a href="librarian-profile.html">Ananya Iyer</a></td><td>Circulation</td><td><span class="tag tag-role role-lib">Senior Librarian</span></td><td>14 min ago</td><td><span class="badge badge-avail">Online</span></td><td class="row-actions">&#8942;</td></tr>
-      <tr><td class="person-row"><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Vikram-Sethi&amp;backgroundColor=2b2540" alt=""><a href="librarian-profile.html">Vikram Sethi</a></td><td>Acquisitions</td><td><span class="tag tag-role role-lib">Librarian</span></td><td>2 hr ago</td><td><span class="badge badge-muted">Offline</span></td><td class="row-actions">&#8942;</td></tr>
-      <tr><td class="person-row"><img src="https://api.dicebear.com/7.x/notionists/svg?seed=Neha-Joshi&amp;backgroundColor=2b2540" alt=""><a href="librarian-profile.html">Neha Joshi</a></td><td>Archives</td><td><span class="tag tag-role role-lib">Librarian</span></td><td>Yesterday</td><td><span class="badge badge-muted">Offline</span></td><td class="row-actions">&#8942;</td></tr>
-    </tbody>
-  </table>
-</div>
-
-  </div>
-</main>
-
-<div id="palette-root"></div>
-<div id="modal-root"></div>
-<script type="module" src="/js/app-init.js"></script>
-<script type="module" src="js/librarians.js"></script>
-
+  <a href="#main-content" class="skip-link">Skip to content</a><nav class="rail" id="rail"></nav>
+  <main class="canvas" id="main-content"><div class="shell-page"><div id="topbar-root"></div>
+    <header class="page-head"><p class="eyebrow">Team</p><div class="page-title-row"><div><h1 class="serif">Librarians</h1><p class="page-sub">Manage the staff accounts that run the library.</p></div><button class="btn-primary" id="addLibrarianBtn" type="button" hidden>Add librarian</button></div></header>
+    <div class="toolbar"><label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span class="sr-only">Search librarians</span><input type="search" placeholder="Search by name or username"></label></div>
+    <section class="card table-card" aria-label="Librarian directory"><table><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Age</th><th>Phone</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody><tr><td colspan="6" class="table-state">Loading librarians…</td></tr></tbody></table><div class="table-foot"><span class="muted">Loading results…</span><div class="pager"></div></div></section>
+  </div></main>
+  <div id="palette-root"></div><div id="modal-root"></div><script type="module" src="/js/app-init.js"></script><script type="module" src="/js/librarians.js"></script>
 </body>
 </html>

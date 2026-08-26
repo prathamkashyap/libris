@@ -1,7 +1,9 @@
+import { esc } from "/js/utils/esc.js";
+
 const definitions = {
-  book: { title: "Add new book", editTitle: "Edit book", fields: [["title", "Title", "text", true], ["author", "Author", "text", true], ["isbn", "ISBN", "text", false], ["publishedDate", "Published date", "date", false]] },
-  magazine: { title: "Add new magazine", editTitle: "Edit magazine", fields: [["title", "Title", "text", true], ["publisher", "Publisher", "text", true], ["issueDate", "Issue date", "date", false]] },
-  newspaper: { title: "Add new newspaper", editTitle: "Edit newspaper", fields: [["title", "Title", "text", true], ["publicationDate", "Publication date", "date", false]] },
+  book: { title: "Add new book", editTitle: "Edit book", fields: [["title", "Title", "text", true], ["author", "Author", "text", false], ["category", "Category", "text", false], ["isbn", "ISBN", "text", false], ["publishedDate", "Published date", "date", false]] },
+  magazine: { title: "Add new magazine", editTitle: "Edit magazine", fields: [["title", "Title", "text", true], ["publisher", "Publisher", "text", false], ["issueDate", "Issue date", "date", false], ["category", "Category", "text", false], ["featuredArticle", "Featured article", "textarea", false]] },
+  newspaper: { title: "Add new newspaper", editTitle: "Edit newspaper", fields: [["title", "Title", "text", true], ["publisher", "Publisher", "text", false], ["publicationDate", "Publication date", "date", false], ["topHeadlines", "Top headlines", "textarea", false]] },
   student: { title: "Add student", editTitle: "Edit student", fields: [["name", "Name", "text", true], ["email", "Email", "email", true], ["phone", "Phone", "tel", true], ["username", "Username", "text", true], ["password", "Initial password", "password", true]] },
   librarian: { title: "Add librarian", editTitle: "Edit librarian", fields: [["name", "Name", "text", true], ["age", "Age", "number", true], ["phone", "Phone", "tel", true], ["username", "Username", "text", true], ["password", "Initial password", "password", true]] },
   borrow: { title: "Record a borrow", fields: [["bookId", "Book ID", "number", false], ["magazineId", "Magazine ID", "number", false], ["newspaperId", "Newspaper ID", "number", false], ["studentId", "Student ID", "number", true], ["borrowerName", "Borrower name", "text", true], ["borrowerEmail", "Borrower email", "email", true], ["borrowerPhone", "Borrower phone", "tel", true], ["borrowDate", "Borrow date", "date", true]] }
@@ -26,12 +28,16 @@ export function openModal(kind, onSubmit, prefill = null) {
     return [name, label, type, required];
   });
 
+  const opener = document.activeElement;
   const fieldMarkup = fields.map(([name, label, type, required], index) => {
     const value = prefill?.[name] ?? '';
     const placeholder = isEdit && type === 'password' ? 'Leave blank to keep current' : '';
+    const control = type === "textarea"
+      ? `<textarea id="modal-${name}" name="${name}" ${required ? "required" : ""}>${esc(String(value))}</textarea>`
+      : `<input id="modal-${name}" name="${name}" type="${type}" ${required ? "required" : ""} value="${esc(String(value))}" ${placeholder ? `placeholder="${placeholder}"` : ''}>`;
     return `<label class="field ${index < 2 ? "" : "span-all"}">
       <span>${label}</span>
-      <input id="modal-${name}" name="${name}" type="${type}" ${required ? "required" : ""} value="${String(value).replace(/"/g, '&quot;')}" ${placeholder ? `placeholder="${placeholder}"` : ''}>
+      ${control}
       <span class="field-error" data-error="${name}"></span>
     </label>`;
   }).join("");
@@ -43,7 +49,7 @@ export function openModal(kind, onSubmit, prefill = null) {
           <h2 id="modal-title" class="serif">${modalTitle}</h2>
           <button class="modal-close" type="button" aria-label="Close">×</button>
         </div>
-        <p class="form-error" data-modal-error hidden></p>
+        <p class="form-error" data-modal-error role="alert" hidden></p>
         <form novalidate>
           <div class="form-grid">
             ${fieldMarkup}
@@ -57,7 +63,12 @@ export function openModal(kind, onSubmit, prefill = null) {
     </div>
   `;
 
-  const close = () => { root.innerHTML = ""; };
+  let escHandler;
+  const close = () => {
+    root.innerHTML = "";
+    document.removeEventListener("keydown", escHandler);
+    opener?.focus?.();
+  };
   const firstInput = root.querySelector("input");
   if (firstInput) firstInput.focus();
 
@@ -67,7 +78,7 @@ export function openModal(kind, onSubmit, prefill = null) {
   });
 
   // Escape key closes
-  const escHandler = (e) => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', escHandler); } };
+  escHandler = (e) => { if (e.key === 'Escape') close(); };
   document.addEventListener('keydown', escHandler);
 
   root.querySelector("form").addEventListener("submit", event => {
@@ -85,11 +96,17 @@ export function openModal(kind, onSubmit, prefill = null) {
     root.querySelector("[data-modal-error]").hidden = true;
     let valid = true;
 
+    fields.forEach(([name]) => {
+      const error = root.querySelector(`[data-error="${name}"]`);
+      if (error) error.textContent = "";
+      root.querySelector(`[name="${name}"]`)?.removeAttribute("aria-invalid");
+    });
     fields.filter(([, , , required]) => required).forEach(([name, label]) => {
       const error = root.querySelector(`[data-error="${name}"]`);
       const val = values[name] || '';
       const invalidEmail = name.toLowerCase().includes("email") && val && !/^\S+@\S+\.\S+$/.test(val);
       error.textContent = !val.trim() ? `${label} is required.` : invalidEmail ? "Invalid email address." : "";
+      if (error.textContent) root.querySelector(`[name="${name}"]`)?.setAttribute("aria-invalid", "true");
       valid &&= !error.textContent;
     });
 
@@ -98,7 +115,10 @@ export function openModal(kind, onSubmit, prefill = null) {
         const fieldErrors = error.fieldErrors || [];
         fieldErrors.forEach(({ field, message }) => {
           const fieldError = root.querySelector(`[data-error="${field}"]`);
-          if (fieldError) fieldError.textContent = message;
+          if (fieldError) {
+            fieldError.textContent = message;
+            root.querySelector(`[name="${field}"]`)?.setAttribute("aria-invalid", "true");
+          }
         });
         const unmatchedMessages = fieldErrors.filter(({ field }) => !root.querySelector(`[data-error="${field}"]`)).map(({ message }) => message);
         const summary = root.querySelector("[data-modal-error]");

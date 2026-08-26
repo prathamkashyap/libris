@@ -6,6 +6,7 @@ public record BookResponse(
     Long id,
     String title,
     String author,
+    String category,
     String isbn,
     LocalDate publishedDate,
     boolean available) {}

@@ -41,6 +41,14 @@ public class AuthController {
     return service.login(request, servletRequest);
   }
 
+  @PostMapping("/register")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(summary = "Register", description = "Register a new student account.")
+  @ApiResponse(responseCode = "201", description = "Registered successfully")
+  public void register(@Valid @RequestBody RegisterRequest request) {
+    service.registerStudent(request);
+  }
+
   @PostMapping("/logout")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Logout", description = "Invalidate the current session.")

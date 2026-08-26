@@ -8,20 +8,25 @@ function updateRail(user) {
   if (!user) return;
   const railName = document.querySelector(".rail-user .ru-name");
   const railRole = document.querySelector(".rail-user .ru-role");
-  const railImg = document.querySelector(".rail-user img");
+  const railInitials = document.querySelector(".rail-user .avatar-initials");
+  const topbarName = document.getElementById("topbar-user-name");
+  const topbarRole = document.getElementById("topbar-user-role");
+  const topbarInitials = document.getElementById("topbar-user-initials");
   const name = user.name || user.username || "User";
   const role = user.role || "Member";
+  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "U";
   if (railName) railName.textContent = name;
   if (railRole) railRole.textContent = role;
-  if (railImg) {
-    const seed = encodeURIComponent(name.replace(/\s+/g, "-"));
-    railImg.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${seed}&backgroundColor=2b2540`;
-  }
+  if (railInitials) railInitials.textContent = initials;
+  if (topbarName) topbarName.textContent = name;
+  if (topbarRole) topbarRole.textContent = role;
+  if (topbarInitials) topbarInitials.textContent = initials;
 }
 
 export function setCurrentUser(user) {
   currentUser = user;
   updateRail(user);
+  window.dispatchEvent(new CustomEvent("userchange", { detail: { user } }));
 }
 
 export function getCurrentUser() {

@@ -11,4 +11,5 @@ public record BorrowRequest(
     String borrowerName,
     String borrowerEmail,
     String borrowerPhone,
-    @NotNull LocalDate borrowDate) {}
+    @NotNull LocalDate borrowDate,
+    LocalDate dueDate) {}

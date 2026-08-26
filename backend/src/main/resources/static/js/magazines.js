@@ -1,6 +1,6 @@
 import { magazinesApi } from "/js/api/magazines-api.js";
 import { authApi } from "/js/api/auth-api.js";
-import { setCurrentUser } from "/js/api/http.js";
+import { getCurrentUser, setCurrentUser } from "/js/api/http.js";
 import { esc } from "/js/utils/esc.js";
 import { toast } from "/js/utils/toast.js";
 import { confirmDialog } from "/js/utils/confirm.js";
@@ -13,21 +13,26 @@ const foot = document.querySelector(".card.table-card .table-foot");
 const muted = foot?.querySelector(".muted");
 const pager = foot?.querySelector(".pager");
 const searchInput = document.querySelector(".search input");
-const addBtn = document.querySelector(".btn-primary");
+const addBtn = document.getElementById("addMagazineBtn");
+
+function canManage() {
+  return ["ADMIN", "LIBRARIAN"].includes((getCurrentUser()?.role || "").toUpperCase());
+}
 
 function showLoading() {
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--ink-soft)">Loading magazines&hellip;</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="table-state">Loading magazines…</td></tr>';
 }
 
 function showEmpty() {
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--ink-soft)">No magazines found.</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="table-state">No magazines found.</td></tr>';
 }
 
 function showError(msg) {
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--red)">${esc(msg)}<br><button class="btn-ghost sm" style="margin-top:8px" onclick="location.reload()">Try again</button></td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="6" class="table-state table-state-error">${esc(msg)}<br><button class="btn-ghost sm" type="button" data-retry>Try again</button></td></tr>`;
+  tbody.querySelector("[data-retry]")?.addEventListener("click", loadMagazines);
 }
 
 async function loadMagazines() {
@@ -54,15 +59,15 @@ function renderTable() {
   if (!tbody) return;
   tbody.innerHTML = state.magazines.map(m => `
     <tr>
-      <td><input type="checkbox"></td>
       <td class="ttl"><div class="cov cov-${(m.id % 7) + 1}"></div>${esc(m.title)}</td>
+      <td>${esc(m.publisher || "—")}</td>
       <td>${m.issueDate || "—"}</td>
-      <td><span class="tag">${esc(m.publisher || "Periodical")}</span></td>
+      <td><span class="tag">${esc(m.category || "Uncategorized")}</span></td>
       <td><span class="badge ${m.available ? "badge-avail" : "badge-out"}">${m.available ? "Available" : "Checked out"}</span></td>
-      <td class="row-actions">
-        <button class="btn-ghost sm edit-magazine" data-id="${m.id}">Edit</button>
-        <button class="btn-ghost sm delete-magazine" data-id="${m.id}" style="color:var(--red)">Delete</button>
-      </td>
+      <td class="row-actions">${canManage() ? `
+        <button class="btn-ghost sm edit-magazine" data-id="${m.id}" type="button">Edit</button>
+        <button class="btn-ghost sm delete-magazine" data-id="${m.id}" type="button">Delete</button>
+      ` : ""}</td>
     </tr>
   `).join("");
 
@@ -103,8 +108,9 @@ async function initAuth() {
 }
 
 let searchTimer;
-document.addEventListener("DOMContentLoaded", () => {
-  initAuth();
+document.addEventListener("DOMContentLoaded", async () => {
+  await initAuth();
+  if (addBtn) addBtn.hidden = !canManage();
   if (searchInput) searchInput.addEventListener("input", () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => { state.search = searchInput.value.trim(); state.page = 0; loadMagazines(); }, 300);
