@@ -11,15 +11,15 @@
                 <timestamp>[ignore]</timestamp>
                 <version>[ignore]</version>
             </fieldNames>
-            <customFields>{"app":"library-management-system"}</customFields>
+            <customFields>{"app":"libris"}</customFields>
         </encoder>
     </appender>
 
     <!-- File appender — rolling with size + time-based rotation -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/library-management-system.log</file>
+        <file>logs/libris.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/library-management-system.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <fileNamePattern>logs/libris.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
             <maxFileSize>50MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
@@ -31,18 +31,18 @@
                 <timestamp>[ignore]</timestamp>
                 <version>[ignore]</version>
             </fieldNames>
-            <customFields>{"app":"library-management-system"}</customFields>
+            <customFields>{"app":"libris"}</customFields>
         </encoder>
     </appender>
 
     <!-- Error-only file for quick triage -->
     <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/library-management-system-error.log</file>
+        <file>logs/libris-error.log</file>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/library-management-system-error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <fileNamePattern>logs/libris-error.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
             <maxFileSize>20MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>500MB</totalSizeCap>
@@ -54,7 +54,7 @@
                 <timestamp>[ignore]</timestamp>
                 <version>[ignore]</version>
             </fieldNames>
-            <customFields>{"app":"library-management-system"}</customFields>
+            <customFields>{"app":"libris"}</customFields>
         </encoder>
     </appender>
 
