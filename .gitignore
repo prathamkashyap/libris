@@ -2,6 +2,13 @@
 backend/target/
 *.class
 
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
 # Local configuration and secrets
 backend/src/main/resources/application-local.properties
 .env
