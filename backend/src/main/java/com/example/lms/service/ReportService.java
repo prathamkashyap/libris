@@ -1,6 +1,7 @@
 package com.example.lms.service;
 
 import com.example.lms.repository.*;
+import com.example.lms.util.OverdueCalculator;
 import java.time.LocalDate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -163,8 +164,10 @@ public class ReportService {
 
   @Transactional(readOnly = true)
   public String overdueCsv() {
-    var cutoff = LocalDate.now().minusDays(14);
-    var records = borrowRecords.findByReturnDateIsNullAndBorrowDateBefore(cutoff);
+    var records =
+        borrowRecords.findByReturnDateIsNull().stream()
+            .filter(OverdueCalculator::isOverdue)
+            .toList();
     var header = csvLine("ID", "Item Title", "Borrower Name", "Borrow Date", "Days Overdue");
     var rows =
         records.stream()
@@ -175,7 +178,7 @@ public class ReportService {
                         itemTitle(r),
                         r.getBorrowerName(),
                         r.getBorrowDate().toString(),
-                        LocalDate.now().toEpochDay() - r.getBorrowDate().toEpochDay()));
+                        OverdueCalculator.daysOverdue(r)));
     return Stream.concat(Stream.of(header), rows).collect(Collectors.joining("\n"));
   }
 

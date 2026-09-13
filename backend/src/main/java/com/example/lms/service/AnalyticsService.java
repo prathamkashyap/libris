@@ -2,7 +2,7 @@ package com.example.lms.service;
 
 import com.example.lms.dto.*;
 import com.example.lms.repository.*;
-import java.time.LocalDate;
+import com.example.lms.util.OverdueCalculator;
 import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -34,9 +34,9 @@ public class AnalyticsService {
     var borrowedBooks = books.countByAvailable(false);
     var availableBooks = books.countByAvailable(true);
     var overdueCount =
-        borrowRecords
-            .findByReturnDateIsNullAndBorrowDateBefore(LocalDate.now().minusDays(14))
-            .size();
+        borrowRecords.findByReturnDateIsNull().stream()
+            .filter(OverdueCalculator::isOverdue)
+            .count();
     return new AnalyticsDashboardResponse(
         totalBooks, totalStudents, totalLibrarians, borrowedBooks, availableBooks, overdueCount);
   }
@@ -75,9 +75,9 @@ public class AnalyticsService {
 
   @Transactional(readOnly = true)
   public OverdueSummaryResponse overdue() {
-    var cutoff = LocalDate.now().minusDays(14);
     var items =
-        borrowRecords.findByReturnDateIsNullAndBorrowDateBefore(cutoff).stream()
+        borrowRecords.findByReturnDateIsNull().stream()
+            .filter(OverdueCalculator::isOverdue)
             .map(
                 r ->
                     new OverdueSummaryResponse.OverdueItem(
@@ -85,7 +85,7 @@ public class AnalyticsService {
                         itemTitle(r),
                         r.getBorrowerName(),
                         r.getBorrowDate(),
-                        LocalDate.now().toEpochDay() - r.getBorrowDate().toEpochDay()))
+                        OverdueCalculator.daysOverdue(r)))
             .toList();
     return new OverdueSummaryResponse(items.size(), items);
   }

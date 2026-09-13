@@ -1,7 +1,6 @@
 package com.example.lms.controller;
 
 import com.example.lms.dto.*;
-import com.example.lms.repository.StudentProfileRepository;
 import com.example.lms.service.BorrowRecordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,11 +16,9 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Borrow Records", description = "Borrow and return workflow")
 public class BorrowRecordController {
   private final BorrowRecordService service;
-  private final StudentProfileRepository studentRepo;
 
-  public BorrowRecordController(BorrowRecordService s, StudentProfileRepository sr) {
+  public BorrowRecordController(BorrowRecordService s) {
     service = s;
-    studentRepo = sr;
   }
 
   @GetMapping
@@ -43,14 +40,8 @@ public class BorrowRecordController {
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size,
       Authentication auth) {
-    Long studentId =
-        studentRepo
-            .findByAccountUsername(auth.getName())
-            .orElseThrow(
-                () -> new com.example.lms.exception.ResourceNotFoundException("Student not found."))
-            .getId();
-    return service.listByStudentId(
-        studentId, status, org.springframework.data.domain.PageRequest.of(page, size));
+    return service.listByCurrentStudent(
+        auth.getName(), status, org.springframework.data.domain.PageRequest.of(page, size));
   }
 
   @PostMapping

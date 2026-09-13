@@ -6,6 +6,7 @@ import com.example.lms.event.EntityAuditEvent;
 import com.example.lms.exception.*;
 import com.example.lms.repository.*;
 import com.example.lms.util.CurrentUser;
+import com.example.lms.util.OverdueCalculator;
 import java.time.LocalDate;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
@@ -64,6 +65,17 @@ public class BorrowRecordService {
                 ? records.findByStudentIdAndReturnDateIsNotNull(studentId, pageable)
                 : records.findByStudentId(studentId, pageable);
     return source.map(this::response);
+  }
+
+  @Transactional(readOnly = true)
+  public Page<BorrowRecordResponse> listByCurrentStudent(
+      String username, String status, Pageable pageable) {
+    Long studentId =
+        students
+            .findByAccountUsername(username)
+            .orElseThrow(() -> new ResourceNotFoundException("Student not found."))
+            .getId();
+    return listByStudentId(studentId, status, pageable);
   }
 
   @Transactional
@@ -196,17 +208,8 @@ public class BorrowRecordService {
       itemType = "NEWSPAPER";
     }
 
-    LocalDate dueDate = r.getDueDate() != null ? r.getDueDate() : r.getBorrowDate().plusDays(14);
-    long daysOverdue = 0L;
-    if (r.getReturnDate() == null) {
-      if (LocalDate.now().isAfter(dueDate)) {
-        daysOverdue = java.time.temporal.ChronoUnit.DAYS.between(dueDate, LocalDate.now());
-      }
-    } else {
-      if (r.getReturnDate().isAfter(dueDate)) {
-        daysOverdue = java.time.temporal.ChronoUnit.DAYS.between(dueDate, r.getReturnDate());
-      }
-    }
+    LocalDate dueDate = OverdueCalculator.effectiveDueDate(r);
+    long daysOverdue = OverdueCalculator.daysOverdue(r);
 
     return new BorrowRecordResponse(
         r.getId(),
