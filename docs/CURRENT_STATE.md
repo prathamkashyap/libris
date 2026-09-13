@@ -1,7 +1,7 @@
 # CURRENT_STATE.md
 
-> Engineering knowledge base — Library Management System
-> Last updated: 2026-08-03
+> Engineering knowledge base — Libris Library Management System
+> Last updated: 2026-08-26
 
 ---
 
@@ -9,25 +9,28 @@
 
 | Field | Value |
 |-------|-------|
-| Version | `0.0.1-SNAPSHOT` (unreleased) |
-| Branch | `feature/v1.1-analytics-reports-docker` |
-| Total commits | 33 |
-| Session commits | 11 (Phase 0–6 + repository stabilization) |
+| Version | `v1.1.0` |
+| Maven artifactId | `libris` |
+| Spring application name | `libris` |
+| Branch | `main` (feature branch: `feature/v1.1-analytics-reports-docker`) |
+| Live deployment | Railway (Docker + MySQL) |
 
 ---
 
 ## 2. Test Suite
 
-**20 passing tests** across 4 test classes:
+**21 passing tests** across 5 test classes:
 
 | Test File | Type | Methods | Coverage |
 |-----------|------|---------|----------|
 | `CrudIntegrationTest` | Integration (MockMvc) | 8 | Magazine/Newspaper CRUD, Student/Librarian update+delete, Dashboard, Audit, duplicate username, duplicate email |
-| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 10 | Login, full CRUD + borrow/return, validation, ISBN conflicts, 401/403, self-registration, registration validation, register CSRF, profile endpoint, Swagger UI/OpenAPI docs public access, book category CRUD |
+| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 11 | Login, full CRUD + borrow/return, validation, ISBN conflicts, 401/403, self-registration, registration validation, register CSRF, profile endpoint, Swagger/OpenAPI public access, book category CRUD, `/actuator/health` public |
 | `BrowserCsrfFlowIntegrationTest` | Integration (real CSRF flow) | 1 | CSRF bootstrap → login → session reuse → logout → post-logout rejection |
 | `BookRepositoryTest` | Repository | 1 | Audit timestamp population, ISBN uniqueness constraint |
+| `TestBCrypt` | Unit | 1 | BCrypt wiring sanity |
 
 Tests use H2 in MySQL compatibility mode (`create-drop` schema strategy).
+
 
 ---
 
