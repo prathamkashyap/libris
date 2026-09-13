@@ -34,7 +34,12 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
 
   boolean existsByNewspaperId(Long newspaperId);
 
+  boolean existsByStudentId(Long studentId);
+
   long countByReturnDateIsNull();
+
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
+  List<BorrowRecord> findByReturnDateIsNull();
 
   java.util.List<BorrowRecord> findByReturnDateIsNullAndBorrowDateBefore(LocalDate date);
 

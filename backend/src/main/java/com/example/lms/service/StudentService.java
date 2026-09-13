@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class StudentService {
   private final StudentProfileRepository students;
   private final AccountRepository accounts;
+  private final BorrowRecordRepository borrowRecords;
   private final PasswordEncoder passwords;
   private final ApplicationEventPublisher events;
   private final CurrentUser currentUser;
@@ -23,11 +24,13 @@ public class StudentService {
   public StudentService(
       StudentProfileRepository s,
       AccountRepository a,
+      BorrowRecordRepository br,
       PasswordEncoder p,
       ApplicationEventPublisher events,
       CurrentUser currentUser) {
     students = s;
     accounts = a;
+    borrowRecords = br;
     passwords = p;
     this.events = events;
     this.currentUser = currentUser;
@@ -115,6 +118,8 @@ public class StudentService {
   @Transactional
   public void delete(Long id) {
     var p = student(id);
+    if (borrowRecords.existsByStudentId(id))
+      throw new ConflictException("A student with borrow history cannot be deleted.");
     var name = p.getName();
     var account = p.getAccount();
     students.delete(p);
