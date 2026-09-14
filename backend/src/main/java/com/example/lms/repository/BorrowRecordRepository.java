@@ -68,6 +68,10 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
   java.util.List<BorrowRecord> findByIdGreaterThan(
       Long id, org.springframework.data.domain.Pageable pageable);
 
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
+  java.util.List<BorrowRecord> findByBorrowDateBetweenAndIdGreaterThan(
+      LocalDate from, LocalDate to, Long id, org.springframework.data.domain.Pageable pageable);
+
   long count();
 
   @Query(

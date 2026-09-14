@@ -4,11 +4,18 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.example.lms.entity.Book;
+import com.example.lms.entity.BorrowRecord;
+import com.example.lms.entity.StudentProfile;
+import com.example.lms.repository.BookRepository;
 import com.example.lms.repository.BorrowRecordRepository;
+import com.example.lms.repository.StudentProfileRepository;
 import com.example.lms.security.LoginAttemptTracker;
 import com.example.lms.security.PasswordValidator;
+import com.example.lms.service.ReportService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
+import java.time.LocalDate;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +23,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.test.web.servlet.*;
 
 @SpringBootTest
@@ -25,9 +33,19 @@ class SecurityHardeningTest {
   @Autowired ObjectMapper json;
   @Autowired BorrowRecordRepository borrowRecords;
   @Autowired LoginAttemptTracker loginAttempts;
+  @Autowired BookRepository books;
+  @Autowired StudentProfileRepository students;
+  @Autowired ReportService reportService;
+  @Autowired SessionRegistryImpl sessionRegistry;
 
   @Value("${lms.admin.password}")
   String adminPassword;
+
+  @Value("${server.servlet.session.cookie.secure}")
+  boolean sessionCookieSecure;
+
+  @Value("${server.servlet.session.cookie.same-site}")
+  String sessionCookieSameSite;
 
   private MockHttpSession adminSession;
   private Cookie csrfCookie;
@@ -107,6 +125,18 @@ class SecurityHardeningTest {
     Assertions.assertFalse(loginAttempts.isLocked("expireuser"));
   }
 
+  @Test
+  void loginTrackerNormalizesUsernameCase() {
+    loginAttempts.recordFailure("Alice");
+    loginAttempts.recordFailure("alice");
+    loginAttempts.recordFailure("ALICE");
+    loginAttempts.recordFailure("aLiCe");
+    loginAttempts.recordFailure("AliCe");
+    Assertions.assertTrue(loginAttempts.isLocked("alice"));
+    Assertions.assertTrue(loginAttempts.isLocked("ALICE"));
+    Assertions.assertEquals(0, loginAttempts.getRemainingAttempts("Alice"));
+  }
+
   // ==================== H2: Password policy ====================
 
   @Test
@@ -156,12 +186,69 @@ class SecurityHardeningTest {
         .andExpect(jsonPath("$.code").value("WEAK_PASSWORD"));
   }
 
+  // ==================== H3: Session cookie attributes ====================
+
+  @Test
+  void sessionCookieHasSecureAndSameSiteAttributes() {
+    Assertions.assertTrue(sessionCookieSecure, "Session cookie must have Secure flag");
+    Assertions.assertEquals("lax", sessionCookieSameSite, "Session cookie must have SameSite=Lax");
+  }
+
+  // ==================== H4: Concurrent session control ====================
+
+  @Test
+  void secondLoginInvalidatesFirstSession() throws Exception {
+    MvcResult csrfResult1 =
+        mvc.perform(get("/api/auth/csrf")).andExpect(status().isOk()).andReturn();
+    Cookie csrf1 = csrfResult1.getResponse().getCookie("XSRF-TOKEN");
+
+    String body =
+        "{\"username\":\"admin\",\"password\":\"" + adminPassword.replace("\"", "\\\"") + "\"}";
+
+    mvc.perform(
+            post("/api/auth/login")
+                .session(new MockHttpSession())
+                .cookie(csrf1)
+                .header("X-XSRF-TOKEN", csrf1.getValue())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isOk());
+
+    var principalsAfterFirst = sessionRegistry.getAllPrincipals();
+    int sessionsAfterFirst = 0;
+    for (var principal : principalsAfterFirst) {
+      sessionsAfterFirst += sessionRegistry.getAllSessions(principal, false).size();
+    }
+
+    MvcResult csrfResult2 =
+        mvc.perform(get("/api/auth/csrf")).andExpect(status().isOk()).andReturn();
+    Cookie csrf2 = csrfResult2.getResponse().getCookie("XSRF-TOKEN");
+
+    mvc.perform(
+            post("/api/auth/login")
+                .session(new MockHttpSession())
+                .cookie(csrf2)
+                .header("X-XSRF-TOKEN", csrf2.getValue())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isOk());
+
+    var principalsAfterSecond = sessionRegistry.getAllPrincipals();
+    int sessionsAfterSecond = 0;
+    for (var principal : principalsAfterSecond) {
+      sessionsAfterSecond += sessionRegistry.getAllSessions(principal, false).size();
+    }
+
+    Assertions.assertTrue(
+        sessionsAfterSecond <= 1,
+        "Session registry should have at most 1 session per user after second login, had "
+            + sessionsAfterSecond);
+  }
+
   // ==================== H5: Swagger disabled by default ====================
 
   @Test
   void swaggerUiDisabledWithoutProfile() throws Exception {
-    // Swagger paths are not permitAll when springdoc.swagger-ui.enabled=false,
-    // so unauthenticated requests should get 401 (secured by auth)
     mvc.perform(get("/v3/api-docs")).andExpect(status().isUnauthorized());
     mvc.perform(get("/swagger-ui.html")).andExpect(status().isUnauthorized());
     mvc.perform(get("/swagger-ui/index.html")).andExpect(status().isUnauthorized());
@@ -189,5 +276,84 @@ class SecurityHardeningTest {
             IllegalStateException.class,
             () -> seeder.seedAdmin(null, null, "admin", "").run(new String[] {}));
     Assertions.assertTrue(ex.getMessage().contains("required"));
+  }
+
+  // ==================== C2: Report completeness with >500 records ====================
+
+  @Test
+  void inventoryCsvContainsAllRecordsAcrossBatches() {
+    for (int i = 0; i < 600; i++) {
+      Book b = new Book();
+      b.setTitle("Batch Book " + i);
+      b.setAuthor("Author " + i);
+      b.setIsbn(String.format("978000000%04d", i + 100));
+      b.setAvailable(true);
+      books.save(b);
+    }
+
+    String csv = reportService.inventoryCsv();
+    String[] lines = csv.split("\n");
+    long bookCount = java.util.Arrays.stream(lines).filter(l -> l.startsWith("Book,")).count();
+    Assertions.assertTrue(bookCount >= 600, "Expected at least 600 book rows, got " + bookCount);
+    Assertions.assertEquals(bookCount + 1, lines.length, "CSV should have header + book rows only");
+  }
+
+  @Test
+  void borrowingCsvDateRangeIsBounded() throws Exception {
+    MvcResult csrfResult =
+        mvc.perform(get("/api/auth/csrf")).andExpect(status().isOk()).andReturn();
+    Cookie localCsrf = csrfResult.getResponse().getCookie("XSRF-TOKEN");
+
+    mvc.perform(
+            post("/api/auth/register")
+                .cookie(localCsrf)
+                .header("X-XSRF-TOKEN", localCsrf.getValue())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"username\":\"datestudent\",\"password\":\"Password123!\",\"name\":\"Date Student\",\"email\":\"datestudent@example.com\",\"phone\":\"555-9001\"}"))
+        .andExpect(status().isCreated());
+
+    StudentProfile student = students.findByAccountUsername("datestudent").orElseThrow();
+
+    for (int i = 0; i < 550; i++) {
+      BorrowRecord r = new BorrowRecord();
+      r.setBorrowDate(LocalDate.of(2025, 1, 1).plusDays(i % 365));
+      r.setBorrowerName("Borrower " + i);
+      r.setBorrowerEmail("borrower" + i + "@example.com");
+      r.setBorrowerPhone("555-0000");
+      r.setStudent(student);
+      borrowRecords.save(r);
+    }
+
+    String csv = reportService.borrowingCsv(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 6, 30));
+    String[] lines = csv.split("\n");
+    long dataRows = lines.length - 1;
+    Assertions.assertTrue(dataRows >= 180, "Expected at least 180 rows in range, got " + dataRows);
+
+    String allCsv = reportService.borrowingCsv(null, null);
+    long totalRows = allCsv.split("\n").length - 1;
+    Assertions.assertTrue(totalRows >= 550, "Expected at least 550 total rows, got " + totalRows);
+  }
+
+  @Test
+  void studentsCsvIncludesAccountUsernameWithoutNPlusOne() throws Exception {
+    MvcResult csrfResult =
+        mvc.perform(get("/api/auth/csrf")).andExpect(status().isOk()).andReturn();
+    Cookie localCsrf = csrfResult.getResponse().getCookie("XSRF-TOKEN");
+
+    mvc.perform(
+            post("/api/auth/register")
+                .cookie(localCsrf)
+                .header("X-XSRF-TOKEN", localCsrf.getValue())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"username\":\"csvtestuser\",\"password\":\"Password123!\",\"name\":\"CSV Test User\",\"email\":\"csvtest@example.com\",\"phone\":\"555-9002\"}"))
+        .andExpect(status().isCreated());
+
+    String csv = reportService.studentsCsv();
+    String[] lines = csv.split("\n");
+    Assertions.assertTrue(lines.length > 1, "Students CSV must have data rows");
+    boolean hasUser = java.util.Arrays.stream(lines).anyMatch(l -> l.contains("csvtestuser"));
+    Assertions.assertTrue(hasUser, "Students CSV must include csvtestuser username");
   }
 }

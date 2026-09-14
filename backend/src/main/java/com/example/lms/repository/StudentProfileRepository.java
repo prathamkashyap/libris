@@ -23,5 +23,10 @@ public interface StudentProfileRepository extends JpaRepository<StudentProfile, 
       "SELECT s FROM StudentProfile s LEFT JOIN FETCH s.account WHERE LOWER(s.name) LIKE LOWER(CONCAT('%',:q,'%')) OR LOWER(s.email) LIKE LOWER(CONCAT('%',:q,'%')) OR LOWER(s.account.username) LIKE LOWER(CONCAT('%',:q,'%'))")
   Page<StudentProfile> search(@Param("q") String q, Pageable pageable);
 
+  @EntityGraph(attributePaths = {"account"})
   java.util.List<StudentProfile> findByIdGreaterThan(Long id, Pageable pageable);
+
+  @Query("SELECT s FROM StudentProfile s LEFT JOIN FETCH s.account WHERE s.id > :id")
+  java.util.List<StudentProfile> findByIdGreaterThanWithAccount(
+      @Param("id") Long id, Pageable pageable);
 }

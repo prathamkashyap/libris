@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -23,6 +24,7 @@ public class SecurityConfig {
   private final RestAccessDeniedHandler accessDeniedHandler;
   private final CustomOidcUserService oidcUserService;
   private final boolean swaggerEnabled;
+  private final SessionRegistryImpl sessionRegistry = new SessionRegistryImpl();
 
   public SecurityConfig(
       AccountUserDetailsService users,
@@ -59,6 +61,11 @@ public class SecurityConfig {
   }
 
   @Bean
+  SessionRegistryImpl sessionRegistry() {
+    return sessionRegistry;
+  }
+
+  @Bean
   SecurityFilterChain security(
       HttpSecurity http,
       org.springframework.beans.factory.ObjectProvider<
@@ -77,6 +84,7 @@ public class SecurityConfig {
                     .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                     .maximumSessions(1)
                     .maxSessionsPreventsLogin(false)
+                    .sessionRegistry(sessionRegistry)
                     .expiredUrl("/login.html?expired"))
         .exceptionHandling(
             exceptions ->

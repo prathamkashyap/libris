@@ -114,11 +114,14 @@ public class ReportService {
             "Status");
     var rows = new ArrayList<String>();
     if (from != null && to != null) {
-      var records =
-          borrowRecords.findByBorrowDateBetween(
-              from, to, Sort.by(Sort.Direction.DESC, "borrowDate"));
-      for (var r : records) {
-        rows.add(borrowRow(r));
+      long lastId = 0;
+      while (true) {
+        var batch =
+            borrowRecords.findByBorrowDateBetweenAndIdGreaterThan(
+                from, to, lastId, PageRequest.of(0, BATCH_SIZE, Sort.by("id")));
+        if (batch.isEmpty()) break;
+        batch.forEach(r -> rows.add(borrowRow(r)));
+        lastId = batch.get(batch.size() - 1).getId();
       }
     } else {
       long lastId = 0;
@@ -155,7 +158,8 @@ public class ReportService {
     long lastStudentId = 0;
     while (true) {
       var batch =
-          students.findByIdGreaterThan(lastStudentId, PageRequest.of(0, BATCH_SIZE, Sort.by("id")));
+          students.findByIdGreaterThanWithAccount(
+              lastStudentId, PageRequest.of(0, BATCH_SIZE, Sort.by("id")));
       if (batch.isEmpty()) break;
       batch.forEach(
           s -> {
