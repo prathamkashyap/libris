@@ -27,7 +27,7 @@ CI (`.github/workflows/ci.yml`) runs `mvn spotless:check` then
 | Variable | Required | Notes |
 |----------|----------|-------|
 | `LMS_DB_PASSWORD` | prod/dev MySQL, Docker | MySQL root password |
-| `LMS_ADMIN_PASSWORD` | first startup | `AdminSeeder` creates `admin`; blank → defaults to `ChangeMe123!` |
+| `LMS_ADMIN_PASSWORD` | Prod / Docker | `AdminSeeder` rejects blank/null; main config defaults to `ChangeMe123!` for local dev; always override in production |
 
 Tests default `LMS_ADMIN_PASSWORD` to `ChangeMe123!` via
 `backend/src/test/resources/application.properties`, so `./mvnw test` needs no env.
@@ -68,7 +68,7 @@ cd backend && cp .env.example .env && docker compose up --build
 ```
 
 App runs at <http://localhost:8080>; Swagger UI at
-`/swagger-ui.html` (public, no login needed); actuator at `/actuator` (public health endpoint).
+`/swagger-ui.html` (public when SpringDoc is enabled, disabled by `prod` profile); actuator at `/actuator` (public health endpoint).
 
 ## Architecture & conventions
 
@@ -81,7 +81,8 @@ Browser → Fetch API → REST Controllers (/api/**) → @Transactional Services
 - Authorization is enforced at the **URL-pattern** level in `SecurityConfig`
   (no method-level `@PreAuthorize`). Roles: `ADMIN`, `LIBRARIAN`, `STUDENT`.
 - Public paths (no auth needed): `/login.html`, `/register.html`, `/css/**`, `/js/**`,
-  `/swagger-ui/**`, `/swagger-ui.html`, `/v3/api-docs/**`, `/actuator/**`.
+  `/swagger-ui/**`, `/swagger-ui.html`, `/v3/api-docs/**`, `/actuator/**`,
+  `/api/auth/login`, `/api/auth/csrf`, `/api/auth/register`.
 - CSRF: frontend calls `GET /api/auth/csrf` to set `XSRF-TOKEN` cookie, then
   sends it back as `X-XSRF-TOKEN` header; sessions use `JSESSIONID`. The
   `BrowserCsrfFlowIntegrationTest` mirrors this real flow.
@@ -122,5 +123,8 @@ Run one: `./mvnw test -Dtest=LibraryManagementIntegrationTest`.
 ## Docs worth referencing
 
 `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/SECURITY.md`, `docs/SETUP.md`,
-`docs/TESTING.md`, `docs/DATABASE.md`, `docs/FRONTEND.md`, `docs/DEPLOYMENT.md`.
+`docs/TESTING.md`, `docs/DATABASE.md`, `docs/FRONTEND.md`, `docs/DEPLOYMENT.md`,
+`docs/CURRENT_STATE.md`, `scripts/dev-seed/MODEL_SPECIFICATION.md`,
+`scripts/dev-realdata/ML_POPULATION_DEFINITION.md`,
+`scripts/dev-realdata/readiness_monitor.py`.
 

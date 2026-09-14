@@ -3,8 +3,8 @@
   <h1>Libris — Library Management System</h1>
   <p><strong>A modern, responsive, and robust library management platform built with Spring Boot 3.5 and Vanilla ES Modules.</strong></p>
 
-  [![Build Status](https://img.shields.io/github/actions/workflow/status/prathamkashyap/library-management-system/ci.yml?branch=main&style=for-the-badge&logo=github)](https://github.com/prathamkashyap/library-management-system/actions)
-  [![Coverage](https://img.shields.io/badge/coverage-70%25%2B-success?style=for-the-badge)](https://github.com/prathamkashyap/library-management-system)
+  [![Build Status](https://img.shields.io/github/actions/workflow/status/prathamkashyap/libris/ci.yml?branch=main&style=for-the-badge&logo=github)](https://github.com/prathamkashyap/libris/actions)
+  [![Coverage](https://img.shields.io/badge/coverage-70%25%2B-success?style=for-the-badge)](https://github.com/prathamkashyap/libris)
   [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
   [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-6DB33F?style=for-the-badge&logo=spring-boot)](https://spring.io/projects/spring-boot)
   [![Java](https://img.shields.io/badge/Java-21-007396?style=for-the-badge&logo=java)](https://openjdk.org/projects/jdk/21/)
@@ -23,7 +23,7 @@ Libris is a comprehensive Library Management System designed for educational ins
 | **Role-Based Access** | Strictly enforced permissions for `ADMIN`, `LIBRARIAN`, and `STUDENT` across all endpoints. |
 | **Complete Cataloging** | Track Books, Magazines, and Newspapers with ISBN validation, book categories/genres, and availability locks. |
 | **Borrowing Workflow** | Automated checkout, 14-day due date defaults, real-time overdue tracking, and return history. |
-| **Interactive API Docs** | Auto-generated **Swagger UI** at `/swagger-ui.html` (OpenAPI 3.0) — browse and test all endpoints live. |
+| **Interactive API Docs** | Auto-generated **Swagger UI** at `/swagger-ui.html` (OpenAPI 3.0) when SpringDoc is enabled; the `prod` profile disables it. |
 | **Analytics & Reports** | Dashboard analytics, CSV exports (inventory and borrowing history with due dates). |
 | **Modern UX/UI** | Fast, vanilla ES Modules frontend with dynamic shell, command palette, custom CSS themes, and responsive design. |
 | **Audit & Observability** | JPA auditing (`created_at`/`updated_at`), **Structured JSON Logging** for ELK/Datadog, Actuator health/metrics. |
@@ -45,8 +45,8 @@ flowchart LR
 ### Option A — Docker Compose (Local)
 
 ```bash
-git clone https://github.com/prathamkashyap/library-management-system.git
-cd library-management-system/backend
+git clone https://github.com/prathamkashyap/libris.git
+cd libris/backend
 cp .env.example .env
 # Edit .env: set LMS_DB_PASSWORD and LMS_ADMIN_PASSWORD
 docker compose up --build
@@ -69,15 +69,28 @@ export LMS_ADMIN_PASSWORD=ChangeMe123!
 3. Set env vars: `LMS_DB_URL`, `LMS_DB_USERNAME`, `LMS_DB_PASSWORD`, `LMS_ADMIN_PASSWORD`, `SPRING_PROFILES_ACTIVE=docker`.
 4. Railway auto-detects `railway.json` and the multi-stage `Dockerfile`.
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for Render, Fly.io, and Hugging Face Spaces guides.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the verified Railway deployment, Render, Fly.io, Hugging Face Spaces, and Docker Compose guides.
+
+## 📊 Data Readiness & ML Boundary
+
+Libris is a production library application first. The synthetic overdue-risk pipeline under
+`scripts/dev-seed/` is a frozen feasibility benchmark, not a model deployed to the application.
+Real-data ML evaluation is gated by `scripts/dev-realdata/readiness_monitor.py`; no real-data
+model is trained or promoted until its population, point-in-time, and sufficiency checks pass.
+
+Frozen synthetic benchmark: logistic regression ROC-AUC `0.735`, PR-AUC `0.617`, and F1
+`0.602` at threshold `0.25`; temporal F1 CV is `0.067`. See
+[MODEL_SPECIFICATION.md](scripts/dev-seed/MODEL_SPECIFICATION.md),
+[ML_POPULATION_DEFINITION.md](scripts/dev-realdata/ML_POPULATION_DEFINITION.md), and
+[PHASE5_PRODUCTION_READINESS.md](scripts/dev-realdata/PHASE5_PRODUCTION_READINESS.md).
 
 ## 📋 API Documentation
 
 | Endpoint | Description |
 |---|---|
-| `/swagger-ui.html` | Interactive Swagger UI (try any endpoint live — no login required) |
-| `/v3/api-docs` | Raw OpenAPI 3.0 JSON spec |
-| `/actuator/health` | Health check probe |
+| `/swagger-ui.html` | Interactive Swagger UI when SpringDoc is enabled; no login is required by `SecurityConfig` |
+| `/v3/api-docs` | Raw OpenAPI 3.0 JSON when SpringDoc is enabled; disabled by the `prod` profile |
+| `/actuator/health` | Public health check probe |
 
 ## 🧪 Running Tests
 
@@ -99,7 +112,10 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for Render, Fly.io, and Hugging Fac
 | [SECURITY.md](docs/SECURITY.md) | CSRF, session, OAuth2 OIDC, role matrix |
 | [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Railway, Render, Fly.io, Hugging Face, Docker Compose |
 | [FRONTEND.md](docs/FRONTEND.md) | ES module architecture, component injection, theming |
-| [CURRENT_STATE.md](docs/CURRENT_STATE.md) | Live test counts, coverage, feature inventory |
+| [CURRENT_STATE.md](docs/CURRENT_STATE.md) | Current release, test inventory, deployment, and ML/data-readiness state |
+| [MODEL_SPECIFICATION.md](scripts/dev-seed/MODEL_SPECIFICATION.md) | Frozen synthetic overdue-risk benchmark |
+| [ML_POPULATION_DEFINITION.md](scripts/dev-realdata/ML_POPULATION_DEFINITION.md) | Real-data ML population and point-in-time rules |
+| [PHASE5_PRODUCTION_READINESS.md](scripts/dev-realdata/PHASE5_PRODUCTION_READINESS.md) | Production data-readiness review |
 
 ## 📄 License
 

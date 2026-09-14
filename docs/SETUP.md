@@ -1,6 +1,6 @@
 # Setup
 
-> **Source of truth as of:** 30 July 2026
+> **Source of truth as of:** 13 September 2026
 
 How to run the Library Management System locally and with Docker.
 
@@ -27,8 +27,8 @@ All configuration is via environment variables (or a `.env` file via Spring Boot
 |----------|----------|---------|-------------|
 | `LMS_DB_URL` | No | `jdbc:mysql://localhost:3306/librarydb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC` | MySQL JDBC URL |
 | `LMS_DB_USERNAME` | No | `root` | MySQL username |
-| `LMS_DB_PASSWORD` | **Yes** | — | MySQL password |
-| `LMS_ADMIN_PASSWORD` | **Yes** | — | Initial admin password (required on first startup if no admin exists) |
+| `LMS_DB_PASSWORD` | Prod / Docker | — | MySQL password (not needed for H2) |
+| `LMS_ADMIN_PASSWORD` | Prod / Docker | `ChangeMe123!` | Admin password; main config supplies `ChangeMe123!` fallback for local H2 dev; always override in production |
 | `GOOGLE_CLIENT_ID` | No | — | Google OAuth2 client ID (for OAuth login) |
 | `GOOGLE_CLIENT_SECRET` | No | — | Google OAuth2 client secret |
 
@@ -118,7 +118,7 @@ export LMS_ADMIN_PASSWORD=ChangeMe123!
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
 ```
 
-The H2 profile uses an in-memory database with `ddl-auto=create-drop`. You must set `LMS_ADMIN_PASSWORD` or the application will fail on startup.
+The H2 profile uses an in-memory database with `ddl-auto=create-drop`. The admin password defaults to `ChangeMe123!` via the main `application.properties`; you can override it by exporting `LMS_ADMIN_PASSWORD`.
 
 ---
 
@@ -126,19 +126,20 @@ The H2 profile uses an in-memory database with `ddl-auto=create-drop`. You must 
 
 The application uses a `CommandLineRunner` (`AdminSeeder`) to create the initial administrator:
 
-- **Username:** `admin` (hardcoded)
-- **Password:** Read from `LMS_ADMIN_PASSWORD` configuration property
+- **Username:** `admin` (hardcoded via `lms.admin.username`)
+- **Password:** Read from `lms.admin.password` configuration property (main config defaults to `ChangeMe123!`)
 - **Behavior:**
-  - If an `admin` account already exists, the seeder does nothing.
-  - If no admin exists and `LMS_ADMIN_PASSWORD` is set, the admin is created with BCrypt-hashed password.
-  - If no admin exists and `LMS_ADMIN_PASSWORD` is not set or blank, the application fails with `IllegalStateException`.
-- **No hardcoded default credentials.** The admin password must always be provided via configuration.
+  - If an `admin` account already exists and the password matches, no change is made.
+  - If an `admin` account exists but the password differs, it is updated.
+  - If no `admin` exists, a new account is created with `ROLE_ADMIN`.
+  - If the resolved password is null or blank, the application fails with `IllegalStateException`.
+- **Production:** Always set `LMS_ADMIN_PASSWORD` to a strong value. The `ChangeMe123!` default is for local development only.
 
 ---
 
 ## Swagger UI
 
-Once running, explore the API interactively at <http://localhost:8080/swagger-ui/index.html>.
+Once running, explore the API interactively at <http://localhost:8080/swagger-ui.html>. Swagger is public when SpringDoc is enabled; the `prod` profile disables it.
 
 ---
 
@@ -168,4 +169,4 @@ Tests use dummy values in `src/test/resources/application.properties`. No action
 
 ## CSRF and Sessions
 
-The frontend requests `GET /api/auth/csrf` on page load, receives a readable `XSRF-TOKEN` cookie, and forwards it as `X-XSRF-TOKEN` for state-changing Fetch requests. Authentication is session-based (`JSESSIONID` cookie); no JWT is used in v1.0.0. See [SECURITY.md](SECURITY.md) for the full security model.
+The frontend requests `GET /api/auth/csrf` on page load, receives a readable `XSRF-TOKEN` cookie, and forwards it as `X-XSRF-TOKEN` for state-changing Fetch requests. Authentication is session-based (`JSESSIONID` cookie); no JWT is used. See [SECURITY.md](SECURITY.md) for the full security model.

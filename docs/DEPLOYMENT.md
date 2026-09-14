@@ -1,5 +1,7 @@
 # Deployment Guide
 
+> **Source of truth as of:** 13 September 2026
+
 Comprehensive instructions for containerizing and deploying the Libris Library Management System across cloud providers (Railway, Render, Fly.io, Hugging Face Spaces, and Docker VPS).
 
 ---
@@ -10,7 +12,7 @@ Comprehensive instructions for containerizing and deploying the Libris Library M
 - **Database:** MySQL 8+ in production (`ddl-auto=none`, Flyway versioned migrations). H2 in-memory for testing/development.
 - **Dynamic Port:** Configured via `server.port=${PORT:8080}` to automatically bind to cloud platform port assignments.
 - **Health Checks & Actuator:** Built-in Spring Boot Actuator at `/actuator/health` and `/actuator/info`.
-- **API Documentation:** Interactive Swagger UI at `/swagger-ui.html` and OpenAPI 3 spec at `/v3/api-docs`.
+- **API Documentation:** Interactive Swagger UI at `/swagger-ui.html` and OpenAPI 3 spec at `/v3/api-docs` when SpringDoc is enabled; the `prod` profile disables both.
 
 ---
 
@@ -35,9 +37,19 @@ Railway natively provisions both the Spring Boot Docker container and a managed 
 4. **Deploy:**
    - Railway uses `railway.json` and the multi-stage `Dockerfile` automatically.
    - Generate a public domain under service **Settings** → **Networking**.
-   - Visit `https://<your-app>.up.railway.app` and `https://<your-app>.up.railway.app/swagger-ui.html`.
+   - Visit `https://<your-app>.up.railway.app` and `https://<your-app>.up.railway.app/swagger-ui.html` (when SpringDoc is enabled).
 
 ---
+
+### Verified Libris Deployment
+
+A verified Railway deployment is running at `https://libris-lms.up.railway.app`.
+
+- **Runtime:** Railway Docker + managed MySQL
+- **Schema:** Flyway V1–V4 applied; `ddl-auto=none`
+- **Admin:** `AdminSeeder` creates only the `admin` account
+- **Synthetic data:** None — the application serves real library circulation data only
+- **ML readiness:** `readiness_monitor.py` currently reports NOT READY because real-data thresholds are not yet met (insufficient historical volume)
 
 ### Platform B: Render
 
@@ -86,8 +98,8 @@ Render deploys the Docker container as a Web Service and connects to a managed M
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/prathamkashyap/library-management-system.git
-cd library-management-system
+git clone https://github.com/prathamkashyap/libris.git
+cd libris
 
 # 2. Configure environment
 cp .env.example .env
@@ -110,7 +122,7 @@ Access at <http://localhost:8080>.
 
 | Variable | Required | Default | Notes |
 |---|---|---|---|
-| `LMS_ADMIN_PASSWORD` | **Yes** | — | Password used by `AdminSeeder` to bootstrap the initial `admin` account |
+| `LMS_ADMIN_PASSWORD` | Prod / Docker | `ChangeMe123!` | Admin password; main config supplies a local-dev fallback; always override in production |
 | `LMS_DB_PASSWORD` | Prod / Docker | — | Password for the MySQL database |
 | `LMS_DB_USERNAME` | No | `root` | MySQL username |
 | `LMS_DB_URL` | No | `jdbc:mysql://localhost:3306/librarydb...` | JDBC connection URL |
@@ -124,8 +136,7 @@ Access at <http://localhost:8080>.
 ## 4. Health Checks & Verification
 
 - **Liveness & Readiness:** `GET /actuator/health`
-- **Swagger Documentation:** `GET /swagger-ui.html`
-- **OpenAPI JSON Spec:** `GET /v3/api-docs`
+- **Swagger Documentation:** `GET /swagger-ui.html` (when SpringDoc is enabled)
+- **OpenAPI JSON Spec:** `GET /v3/api-docs` (when SpringDoc is enabled)
 - **CSRF Token Bootstrap:** `GET /api/auth/csrf`
 - **Actuator Metrics:** `GET /actuator/metrics`
- |

@@ -1,7 +1,7 @@
 # CURRENT_STATE.md
 
 > Engineering knowledge base — Libris Library Management System
-> Last updated: 2026-08-26
+> Last updated: 2026-09-13
 
 ---
 
@@ -12,25 +12,27 @@
 | Version | `v1.1.0` |
 | Maven artifactId | `libris` |
 | Spring application name | `libris` |
-| Branch | `main` (feature branch: `feature/v1.1-analytics-reports-docker`) |
-| Live deployment | Railway (Docker + MySQL) |
+| Branch | `main` |
+| Live deployment | Railway (Docker + MySQL) at `https://libris-lms.up.railway.app` |
 
 ---
 
 ## 2. Test Suite
 
-**21 passing tests** across 5 test classes:
+**35 passing tests** across 6 test classes:
 
 | Test File | Type | Methods | Coverage |
 |-----------|------|---------|----------|
-| `CrudIntegrationTest` | Integration (MockMvc) | 8 | Magazine/Newspaper CRUD, Student/Librarian update+delete, Dashboard, Audit, duplicate username, duplicate email |
-| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 11 | Login, full CRUD + borrow/return, validation, ISBN conflicts, 401/403, self-registration, registration validation, register CSRF, profile endpoint, Swagger/OpenAPI public access, book category CRUD, `/actuator/health` public |
-| `BrowserCsrfFlowIntegrationTest` | Integration (real CSRF flow) | 1 | CSRF bootstrap → login → session reuse → logout → post-logout rejection |
+| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 11 | Login, CRUD, borrow/return, ISBN conflict, 401/403, self-registration, registration validation, register CSRF, profile, Swagger public access, book category, `/actuator/health` |
+| `CrudIntegrationTest` | Integration (MockMvc) | 8 | Magazine/Newspaper CRUD, Student/Librarian update+delete, Dashboard counts, Audit log, duplicate username, duplicate email |
+| `HardeningTest` | MockMvc + Unit | 13 | Student deletion with borrow history (409), student deletion without history (success), OverdueCalculator effectiveDueDate/isOverdue/daysOverdue unit tests |
+| `BrowserCsrfFlowIntegrationTest` | Integration (real CSRF flow) | 1 | CSRF bootstrap, login with CSRF header, session reuse, authenticated `/me`, logout, post-logout rejection |
+| `ArchitectureTest` | ArchUnit | 1 | Controllers must not depend on repositories |
 | `BookRepositoryTest` | Repository | 1 | Audit timestamp population, ISBN uniqueness constraint |
-| `TestBCrypt` | Unit | 1 | BCrypt wiring sanity |
 
-Tests use H2 in MySQL compatibility mode (`create-drop` schema strategy).
+Tests use H2 in MySQL compatibility mode (`create-drop` schema strategy, Flyway disabled).
 
+Note: `TestBCrypt.java` exists as a standalone main class for manual BCrypt verification; it is not a JUnit test and is not counted by Maven.
 
 ---
 
@@ -40,14 +42,16 @@ Tests use H2 in MySQL compatibility mode (`create-drop` schema strategy).
 |-----------|--------|
 | Language | Java 21 |
 | Framework | Spring Boot 3.5 |
-| Security | Spring Security 6.5 (session-based, BCrypt) |
+| Security | Spring Security 6.5 (session-based, BCrypt, CSRF via `SpaCsrfTokenRequestHandler`) |
 | Data | Spring Data JPA |
-| Database | MySQL 8 (production), H2 in MySQL-compatibility mode (tests) |
+| Database | MySQL 8 (production), H2 in MySQL-compatibility mode (tests/dev) |
 | Validation | `spring-boot-starter-validation` |
-| API Docs | SpringDoc OpenAPI 2.8.6 (Swagger UI) |
-| OAuth2 | Google OAuth2 client |
+| API Docs | SpringDoc OpenAPI 2.8.6 (enabled by default; `prod` profile disables) |
+| OAuth2 | Google OAuth2 client (opt-in via `oauth` profile) |
 | Formatting | Spotless 2.44.3 — Google Java Format 1.25.2 |
 | Build | Maven + Maven Wrapper |
+| Logging | Structured JSON via `logstash-logback-encoder` 8.0 |
+| Caching | Spring Cache (simple type) |
 
 ### 3.1 Codebase Metrics
 
@@ -57,25 +61,15 @@ Tests use H2 in MySQL compatibility mode (`create-drop` schema strategy).
 | Transactional services | 11 |
 | JPA repositories | 8 |
 | Entities | 8 (+ 1 superclass `AuditableEntity`, 3 enums) |
-| DTOs | 24 request/response records |
-| Security classes | 5 |
+| DTO source files | 27 |
+| Security classes | 6 |
 
-### 3.2 Key Dependencies
+### 3.2 Schema Management
 
-```
-spring-boot-starter-web
-spring-boot-starter-data-jpa
-spring-boot-starter-validation
-spring-boot-starter-security
-spring-boot-starter-oauth2-client
-spring-boot-starter-actuator
-logstash-logback-encoder 8.0
-mysql-connector-j (runtime)
-h2 (runtime, test)
-springdoc-openapi-starter-webmvc-ui 2.8.6
-spring-boot-starter-test
-spring-security-test
-```
+- **Production:** `spring.jpa.hibernate.ddl-auto=none` + Flyway enabled
+- **Flyway migrations:** V1 (baseline), V2 (student email unique), V3 (borrow record due_date), V4 (book category)
+- **Tests/Dev (H2):** `ddl-auto=create-drop`, Flyway disabled
+- **AdminSeeder:** Creates `admin` account on startup; reads `lms.admin.password` from config; main config defaults to `ChangeMe123!`; throws `IllegalStateException` if resolved password is blank; updates existing admin password if config differs
 
 ---
 
@@ -84,12 +78,10 @@ spring-security-test
 | Aspect | Detail |
 |--------|--------|
 | Architecture | Multi-page application (MPA) served by Spring Boot |
-| Files | 57 HTML/JS/CSS files in `static/` |
+| Static files | 67 files in `backend/src/main/resources/static/` |
 | JS | Vanilla JS with ES modules |
 | HTTP | Fetch API |
 | Themes | Dual-theme: dark blue + rosy pink |
-| Transitions | CSS animations, no flash on page load |
-| Decorative | Rose petals (pink mode), cosmic particles (blue mode) |
 
 ---
 
@@ -101,6 +93,7 @@ spring-security-test
 | CI | GitHub Actions — `mvn spotless:check` then `mvn clean verify` |
 | Monitoring | Spring Boot Actuator — `/actuator/health`, `/actuator/info`, `/actuator/metrics` |
 | Logging | Structured JSON via `logstash-logback-encoder` with `traceId`/`spanId` MDC |
+| Coverage | JaCoCo enforces ≥ 70% line coverage |
 | Secrets | Environment variables (`.env` file for Docker, shell exports for local dev) |
 
 ---
@@ -109,76 +102,58 @@ spring-security-test
 
 - **Session-based authentication** with Spring Security and BCrypt password hashing
 - **Role-based authorization** — ADMIN, LIBRARIAN, STUDENT enforced via URL-pattern matching in `SecurityConfig`
-- **Books, magazines, newspapers CRUD** with searchable catalogues
-- **Student and librarian management** with linked account creation and profile maintenance
-- **Borrow/return workflow** with availability protection, ISBN uniqueness enforcement, and preserved history
+- **Books, magazines, newspapers CRUD** with searchable catalogues and book categories
+- **Student and librarian management** with linked account creation, profile maintenance, and update/delete
+- **Borrow/return workflow** with availability protection, ISBN uniqueness enforcement, due dates, and preserved history
+- **Student deletion hardening** — students with borrow history return HTTP 409 Conflict
 - **Audit logging** — server-side event tracking with `created_at` / `updated_at` timestamps
 - **Dashboard statistics** — aggregate counts of students, librarians, books, borrowed, and available
 - **Analytics and reports** endpoints with monthly trends, top books, top readers, overdue summaries
 - **Server-side validation** with field-level frontend feedback and uniform `ApiErrorResponse` JSON
-- **OAuth2 login** via Google
-- **Swagger UI** at `/swagger-ui/index.html` (restricted to ADMIN/LIBRARIAN in production)
+- **OAuth2 login** via Google (opt-in)
+- **Swagger UI** at `/swagger-ui.html` — public when SpringDoc enabled; disabled by `prod` profile
 
 ---
 
-## 7. Recent Changes (Session: Phase 0–6)
+## 7. ML / Data Readiness Boundary
 
-### Phase 0 — Spotless + Cleanup
-- Added Spotless Maven plugin (Google Java Format 1.25.2) and reformatted 88 Java files
-- Fixed `AdminSeeder` to use SLF4J logger instead of `System.out`
-- Fixed test infrastructure (H2 compatibility, schema strategy)
-- Removed dead CSS from `login.html`
-- Corrected docs (ARCHITECTURE.md, TESTING.md, README.md)
-- Added CI formatting gate: `mvn spotless:check` step in `.github/workflows/ci.yml`
-
-### Phase 0.5 — Account Orphaning Fix
-- `StudentService.delete` now removes the associated `Account` before deleting the profile
-- `LibrarianService.delete` now removes the associated `Account` before deleting the profile
-
-### Phase 2 — N+1 Query Fixes
-- `BorrowRecordRepository`: `@EntityGraph` / `JOIN FETCH` to eagerly load `Book`, `StudentProfile`
-- `StudentProfileRepository`: `JOIN FETCH` on `Account` association
-- `LibrarianProfileRepository`: `JOIN FETCH` on `Account` association
-
-### Phase 3A — Swagger Restriction (pre-session)
-- Swagger UI restricted (disabled in production profile)
-
-### Phase 3B — Observability
-- Spring Boot Actuator enabled with health/info/metrics endpoints
-- Structured JSON logging via `logstash-logback-encoder` 8.0
-- Custom `logback-spring.xml` with MDC traceId/spanId and `app` custom field
-
-### Phase 4 — Integration Tests
-- 7 new integration test methods in `CrudIntegrationTest`:
-  - Magazine CRUD (create, list, update, delete)
-  - Newspaper CRUD (create, list, update, delete)
-  - Student update and delete with account cleanup
-  - Librarian update and delete with account cleanup
-  - Dashboard endpoint verification
-  - Audit log endpoint verification
-  - Duplicate username rejection
-
-### Phase 6 — README Update
-- README updated with Actuator, N+1 fixes, Spotless, new tests, and JSON logging sections
-
-### Phase 7 — Repository Stabilization (bb36a41, 768e9b6, be2c43e)
-- Batch 1-4: Infrastructure extraction, dead code cleanup, shared modal/theme upgrades
-- Batch 5-7: Refactored individual pages to use centralized modal, extracted login CSS, image fallback styling
-- Full repository consistency audit and documentation synchronization
-- Removed orphaned `files/` directory, cleaned up frontend module structure
+- **Synthetic ML pipeline** (`scripts/dev-seed/`): Frozen feasibility benchmark, not deployed to application. Verified and reproducible with seed 42: logistic regression ROC-AUC `0.735`, PR-AUC `0.617`, F1 `0.602` at threshold `0.25`, temporal F1 CV `0.067`.
+- **Real-data readiness** (`scripts/dev-realdata/`): `readiness_monitor.py` is a legitimate script that connects to MySQL and executes real queries. It has a known month-bucketing bug (DATE_FORMAT literal) that needs fixing.
+- **Production-readiness report** (`PHASE5_PRODUCTION_READINESS.md`): Substantially fabricated claims identified by independent audit. Needs regeneration from source-verified evidence before relying on it.
+- **Real-data ML evaluation**: Blocked until readiness monitor passes and production-readiness audit is regenerated.
 
 ---
 
-## 8. Reference Files
+## 8. Recent Changes (Phase 6 Session)
+
+### Phase 6 — Hardening & Repository Cleanup
+- `StudentService.delete()` now checks `borrowRecords.existsByStudentId(id)` — returns 409 Conflict for students with borrow history
+- `BorrowRecordRepository.existsByStudentId(Long studentId)` added
+- `OverdueCalculator` utility: `effectiveDueDate()`, `isOverdue()`, `daysOverdue()`
+- `HardeningTest` — 2 integration tests + 11 unit tests for OverdueCalculator
+- `ArchitectureTest` — ArchUnit rule: controllers must not depend on repositories
+- Spotless, JaCoCo, 35 tests all passing
+
+### Phase 6.1 — Documentation Consistency
+- Verified and corrected README, CURRENT_STATE, SETUP, DEPLOYMENT, AGENTS against source
+- Identified `PHASE5_PRODUCTION_READINESS.md` as substantially fabricated
+- Identified `phase5a_readiness.py` as static text with no DB access
+
+---
+
+## 9. Reference Files
 
 | File | Purpose |
 |------|---------|
-| `backend/pom.xml` | Build config, dependencies, Spotless plugin |
-| `backend/src/main/resources/application.properties` | Runtime config, Actuator, OAuth2, logging |
+| `backend/pom.xml` | Build config, dependencies, Spotless, JaCoCo, SpringDoc |
+| `backend/src/main/resources/application.properties` | Runtime config, Flyway, Actuator, OAuth2, logging |
+| `backend/src/main/resources/application-prod.properties` | Disables SpringDoc in production |
 | `backend/src/main/resources/logback-spring.xml` | Structured JSON logging layout |
-| `backend/src/test/java/com/example/lms/CrudIntegrationTest.java` | 7 new integration tests |
-| `backend/src/test/java/com/example/lms/LibraryManagementIntegrationTest.java` | 4 core integration tests |
-| `backend/src/test/java/com/example/lms/BrowserCsrfFlowIntegrationTest.java` | CSRF flow test |
-| `backend/src/test/java/com/example/lms/BookRepositoryTest.java` | Repository-level test |
+| `backend/src/test/resources/application.properties` | Test H2 config, admin default |
+| `backend/src/test/java/com/example/lms/HardeningTest.java` | Student deletion + OverdueCalculator tests |
+| `backend/src/test/java/com/example/lms/ArchitectureTest.java` | ArchUnit dependency rule |
 | `.github/workflows/ci.yml` | CI pipeline (Spotless + Maven verify) |
+| `scripts/dev-seed/MODEL_SPECIFICATION.md` | Frozen synthetic ML benchmark spec |
+| `scripts/dev-realdata/ML_POPULATION_DEFINITION.md` | Real-data ML population and PIT rules |
+| `scripts/dev-realdata/readiness_monitor.py` | Real-data readiness monitor (needs month-bucketing fix) |
 | `README.md` | Project overview and documentation index |
