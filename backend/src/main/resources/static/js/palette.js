@@ -37,10 +37,12 @@ export function initPalette() {
     const query = input.value.toLocaleLowerCase().trim();
     const swaggerEnabled = palette.dataset.swaggerEnabled === 'true';
     palette.querySelectorAll('.cmd-item').forEach(item => {
-      if (item.hasAttribute('data-swagger')) {
-        item.hidden = !swaggerEnabled;
+      const matchesQuery =
+          !query || item.textContent.toLocaleLowerCase().includes(query);
+      if (item.hasAttribute('data-swagger') && !swaggerEnabled) {
+        item.hidden = true;
       } else {
-        item.hidden = Boolean(query && !item.textContent.toLocaleLowerCase().includes(query));
+        item.hidden = !matchesQuery;
       }
       setActive(-1);
     });
