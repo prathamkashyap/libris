@@ -80,9 +80,7 @@ model is trained or promoted until its population, point-in-time, and sufficienc
 
 Frozen synthetic benchmark: logistic regression ROC-AUC `0.735`, PR-AUC `0.617`, and F1
 `0.602` at threshold `0.25`; temporal F1 CV is `0.067`. See
-[MODEL_SPECIFICATION.md](scripts/dev-seed/MODEL_SPECIFICATION.md),
-[ML_POPULATION_DEFINITION.md](scripts/dev-realdata/ML_POPULATION_DEFINITION.md), and
-[PHASE5_PRODUCTION_READINESS.md](scripts/dev-realdata/PHASE5_PRODUCTION_READINESS.md).
+[MODEL_SPECIFICATION.md](scripts/dev-seed/MODEL_SPECIFICATION.md) (independently reproduced).
 
 ## 📋 API Documentation
 
@@ -114,8 +112,6 @@ Frozen synthetic benchmark: logistic regression ROC-AUC `0.735`, PR-AUC `0.617`,
 | [FRONTEND.md](docs/FRONTEND.md) | ES module architecture, component injection, theming |
 | [CURRENT_STATE.md](docs/CURRENT_STATE.md) | Current release, test inventory, deployment, and ML/data-readiness state |
 | [MODEL_SPECIFICATION.md](scripts/dev-seed/MODEL_SPECIFICATION.md) | Frozen synthetic overdue-risk benchmark |
-| [ML_POPULATION_DEFINITION.md](scripts/dev-realdata/ML_POPULATION_DEFINITION.md) | Real-data ML population and point-in-time rules |
-| [PHASE5_PRODUCTION_READINESS.md](scripts/dev-realdata/PHASE5_PRODUCTION_READINESS.md) | Production data-readiness review |
 
 ## 📄 License
 
