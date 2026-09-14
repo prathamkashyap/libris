@@ -13,4 +13,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
   boolean existsByIsbnAndIdNot(String isbn, Long id);
 
   long countByAvailable(boolean available);
+
+  java.util.List<Book> findByIdGreaterThan(
+      Long id, org.springframework.data.domain.Pageable pageable);
 }

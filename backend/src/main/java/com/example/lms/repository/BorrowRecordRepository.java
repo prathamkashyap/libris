@@ -64,6 +64,12 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
   @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
   java.util.List<BorrowRecord> findAll(org.springframework.data.domain.Sort sort);
 
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
+  java.util.List<BorrowRecord> findByIdGreaterThan(
+      Long id, org.springframework.data.domain.Pageable pageable);
+
+  long count();
+
   @Query(
       "SELECT r FROM BorrowRecord r LEFT JOIN FETCH r.book LEFT JOIN FETCH r.magazine LEFT JOIN FETCH r.newspaper LEFT JOIN FETCH r.student WHERE LOWER(r.borrowerName) LIKE LOWER(CONCAT('%',:q,'%')) OR LOWER(r.borrowerEmail) LIKE LOWER(CONCAT('%',:q,'%'))")
   org.springframework.data.domain.Page<BorrowRecord> search(

@@ -13,4 +13,6 @@ public interface NewspaperRepository extends JpaRepository<Newspaper, Long> {
   @Query(
       "SELECT n FROM Newspaper n WHERE LOWER(n.title) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(n.publisher) LIKE LOWER(CONCAT('%', :query, '%'))")
   Page<Newspaper> searchNewspapers(@Param("query") String query, Pageable pageable);
+
+  java.util.List<Newspaper> findByIdGreaterThan(Long id, Pageable pageable);
 }
