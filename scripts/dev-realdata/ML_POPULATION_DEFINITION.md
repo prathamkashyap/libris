@@ -1,5 +1,7 @@
 # Libris ML Population Definition
 
+> **Validation status:** This document was produced during an earlier Phase 5 development pass and has not been independently validated against the current repository implementation. It is informational only and is not an authoritative production-data specification. See `PHASE5A_REAL_DATA_READINESS.md` for the source-verified audit.
+
 ## Purpose
 
 Defines the exact population of loans eligible for ML model training and evaluation.
