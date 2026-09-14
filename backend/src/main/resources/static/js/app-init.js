@@ -58,7 +58,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   initPalette();
   renderThemeSwitcher(document.getElementById('topbar-theme'));
   initTabs();
+  applySwaggerVisibility();
   // A page module may resolve /api/auth/me while these async components load.
   // Re-emit the current user so the just-inserted shell receives that state.
   if (getCurrentUser()) setCurrentUser(getCurrentUser());
 });
+
+async function applySwaggerVisibility() {
+  try {
+    const res = await fetch('/api/config');
+    const cfg = await res.json();
+    if (!cfg.swaggerEnabled) {
+      document.querySelectorAll('[data-swagger]').forEach(el => { el.hidden = true; });
+    }
+  } catch {}
+}

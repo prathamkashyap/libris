@@ -27,7 +27,7 @@ public class ReportController {
   @Operation(
       summary = "Inventory report",
       description = "Full catalogue inventory (books + magazines + newspapers) as CSV.")
-  public ResponseEntity<Resource> inventory(@RequestParam(defaultValue = "csv") String format) {
+  public ResponseEntity<Resource> inventory() {
     var csv = service.inventoryCsv();
     return csvResponse(csv, "inventory-report.csv");
   }
@@ -38,8 +38,7 @@ public class ReportController {
       description = "All borrow records with optional date range filter, as CSV.")
   public ResponseEntity<Resource> borrowing(
       @RequestParam(required = false) LocalDate from,
-      @RequestParam(required = false) LocalDate to,
-      @RequestParam(defaultValue = "csv") String format) {
+      @RequestParam(required = false) LocalDate to) {
     var csv = service.borrowingCsv(from, to);
     return csvResponse(csv, "borrowing-report.csv");
   }
@@ -48,7 +47,7 @@ public class ReportController {
   @Operation(
       summary = "Overdue report",
       description = "All overdue items with days overdue, as CSV.")
-  public ResponseEntity<Resource> overdue(@RequestParam(defaultValue = "csv") String format) {
+  public ResponseEntity<Resource> overdue() {
     var csv = service.overdueCsv();
     return csvResponse(csv, "overdue-report.csv");
   }
@@ -57,7 +56,7 @@ public class ReportController {
   @Operation(
       summary = "Student report",
       description = "All students with total and active borrow counts, as CSV.")
-  public ResponseEntity<Resource> students(@RequestParam(defaultValue = "csv") String format) {
+  public ResponseEntity<Resource> students() {
     var csv = service.studentsCsv();
     return csvResponse(csv, "students-report.csv");
   }

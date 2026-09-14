@@ -1,6 +1,6 @@
 export const reportApi={
-    inventoryUrl:()=>"/api/reports/inventory?format=csv",
-    borrowingUrl:(from,to)=>{const p=new URLSearchParams();p.set("format","csv");if(from)p.set("from",from);if(to)p.set("to",to);return `/api/reports/borrowing?${p}`;},
-    studentsUrl:()=>"/api/reports/students?format=csv",
+    inventoryUrl:()=>"/api/reports/inventory",
+    borrowingUrl:(from,to)=>{const p=new URLSearchParams();if(from)p.set("from",from);if(to)p.set("to",to);return p.toString()?`/api/reports/borrowing?${p}`:"/api/reports/borrowing";},
+    studentsUrl:()=>"/api/reports/students",
     download:url=>{const a=document.createElement("a");a.href=url;a.click();}
 };

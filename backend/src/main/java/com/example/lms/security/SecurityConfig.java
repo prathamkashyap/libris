@@ -105,7 +105,8 @@ public class SecurityConfig {
                       "/actuator/**",
                       "/api/auth/login",
                       "/api/auth/csrf",
-                      "/api/auth/register")
+                      "/api/auth/register",
+                      "/api/config")
                   .permitAll();
               if (swaggerEnabled) {
                 auth.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
