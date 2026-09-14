@@ -35,10 +35,15 @@ export function initPalette() {
   palette.querySelectorAll('a').forEach(link => link.addEventListener('click', close));
   input.addEventListener('input', () => {
     const query = input.value.toLocaleLowerCase().trim();
+    const swaggerEnabled = palette.dataset.swaggerEnabled === 'true';
     palette.querySelectorAll('.cmd-item').forEach(item => {
-      item.hidden = Boolean(query && !item.textContent.toLocaleLowerCase().includes(query));
+      if (item.hasAttribute('data-swagger')) {
+        item.hidden = !swaggerEnabled;
+      } else {
+        item.hidden = Boolean(query && !item.textContent.toLocaleLowerCase().includes(query));
+      }
+      setActive(-1);
     });
-    setActive(-1);
   });
   document.addEventListener('keydown', event => {
     const isShortcut = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k';

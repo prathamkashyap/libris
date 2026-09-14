@@ -68,8 +68,12 @@ async function applySwaggerVisibility() {
   try {
     const res = await fetch('/api/config');
     const cfg = await res.json();
-    if (cfg.swaggerEnabled) {
-      document.querySelectorAll('[data-swagger]').forEach(el => { el.hidden = false; });
+    document.querySelectorAll('[data-swagger]').forEach(el => {
+      el.hidden = !cfg.swaggerEnabled;
+    });
+    const palette = document.getElementById('cmdPalette');
+    if (palette) {
+      palette.dataset.swaggerEnabled = String(cfg.swaggerEnabled);
     }
   } catch {}
 }
