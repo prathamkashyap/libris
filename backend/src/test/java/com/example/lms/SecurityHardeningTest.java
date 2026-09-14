@@ -356,4 +356,24 @@ class SecurityHardeningTest {
     boolean hasUser = java.util.Arrays.stream(lines).anyMatch(l -> l.contains("csvtestuser"));
     Assertions.assertTrue(hasUser, "Students CSV must include csvtestuser username");
   }
+
+  // ==================== F1: Config endpoint ====================
+
+  @Test
+  void configEndpointReturnsSwaggerDisabled() throws Exception {
+    mvc.perform(get("/api/config"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.swaggerEnabled").value(false));
+  }
+
+  // ==================== F3: No stale format param in reports HTML ====================
+
+  @Test
+  void reportsPageHasNoFormatCsvLinks() throws Exception {
+    var html =
+        new String(
+            getClass().getClassLoader().getResourceAsStream("static/reports.html").readAllBytes());
+    Assertions.assertFalse(
+        html.contains("format=csv"), "reports.html must not contain stale format=csv links");
+  }
 }

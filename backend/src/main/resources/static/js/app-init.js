@@ -68,8 +68,8 @@ async function applySwaggerVisibility() {
   try {
     const res = await fetch('/api/config');
     const cfg = await res.json();
-    if (!cfg.swaggerEnabled) {
-      document.querySelectorAll('[data-swagger]').forEach(el => { el.hidden = true; });
+    if (cfg.swaggerEnabled) {
+      document.querySelectorAll('[data-swagger]').forEach(el => { el.hidden = false; });
     }
   } catch {}
 }
