@@ -81,7 +81,7 @@ Note: `TestBCrypt.java` exists as a standalone main class for manual BCrypt veri
 | Static files | 67 files in `backend/src/main/resources/static/` |
 | JS | Vanilla JS with ES modules |
 | HTTP | Fetch API |
-| Themes | Dual-theme: dark blue + rosy pink |
+| Themes | Dual-theme: dark cool blue-slate canvas / verdigris light — shared emerald/teal accent |
 
 ---
 
@@ -118,9 +118,9 @@ Note: `TestBCrypt.java` exists as a standalone main class for manual BCrypt veri
 ## 7. ML / Data Readiness Boundary
 
 - **Synthetic ML pipeline** (`scripts/dev-seed/`): Frozen feasibility benchmark, not deployed to application. Verified and reproducible with seed 42: logistic regression ROC-AUC `0.735`, PR-AUC `0.617`, F1 `0.602` at threshold `0.25`, temporal F1 CV `0.067`.
-- **Real-data readiness** (`scripts/dev-realdata/`): `readiness_monitor.py` is a legitimate script that connects to MySQL and executes real queries. It has a known month-bucketing bug (DATE_FORMAT literal) that needs fixing.
-- **Production-readiness report** (`PHASE5_PRODUCTION_READINESS.md`): Substantially fabricated claims identified by independent audit. Needs regeneration from source-verified evidence before relying on it.
-- **Real-data ML evaluation**: Blocked until readiness monitor passes and production-readiness audit is regenerated.
+- **Real-data readiness** (`scripts/dev-realdata/`): `readiness_monitor.py` is a legitimate script that connects to MySQL and executes real queries. Its month-bucketing `DATE_FORMAT` literal bug has been fixed.
+- **Phase 5 artifacts**: `PHASE5_PRODUCTION_READINESS.md` and `phase5a_readiness.py` were removed after an independent audit found fabricated/static claims; they must not be treated as evidence.
+- **Real-data ML evaluation**: Blocked until the readiness monitor passes against a populated real database and a source-verified readiness assessment is created.
 
 ---
 
@@ -136,8 +136,8 @@ Note: `TestBCrypt.java` exists as a standalone main class for manual BCrypt veri
 
 ### Phase 6.1 — Documentation Consistency
 - Verified and corrected README, CURRENT_STATE, SETUP, DEPLOYMENT, AGENTS against source
-- Identified `PHASE5_PRODUCTION_READINESS.md` as substantially fabricated
-- Identified `phase5a_readiness.py` as static text with no DB access
+- Identified and removed `PHASE5_PRODUCTION_READINESS.md` after independent audit found substantially fabricated claims
+- Identified and removed `phase5a_readiness.py` after verification showed it generated static text without database access
 
 ---
 
@@ -154,6 +154,6 @@ Note: `TestBCrypt.java` exists as a standalone main class for manual BCrypt veri
 | `backend/src/test/java/com/example/lms/ArchitectureTest.java` | ArchUnit dependency rule |
 | `.github/workflows/ci.yml` | CI pipeline (Spotless + Maven verify) |
 | `scripts/dev-seed/MODEL_SPECIFICATION.md` | Frozen synthetic ML benchmark spec |
-| `scripts/dev-realdata/ML_POPULATION_DEFINITION.md` | Real-data ML population and PIT rules |
-| `scripts/dev-realdata/readiness_monitor.py` | Real-data readiness monitor (needs month-bucketing fix) |
+| `scripts/dev-realdata/ML_POPULATION_DEFINITION.md` | Real-data ML population and PIT rules (Phase 5 batch; not independently validated) |
+| `scripts/dev-realdata/readiness_monitor.py` | Real-data readiness monitor (month-bucketing fix applied) |
 | `README.md` | Project overview and documentation index |

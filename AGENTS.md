@@ -125,6 +125,6 @@ Run one: `./mvnw test -Dtest=LibraryManagementIntegrationTest`.
 `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/SECURITY.md`, `docs/SETUP.md`,
 `docs/TESTING.md`, `docs/DATABASE.md`, `docs/FRONTEND.md`, `docs/DEPLOYMENT.md`,
 `docs/CURRENT_STATE.md`, `scripts/dev-seed/MODEL_SPECIFICATION.md`,
-`scripts/dev-realdata/ML_POPULATION_DEFINITION.md`,
+`scripts/dev-realdata/ML_POPULATION_DEFINITION.md` (Phase 5 batch; not independently validated),
 `scripts/dev-realdata/readiness_monitor.py`.
 

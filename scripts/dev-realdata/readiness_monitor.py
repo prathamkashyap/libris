@@ -128,7 +128,7 @@ def main():
 
     # 7. Monthly loan counts
     r = run_query(conn, """
-        SELECT DATE_FORMAT(borrow_date, '%%Y-%%m') as month, COUNT(*) as cnt
+        SELECT DATE_FORMAT(borrow_date, '%Y-%m') as month, COUNT(*) as cnt
         FROM borrow_records
         WHERE student_id IS NOT NULL
         GROUP BY month ORDER BY month
