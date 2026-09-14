@@ -1,5 +1,6 @@
 package com.example.lms.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.*;
@@ -11,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
 @EnableWebSecurity
@@ -20,18 +22,21 @@ public class SecurityConfig {
   private final RestAuthenticationEntryPoint authenticationEntryPoint;
   private final RestAccessDeniedHandler accessDeniedHandler;
   private final CustomOidcUserService oidcUserService;
+  private final boolean swaggerEnabled;
 
   public SecurityConfig(
       AccountUserDetailsService users,
       PasswordEncoder passwords,
       RestAuthenticationEntryPoint entryPoint,
       RestAccessDeniedHandler deniedHandler,
-      org.springframework.beans.factory.ObjectProvider<CustomOidcUserService> oidcUserService) {
+      org.springframework.beans.factory.ObjectProvider<CustomOidcUserService> oidcUserService,
+      @Value("${springdoc.swagger-ui.enabled:false}") boolean swaggerEnabled) {
     this.users = users;
     this.passwords = passwords;
     this.authenticationEntryPoint = entryPoint;
     this.accessDeniedHandler = deniedHandler;
     this.oidcUserService = oidcUserService.getIfAvailable();
+    this.swaggerEnabled = swaggerEnabled;
   }
 
   @Bean
@@ -49,6 +54,11 @@ public class SecurityConfig {
   }
 
   @Bean
+  HttpSessionEventPublisher httpSessionEventPublisher() {
+    return new HttpSessionEventPublisher();
+  }
+
+  @Bean
   SecurityFilterChain security(
       HttpSecurity http,
       org.springframework.beans.factory.ObjectProvider<
@@ -62,54 +72,61 @@ public class SecurityConfig {
                 csrf.csrfTokenRepository(csrfTokenRepository)
                     .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
         .sessionManagement(
-            session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+            session ->
+                session
+                    .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                    .maximumSessions(1)
+                    .maxSessionsPreventsLogin(false)
+                    .expiredUrl("/login.html?expired"))
         .exceptionHandling(
             exceptions ->
                 exceptions
                     .authenticationEntryPoint(authenticationEntryPoint)
                     .accessDeniedHandler(accessDeniedHandler))
         .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers(
-                        "/login.html",
-                        "/register.html",
-                        "/styles.css",
-                        "/css/**",
-                        "/js/**",
-                        "/components/**",
-                        "/assets/**",
-                        "/favicon.svg",
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/v3/api-docs/**",
-                        "/actuator/**",
-                        "/api/auth/login",
-                        "/api/auth/csrf",
-                        "/api/auth/register")
-                    .permitAll()
-                    .requestMatchers("/api/auth/logout", "/api/auth/me", "/api/profile")
-                    .authenticated()
-                    .requestMatchers("/api/student/**")
-                    .hasAnyRole("ADMIN", "LIBRARIAN", "STUDENT")
-                    .requestMatchers(
-                        HttpMethod.GET, "/api/books/**", "/api/magazines/**", "/api/newspapers/**")
-                    .authenticated()
-                    .requestMatchers("/api/librarians/**")
-                    .hasRole("ADMIN")
-                    .requestMatchers("/api/analytics/**", "/api/audit/**", "/api/reports/**")
-                    .hasAnyRole("ADMIN", "LIBRARIAN")
-                    .requestMatchers("/api/borrow-records/my")
-                    .hasAnyRole("ADMIN", "LIBRARIAN", "STUDENT")
-                    .requestMatchers(
-                        "/api/books/**",
-                        "/api/magazines/**",
-                        "/api/newspapers/**",
-                        "/api/students/**",
-                        "/api/borrow-records/**",
-                        "/api/dashboard")
-                    .hasAnyRole("ADMIN", "LIBRARIAN")
-                    .anyRequest()
-                    .authenticated());
+            auth -> {
+              auth.requestMatchers(
+                      "/login.html",
+                      "/register.html",
+                      "/styles.css",
+                      "/css/**",
+                      "/js/**",
+                      "/components/**",
+                      "/assets/**",
+                      "/favicon.svg",
+                      "/actuator/**",
+                      "/api/auth/login",
+                      "/api/auth/csrf",
+                      "/api/auth/register")
+                  .permitAll();
+              if (swaggerEnabled) {
+                auth.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**")
+                    .permitAll();
+              }
+              auth.requestMatchers("/api/auth/logout", "/api/auth/me", "/api/profile")
+                  .authenticated()
+                  .requestMatchers("/api/student/**")
+                  .hasAnyRole("ADMIN", "LIBRARIAN", "STUDENT")
+                  .requestMatchers(
+                      HttpMethod.GET, "/api/books/**", "/api/magazines/**", "/api/newspapers/**")
+                  .authenticated()
+                  .requestMatchers("/api/librarians/**")
+                  .hasRole("ADMIN")
+                  .requestMatchers("/api/analytics/**", "/api/audit/**", "/api/reports/**")
+                  .hasAnyRole("ADMIN", "LIBRARIAN")
+                  .requestMatchers("/api/borrow-records/my")
+                  .hasAnyRole("ADMIN", "LIBRARIAN", "STUDENT")
+                  .requestMatchers(
+                      "/api/books/**",
+                      "/api/magazines/**",
+                      "/api/newspapers/**",
+                      "/api/students/**",
+                      "/api/borrow-records/**",
+                      "/api/dashboard")
+                  .hasAnyRole("ADMIN", "LIBRARIAN")
+                  .anyRequest()
+                  .authenticated();
+            });
 
     org.springframework.security.oauth2.client.registration.ClientRegistrationRepository repo =
         clientRegistrationRepository.getIfAvailable();

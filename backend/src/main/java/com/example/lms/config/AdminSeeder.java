@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class AdminSeeder {
 
   private static final Logger log = LoggerFactory.getLogger(AdminSeeder.class);
+  static final String DEFAULT_PASSWORD = "ChangeMe123!";
 
   @Bean
   public CommandLineRunner seedAdmin(
@@ -28,6 +29,13 @@ public class AdminSeeder {
 
       if (adminPassword == null || adminPassword.isBlank()) {
         throw new IllegalStateException("LMS_ADMIN_PASSWORD environment variable is required.");
+      }
+
+      if (DEFAULT_PASSWORD.equals(adminPassword)) {
+        throw new IllegalStateException(
+            "LMS_ADMIN_PASSWORD must not be the default value '"
+                + DEFAULT_PASSWORD
+                + "'. Set a strong password.");
       }
 
       Account admin = accountRepository.findByUsername(adminUsername).orElseGet(Account::new);

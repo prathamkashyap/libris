@@ -3,9 +3,12 @@ package com.example.lms.service;
 import com.example.lms.dto.*;
 import com.example.lms.entity.*;
 import com.example.lms.event.EntityAuditEvent;
+import com.example.lms.exception.BusinessRuleException;
 import com.example.lms.exception.ConflictException;
 import com.example.lms.repository.AccountRepository;
 import com.example.lms.repository.StudentProfileRepository;
+import com.example.lms.security.LoginAttemptTracker;
+import com.example.lms.security.PasswordValidator;
 import com.example.lms.util.CurrentUser;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,6 +28,7 @@ public class AuthService {
   private final ApplicationEventPublisher events;
   private final CurrentUser currentUser;
   private final PasswordEncoder passwordEncoder;
+  private final LoginAttemptTracker loginAttempts;
 
   public AuthService(
       AuthenticationManager authenticationManager,
@@ -32,42 +36,56 @@ public class AuthService {
       StudentProfileRepository studentProfiles,
       ApplicationEventPublisher events,
       CurrentUser currentUser,
-      PasswordEncoder passwordEncoder) {
+      PasswordEncoder passwordEncoder,
+      LoginAttemptTracker loginAttempts) {
     this.authenticationManager = authenticationManager;
     this.accounts = accounts;
     this.studentProfiles = studentProfiles;
     this.events = events;
     this.currentUser = currentUser;
     this.passwordEncoder = passwordEncoder;
+    this.loginAttempts = loginAttempts;
   }
 
   public AuthenticatedUserResponse login(LoginRequest request, HttpServletRequest servletRequest) {
-    Authentication authentication =
-        authenticationManager.authenticate(
-            UsernamePasswordAuthenticationToken.unauthenticated(
-                request.username(), request.password()));
-    SecurityContext context = SecurityContextHolder.createEmptyContext();
-    context.setAuthentication(authentication);
-    SecurityContextHolder.setContext(context);
-    servletRequest.getSession(true).setAttribute("SPRING_SECURITY_CONTEXT", context);
+    if (loginAttempts.isLocked(request.username())) {
+      throw new BusinessRuleException(
+          "ACCOUNT_LOCKED", "Account locked due to too many failed attempts. Try again later.");
+    }
 
-    var account = accounts.findByUsername(authentication.getName()).orElseThrow();
-    var actor = currentUser.get();
-    events.publishEvent(
-        new EntityAuditEvent(
-            this,
-            AuditAction.LOGIN,
-            AuditEntityType.ACCOUNT,
-            account.getId(),
-            "User logged in: " + account.getUsername(),
-            account.getId(),
-            account.getUsername(),
-            account.getRole().name(),
-            actor.ipAddress(),
-            actor.userAgent()));
+    try {
+      Authentication authentication =
+          authenticationManager.authenticate(
+              UsernamePasswordAuthenticationToken.unauthenticated(
+                  request.username(), request.password()));
+      loginAttempts.recordSuccess(request.username());
 
-    return new AuthenticatedUserResponse(
-        account.getId(), account.getUsername(), account.getRole().name(), account.getUsername());
+      SecurityContext context = SecurityContextHolder.createEmptyContext();
+      context.setAuthentication(authentication);
+      SecurityContextHolder.setContext(context);
+      servletRequest.getSession(true).setAttribute("SPRING_SECURITY_CONTEXT", context);
+
+      var account = accounts.findByUsername(authentication.getName()).orElseThrow();
+      var actor = currentUser.get();
+      events.publishEvent(
+          new EntityAuditEvent(
+              this,
+              AuditAction.LOGIN,
+              AuditEntityType.ACCOUNT,
+              account.getId(),
+              "User logged in: " + account.getUsername(),
+              account.getId(),
+              account.getUsername(),
+              account.getRole().name(),
+              actor.ipAddress(),
+              actor.userAgent()));
+
+      return new AuthenticatedUserResponse(
+          account.getId(), account.getUsername(), account.getRole().name(), account.getUsername());
+    } catch (BadCredentialsException e) {
+      loginAttempts.recordFailure(request.username());
+      throw e;
+    }
   }
 
   public AuthenticatedUserResponse current(String username) {
@@ -100,6 +118,11 @@ public class AuthService {
 
   @Transactional
   public void registerStudent(RegisterRequest request) {
+    var passwordError = PasswordValidator.validate(request.password());
+    if (passwordError != null) {
+      throw new BusinessRuleException("WEAK_PASSWORD", passwordError);
+    }
+
     if (accounts.findByUsername(request.username()).isPresent())
       throw new ConflictException("Username is already in use.");
     if (studentProfiles.findByEmail(request.email()).isPresent())

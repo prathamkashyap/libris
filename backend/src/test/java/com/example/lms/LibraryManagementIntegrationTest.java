@@ -358,13 +358,9 @@ class LibraryManagementIntegrationTest {
   }
 
   @Test
-  void swaggerDocsAndUiArePubliclyAccessible() throws Exception {
-    mvc.perform(get("/v3/api-docs"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.openapi").exists())
-        .andExpect(jsonPath("$.info.title").value("Libris — Library Management System API"));
-
-    mvc.perform(get("/swagger-ui.html")).andExpect(status().is3xxRedirection());
+  void swaggerDocsAndUiAreDisabledByDefault() throws Exception {
+    mvc.perform(get("/v3/api-docs")).andExpect(status().isUnauthorized());
+    mvc.perform(get("/swagger-ui.html")).andExpect(status().isUnauthorized());
   }
 
   @Test
