@@ -164,13 +164,14 @@ public class ReportService {
       batch.forEach(
           s -> {
             var counts = borrowCounts.getOrDefault(s.getId(), new long[] {0, 0});
+            var username = s.getAccount() != null ? s.getAccount().getUsername() : "";
             rows.add(
                 csvLine(
                     s.getId(),
                     s.getName(),
                     s.getEmail(),
                     s.getPhone(),
-                    s.getAccount().getUsername(),
+                    username,
                     counts[0],
                     counts[1]));
           });
