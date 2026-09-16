@@ -1,10 +1,12 @@
 package com.example.lms.repository;
 
 import com.example.lms.entity.BorrowRecord;
+import jakarta.persistence.LockModeType;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long> {
@@ -73,6 +75,10 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
       LocalDate from, LocalDate to, Long id, org.springframework.data.domain.Pageable pageable);
 
   long count();
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT br FROM BorrowRecord br WHERE br.id = :id")
+  java.util.Optional<BorrowRecord> findByIdForReturn(Long id);
 
   @Query(
       "SELECT r FROM BorrowRecord r LEFT JOIN FETCH r.book LEFT JOIN FETCH r.magazine LEFT JOIN FETCH r.newspaper LEFT JOIN FETCH r.student WHERE LOWER(r.borrowerName) LIKE LOWER(CONCAT('%',:q,'%')) OR LOWER(r.borrowerEmail) LIKE LOWER(CONCAT('%',:q,'%'))")

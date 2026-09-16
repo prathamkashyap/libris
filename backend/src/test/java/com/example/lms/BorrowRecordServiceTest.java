@@ -302,7 +302,8 @@ class BorrowRecordServiceTest {
   void returnBookSuccessfully() {
     Book book = makeBook(1L, "Returnable Book", false);
     BorrowRecord record = makeBorrowRecord(50L, book, null, null, LocalDate.of(2026, 9, 1));
-    when(records.findById(50L)).thenReturn(Optional.of(record));
+    when(records.findByIdForReturn(50L)).thenReturn(Optional.of(record));
+    when(books.findByIdForBorrow(1L)).thenReturn(Optional.of(book));
 
     service.returnBook(50L);
 
@@ -314,7 +315,8 @@ class BorrowRecordServiceTest {
   void returnPublishesAuditEvent() {
     Book book = makeBook(1L, "Return Audit Book", false);
     BorrowRecord record = makeBorrowRecord(51L, book, null, null, LocalDate.of(2026, 9, 1));
-    when(records.findById(51L)).thenReturn(Optional.of(record));
+    when(records.findByIdForReturn(51L)).thenReturn(Optional.of(record));
+    when(books.findByIdForBorrow(1L)).thenReturn(Optional.of(book));
 
     service.returnBook(51L);
 
@@ -337,7 +339,7 @@ class BorrowRecordServiceTest {
     Book book = makeBook(1L, "Book", false);
     BorrowRecord record = makeBorrowRecord(52L, book, null, null, LocalDate.of(2026, 9, 1));
     record.setReturnDate(LocalDate.of(2026, 9, 5));
-    when(records.findById(52L)).thenReturn(Optional.of(record));
+    when(records.findByIdForReturn(52L)).thenReturn(Optional.of(record));
 
     BusinessRuleException ex =
         assertThrows(BusinessRuleException.class, () -> service.returnBook(52L));
@@ -346,7 +348,7 @@ class BorrowRecordServiceTest {
 
   @Test
   void returnNonexistentRecordThrows() {
-    when(records.findById(999L)).thenReturn(Optional.empty());
+    when(records.findByIdForReturn(999L)).thenReturn(Optional.empty());
     assertThrows(ResourceNotFoundException.class, () -> service.returnBook(999L));
   }
 
@@ -354,7 +356,8 @@ class BorrowRecordServiceTest {
   void returnMagazineMakesItAvailable() {
     Magazine magazine = makeMagazine(2L, "Mag", false);
     BorrowRecord record = makeBorrowRecord(53L, null, magazine, null, LocalDate.of(2026, 9, 1));
-    when(records.findById(53L)).thenReturn(Optional.of(record));
+    when(records.findByIdForReturn(53L)).thenReturn(Optional.of(record));
+    when(magazines.findByIdForBorrow(2L)).thenReturn(Optional.of(magazine));
 
     service.returnBook(53L);
 
@@ -365,7 +368,8 @@ class BorrowRecordServiceTest {
   void returnNewspaperMakesItAvailable() {
     Newspaper newspaper = makeNewspaper(3L, "Paper", false);
     BorrowRecord record = makeBorrowRecord(54L, null, null, newspaper, LocalDate.of(2026, 9, 1));
-    when(records.findById(54L)).thenReturn(Optional.of(record));
+    when(records.findByIdForReturn(54L)).thenReturn(Optional.of(record));
+    when(newspapers.findByIdForBorrow(3L)).thenReturn(Optional.of(newspaper));
 
     service.returnBook(54L);
 

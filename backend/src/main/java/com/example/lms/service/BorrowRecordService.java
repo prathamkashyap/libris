@@ -155,7 +155,7 @@ public class BorrowRecordService {
   public void returnBook(Long id) {
     var record =
         records
-            .findById(id)
+            .findByIdForReturn(id)
             .orElseThrow(() -> new ResourceNotFoundException("Borrow record not found."));
     if (record.getReturnDate() != null)
       throw new BusinessRuleException("ALREADY_RETURNED", "Already returned.");
@@ -163,16 +163,28 @@ public class BorrowRecordService {
     record.setReturnDate(LocalDate.now());
     String itemTitle = null;
     if (record.getBook() != null) {
-      record.getBook().setAvailable(true);
-      itemTitle = record.getBook().getTitle();
+      var book =
+          books
+              .findByIdForBorrow(record.getBook().getId())
+              .orElseThrow(() -> new ResourceNotFoundException("Book not found."));
+      book.setAvailable(true);
+      itemTitle = book.getTitle();
     }
     if (record.getMagazine() != null) {
-      record.getMagazine().setAvailable(true);
-      itemTitle = record.getMagazine().getTitle();
+      var magazine =
+          magazines
+              .findByIdForBorrow(record.getMagazine().getId())
+              .orElseThrow(() -> new ResourceNotFoundException("Magazine not found."));
+      magazine.setAvailable(true);
+      itemTitle = magazine.getTitle();
     }
     if (record.getNewspaper() != null) {
-      record.getNewspaper().setAvailable(true);
-      itemTitle = record.getNewspaper().getTitle();
+      var newspaper =
+          newspapers
+              .findByIdForBorrow(record.getNewspaper().getId())
+              .orElseThrow(() -> new ResourceNotFoundException("Newspaper not found."));
+      newspaper.setAvailable(true);
+      itemTitle = newspaper.getTitle();
     }
 
     var actor = currentUser.get();
