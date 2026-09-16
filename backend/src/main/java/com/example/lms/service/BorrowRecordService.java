@@ -8,6 +8,7 @@ import com.example.lms.repository.*;
 import com.example.lms.util.CurrentUser;
 import com.example.lms.util.OverdueCalculator;
 import java.time.LocalDate;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,6 +79,7 @@ public class BorrowRecordService {
     return listByStudentId(studentId, status, pageable);
   }
 
+  @CacheEvict(cacheNames = "books", allEntries = true)
   @Transactional
   public BorrowRecordResponse borrow(BorrowRequest r) {
     long selectedItems =
@@ -151,6 +153,7 @@ public class BorrowRecordService {
     return saved;
   }
 
+  @CacheEvict(cacheNames = "books", allEntries = true)
   @Transactional
   public void returnBook(Long id) {
     var record =

@@ -2,10 +2,12 @@ package com.example.lms;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.example.lms.dto.BookResponse;
 import com.example.lms.dto.BorrowRequest;
 import com.example.lms.entity.*;
 import com.example.lms.exception.BusinessRuleException;
 import com.example.lms.repository.*;
+import com.example.lms.service.BookService;
 import com.example.lms.service.BorrowRecordService;
 import java.time.LocalDate;
 import java.util.concurrent.*;
@@ -30,6 +32,7 @@ class BorrowConcurrencyTest {
   @Autowired BorrowRecordRepository borrowRecords;
   @Autowired StudentProfileRepository students;
   @Autowired AccountRepository accounts;
+  @Autowired BookService bookService;
 
   private StudentProfile student;
 
@@ -504,5 +507,56 @@ class BorrowConcurrencyTest {
             .filter(r -> r.getBook() != null && r.getBook().getId().equals(book.getId()))
             .count();
     assertEquals(0, activeBorrowCount, "No active borrows should exist");
+  }
+
+  @Test
+  void borrowEvictsBooksCache() {
+    Book book = new Book();
+    book.setTitle("Cache Evict Book");
+    book.setIsbn("9780000000210");
+    book.setAvailable(true);
+    books.save(book);
+
+    BookResponse before = bookService.get(book.getId());
+    assertTrue(before.available(), "Book should be available before borrow");
+
+    BorrowRequest req =
+        new BorrowRequest(
+            book.getId(),
+            null,
+            null,
+            student.getId(),
+            "Conc Student",
+            "conc@test.com",
+            "555",
+            LocalDate.of(2026, 9, 16),
+            null);
+    borrowService.borrow(req);
+
+    BookResponse after = bookService.get(book.getId());
+    assertFalse(after.available(), "Cached book should reflect unavailable after borrow");
+  }
+
+  @Test
+  void returnBookEvictsBooksCache() {
+    Book book = new Book();
+    book.setTitle("Cache Evict Return Book");
+    book.setIsbn("9780000000211");
+    book.setAvailable(false);
+    books.save(book);
+
+    BorrowRecord record = new BorrowRecord();
+    record.setBook(book);
+    record.setStudent(student);
+    record.setBorrowerName(student.getName());
+    record.setBorrowerEmail(student.getEmail());
+    record.setBorrowerPhone(student.getPhone());
+    record.setBorrowDate(LocalDate.of(2026, 9, 1));
+    BorrowRecord saved = borrowRecords.save(record);
+
+    borrowService.returnBook(saved.getId());
+
+    BookResponse after = bookService.get(book.getId());
+    assertTrue(after.available(), "Cached book should reflect available after return");
   }
 }
