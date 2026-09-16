@@ -103,7 +103,7 @@ public class BorrowRecordService {
     if (r.bookId() != null) {
       var book =
           books
-              .findById(r.bookId())
+              .findByIdForBorrow(r.bookId())
               .orElseThrow(() -> new ResourceNotFoundException("Book not found."));
       if (!book.isAvailable())
         throw new BusinessRuleException("UNAVAILABLE", "Book is not available.");
@@ -113,7 +113,7 @@ public class BorrowRecordService {
     } else if (r.magazineId() != null) {
       var magazine =
           magazines
-              .findById(r.magazineId())
+              .findByIdForBorrow(r.magazineId())
               .orElseThrow(() -> new ResourceNotFoundException("Magazine not found."));
       if (!magazine.isAvailable())
         throw new BusinessRuleException("UNAVAILABLE", "Magazine is not available.");
@@ -123,7 +123,7 @@ public class BorrowRecordService {
     } else if (r.newspaperId() != null) {
       var newspaper =
           newspapers
-              .findById(r.newspaperId())
+              .findByIdForBorrow(r.newspaperId())
               .orElseThrow(() -> new ResourceNotFoundException("Newspaper not found."));
       if (!newspaper.isAvailable())
         throw new BusinessRuleException("UNAVAILABLE", "Newspaper is not available.");

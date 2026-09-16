@@ -66,7 +66,7 @@ class BorrowRecordServiceTest {
   @Test
   void borrowBookSuccessfully() {
     Book book = makeBook(1L, "Clean Code", true);
-    when(books.findById(1L)).thenReturn(Optional.of(book));
+    when(books.findByIdForBorrow(1L)).thenReturn(Optional.of(book));
     when(students.findById(1L)).thenReturn(Optional.of(student));
     when(records.save(any(BorrowRecord.class)))
         .thenAnswer(
@@ -94,7 +94,7 @@ class BorrowRecordServiceTest {
   @Test
   void borrowMagazineSuccessfully() {
     Magazine magazine = makeMagazine(2L, "Time", true);
-    when(magazines.findById(2L)).thenReturn(Optional.of(magazine));
+    when(magazines.findByIdForBorrow(2L)).thenReturn(Optional.of(magazine));
     when(students.findById(1L)).thenReturn(Optional.of(student));
     when(records.save(any(BorrowRecord.class)))
         .thenAnswer(
@@ -116,7 +116,7 @@ class BorrowRecordServiceTest {
   @Test
   void borrowNewspaperSuccessfully() {
     Newspaper newspaper = makeNewspaper(3L, "Daily News", true);
-    when(newspapers.findById(3L)).thenReturn(Optional.of(newspaper));
+    when(newspapers.findByIdForBorrow(3L)).thenReturn(Optional.of(newspaper));
     when(students.findById(1L)).thenReturn(Optional.of(student));
     when(records.save(any(BorrowRecord.class)))
         .thenAnswer(
@@ -138,7 +138,7 @@ class BorrowRecordServiceTest {
   @Test
   void borrowUnavailableBookThrows() {
     Book book = makeBook(1L, "Gone Book", false);
-    when(books.findById(1L)).thenReturn(Optional.of(book));
+    when(books.findByIdForBorrow(1L)).thenReturn(Optional.of(book));
     when(students.findById(1L)).thenReturn(Optional.of(student));
 
     BorrowRequest req =
@@ -151,7 +151,7 @@ class BorrowRecordServiceTest {
   @Test
   void borrowUnavailableMagazineThrows() {
     Magazine magazine = makeMagazine(2L, "Gone Mag", false);
-    when(magazines.findById(2L)).thenReturn(Optional.of(magazine));
+    when(magazines.findByIdForBorrow(2L)).thenReturn(Optional.of(magazine));
     when(students.findById(1L)).thenReturn(Optional.of(student));
 
     BorrowRequest req =
@@ -164,7 +164,7 @@ class BorrowRecordServiceTest {
   @Test
   void borrowUnavailableNewspaperThrows() {
     Newspaper newspaper = makeNewspaper(3L, "Gone Paper", false);
-    when(newspapers.findById(3L)).thenReturn(Optional.of(newspaper));
+    when(newspapers.findByIdForBorrow(3L)).thenReturn(Optional.of(newspaper));
     when(students.findById(1L)).thenReturn(Optional.of(student));
 
     BorrowRequest req =
@@ -177,7 +177,7 @@ class BorrowRecordServiceTest {
   @Test
   void borrowWithExplicitDueDate() {
     Book book = makeBook(1L, "Book", true);
-    when(books.findById(1L)).thenReturn(Optional.of(book));
+    when(books.findByIdForBorrow(1L)).thenReturn(Optional.of(book));
     when(students.findById(1L)).thenReturn(Optional.of(student));
     when(records.save(any(BorrowRecord.class)))
         .thenAnswer(
@@ -232,7 +232,7 @@ class BorrowRecordServiceTest {
 
   @Test
   void borrowWithUnknownBookThrows() {
-    when(books.findById(999L)).thenReturn(Optional.empty());
+    when(books.findByIdForBorrow(999L)).thenReturn(Optional.empty());
     when(students.findById(1L)).thenReturn(Optional.of(student));
 
     BorrowRequest req =
@@ -244,7 +244,7 @@ class BorrowRecordServiceTest {
   @Test
   void borrowCopiesStudentInfoToRecord() {
     Book book = makeBook(1L, "Book", true);
-    when(books.findById(1L)).thenReturn(Optional.of(book));
+    when(books.findByIdForBorrow(1L)).thenReturn(Optional.of(book));
     when(students.findById(1L)).thenReturn(Optional.of(student));
     ArgumentCaptor<BorrowRecord> captor = ArgumentCaptor.forClass(BorrowRecord.class);
     when(records.save(captor.capture()))
@@ -269,7 +269,7 @@ class BorrowRecordServiceTest {
   @Test
   void borrowPublishesAuditEvent() {
     Book book = makeBook(1L, "Test Book", true);
-    when(books.findById(1L)).thenReturn(Optional.of(book));
+    when(books.findByIdForBorrow(1L)).thenReturn(Optional.of(book));
     when(students.findById(1L)).thenReturn(Optional.of(student));
     when(records.save(any(BorrowRecord.class)))
         .thenAnswer(

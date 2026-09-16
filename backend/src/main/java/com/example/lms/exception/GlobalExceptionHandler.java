@@ -28,6 +28,18 @@ public class GlobalExceptionHandler {
     return error(400, e.getCode(), e.getMessage(), r, List.of());
   }
 
+  @ExceptionHandler(org.springframework.dao.PessimisticLockingFailureException.class)
+  @ResponseStatus(HttpStatus.CONFLICT)
+  ApiErrorResponse pessimisticLock(
+      org.springframework.dao.PessimisticLockingFailureException e, HttpServletRequest r) {
+    return error(
+        409,
+        "CONCURRENT_MODIFY",
+        "The item is being modified by another request. Please retry.",
+        r,
+        List.of());
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   ApiErrorResponse invalid(MethodArgumentNotValidException e, HttpServletRequest r) {

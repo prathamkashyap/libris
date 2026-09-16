@@ -1,9 +1,11 @@
 package com.example.lms.repository;
 
 import com.example.lms.entity.Magazine;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,4 +17,8 @@ public interface MagazineRepository extends JpaRepository<Magazine, Long> {
   Page<Magazine> searchMagazines(@Param("query") String query, Pageable pageable);
 
   java.util.List<Magazine> findByIdGreaterThan(Long id, Pageable pageable);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT m FROM Magazine m WHERE m.id = :id")
+  java.util.Optional<Magazine> findByIdForBorrow(Long id);
 }
