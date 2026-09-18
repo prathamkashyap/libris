@@ -4,27 +4,38 @@ import com.example.lms.dto.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+  private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
   @ExceptionHandler(ResourceNotFoundException.class)
   @ResponseStatus(HttpStatus.NOT_FOUND)
   ApiErrorResponse notFound(ResourceNotFoundException e, HttpServletRequest r) {
+    log.warn("Resource not found: uri={}", r.getRequestURI());
     return error(404, "NOT_FOUND", e.getMessage(), r, List.of());
   }
 
   @ExceptionHandler(ConflictException.class)
   @ResponseStatus(HttpStatus.CONFLICT)
   ApiErrorResponse conflict(ConflictException e, HttpServletRequest r) {
+    log.warn("Conflict: uri={}, message={}", r.getRequestURI(), e.getMessage());
     return error(409, "CONFLICT", e.getMessage(), r, List.of());
   }
 
   @ExceptionHandler(BusinessRuleException.class)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   ApiErrorResponse business(BusinessRuleException e, HttpServletRequest r) {
+    log.warn(
+        "Business rule violation: uri={}, code={}, message={}",
+        r.getRequestURI(),
+        e.getCode(),
+        e.getMessage());
     return error(400, e.getCode(), e.getMessage(), r, List.of());
   }
 
@@ -32,6 +43,7 @@ public class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.CONFLICT)
   ApiErrorResponse pessimisticLock(
       org.springframework.dao.PessimisticLockingFailureException e, HttpServletRequest r) {
+    log.warn("Pessimistic lock contention: uri={}", r.getRequestURI());
     return error(
         409,
         "CONCURRENT_MODIFY",
@@ -47,6 +59,7 @@ public class GlobalExceptionHandler {
         e.getBindingResult().getFieldErrors().stream()
             .map(f -> new ApiErrorResponse.FieldError(f.getField(), f.getDefaultMessage()))
             .toList();
+    log.warn("Validation error: uri={}, fields={}", r.getRequestURI(), fields.size());
     return error(400, "VALIDATION_ERROR", "Request validation failed.", r, fields);
   }
 

@@ -11,6 +11,8 @@ import com.example.lms.security.LoginAttemptTracker;
 import com.example.lms.security.PasswordValidator;
 import com.example.lms.util.CurrentUser;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.*;
@@ -22,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
+  private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+
   private final AuthenticationManager authenticationManager;
   private final AccountRepository accounts;
   private final StudentProfileRepository studentProfiles;
@@ -49,6 +53,7 @@ public class AuthService {
 
   public AuthenticatedUserResponse login(LoginRequest request, HttpServletRequest servletRequest) {
     if (loginAttempts.isLocked(request.username())) {
+      log.warn("Login blocked: username={}, reason=account_locked", request.username());
       throw new BusinessRuleException(
           "ACCOUNT_LOCKED", "Account locked due to too many failed attempts. Try again later.");
     }
@@ -59,6 +64,7 @@ public class AuthService {
               UsernamePasswordAuthenticationToken.unauthenticated(
                   request.username(), request.password()));
       loginAttempts.recordSuccess(request.username());
+      log.info("Login successful: username={}", request.username());
 
       SecurityContext context = SecurityContextHolder.createEmptyContext();
       context.setAuthentication(authentication);
@@ -84,6 +90,7 @@ public class AuthService {
           account.getId(), account.getUsername(), account.getRole().name(), account.getUsername());
     } catch (BadCredentialsException e) {
       loginAttempts.recordFailure(request.username());
+      log.warn("Login failed: username={}, reason=bad_credentials", request.username());
       throw e;
     }
   }
