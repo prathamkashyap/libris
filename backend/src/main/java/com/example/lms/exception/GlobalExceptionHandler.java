@@ -63,6 +63,17 @@ public class GlobalExceptionHandler {
     return error(400, "VALIDATION_ERROR", "Request validation failed.", r, fields);
   }
 
+  @ExceptionHandler(Exception.class)
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  ApiErrorResponse handleAll(Exception e, HttpServletRequest r) {
+    if (e instanceof org.springframework.security.core.AuthenticationException
+        || e instanceof org.springframework.security.access.AccessDeniedException) {
+      throw (RuntimeException) e;
+    }
+    log.error("Unhandled exception: uri={}", r.getRequestURI(), e);
+    return error(500, "INTERNAL_ERROR", "An unexpected error occurred.", r, List.of());
+  }
+
   private ApiErrorResponse error(
       int status,
       String code,

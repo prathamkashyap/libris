@@ -415,4 +415,23 @@ class SecurityHardeningTest {
     Assertions.assertNotNull(record.getIpAddress(), "ipAddress must be populated");
     Assertions.assertNotNull(record.getUserAgent(), "userAgent must be populated");
   }
+
+  // ==================== Catch-all 500 handler ====================
+
+  @Test
+  void unhandledExceptionReturnsStandardApiErrorResponse() throws Exception {
+    mvc.perform(
+            get("/api/books/abc")
+                .session(adminSession)
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
+        .andExpect(jsonPath("$.message").value("An unexpected error occurred."))
+        .andExpect(jsonPath("$.status").value(500))
+        .andExpect(jsonPath("$.path").value("/api/books/abc"))
+        .andExpect(jsonPath("$.fieldErrors").isArray())
+        .andExpect(jsonPath("$.fieldErrors").isEmpty());
+  }
 }
