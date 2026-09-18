@@ -11,25 +11,36 @@ import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
+@TestPropertySource(
+    properties = {
+      "spring.datasource.url=jdbc:h2:mem:flyway-verify-test;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1",
+      "spring.jpa.hibernate.ddl-auto=none",
+      "spring.flyway.enabled=true"
+    })
 class BorrowRecordsIndexTest {
 
   @Autowired DataSource dataSource;
 
   @Test
-  void v5MigrationCreatesExpectedIndexes() throws Exception {
+  void flywayAppliedV5AndIndexesExist() throws Exception {
     try (var conn = dataSource.getConnection();
         Statement stmt = conn.createStatement()) {
 
-      stmt.executeUpdate(
-          "CREATE INDEX idx_borrow_records_return_date ON borrow_records (return_date)");
-      stmt.executeUpdate("CREATE INDEX idx_borrow_records_due_date ON borrow_records (due_date)");
+      // 1. Verify Flyway migration history contains V5
+      try (ResultSet rs =
+          stmt.executeQuery(
+              "SELECT version, description FROM flyway_schema_history WHERE version = '5'")) {
+        assertThat(rs.next()).as("flyway_schema_history must contain version 5").isTrue();
+        assertThat(rs.getString("version")).isEqualTo("5");
+      }
 
+      // 2. Verify physical indexes exist via JDBC metadata
       DatabaseMetaData meta = conn.getMetaData();
       List<String> indexNames = new ArrayList<>();
 
-      // H2 with MODE=MySQL + DATABASE_TO_LOWER=TRUE lowercases identifiers
       try (ResultSet rs = meta.getIndexInfo(null, null, "borrow_records", false, false)) {
         while (rs.next()) {
           String name = rs.getString("INDEX_NAME");
@@ -43,7 +54,7 @@ class BorrowRecordsIndexTest {
           .as("V5 migration indexes must exist on borrow_records")
           .contains("idx_borrow_records_return_date", "idx_borrow_records_due_date");
 
-      // Verify column ordering for return_date index
+      // 3. Verify each index maps to the correct column
       try (ResultSet rs = meta.getIndexInfo(null, null, "borrow_records", false, false)) {
         while (rs.next()) {
           String name = rs.getString("INDEX_NAME");
@@ -59,10 +70,6 @@ class BorrowRecordsIndexTest {
           }
         }
       }
-
-      // Cleanup
-      stmt.executeUpdate("DROP INDEX IF EXISTS idx_borrow_records_return_date");
-      stmt.executeUpdate("DROP INDEX IF EXISTS idx_borrow_records_due_date");
     }
   }
 }

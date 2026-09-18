@@ -288,3 +288,24 @@ This document records every significant engineering decision made during the dev
 **Trade-offs:** Sequential steps mean total CI time is `spotless_time + build_time` rather than `max(spotless_time, build_time)` if parallelized. The 10-second spotless check does not justify the complexity of a separate job.
 
 **Date/Commit:** CI pipeline configuration (`.github/workflows/ci.yml:23-29`).
+
+---
+
+## 16. borrow_records Index Design: Two Single-Column Indexes
+
+**Decision:** Add two single-column indexes on `borrow_records`: `idx_borrow_records_return_date(return_date)` and `idx_borrow_records_due_date(due_date)`. Do not add a composite index. Do not add a `student_id` index.
+
+**Context:** The `borrow_records` table had no explicit indexes beyond PK and FK constraints. The `return_date` column is filtered in 7 repository methods (active-loan queries, history, overdue counts). The `due_date` column is not currently filtered in any SQL query but will be needed for a future SQL-level overdue optimization (blocked by Hibernate 6 JPQL date-arithmetic limitations).
+
+**Alternatives Considered:**
+- **Composite `(return_date, due_date)` index:** Would combine both columns, but no current query filters on both. The `findByReturnDateIsNullAndBorrowDateBefore` method filters on `borrow_date`, not `due_date`. A composite index would only benefit a future optimization that does not yet exist.
+- **Single-column `return_date` only:** Covers all current query patterns. Adding `due_date` separately is cheaper than a second migration later when the overdue SQL optimization is implemented.
+- **Add `student_id` index:** Rejected. InnoDB automatically indexes foreign-key columns. `student_id` is a FK to `student_profiles(id)`, so an explicit index would be redundant.
+
+**Rationale:** `return_date` is the primary filter column for active-loan and history queries — 7 repository methods use it. Two single-column indexes are chosen over a composite because `return_date` is queried independently in most access paths. The `due_date` index is prospective: no repository SQL currently filters on `due_date` (overdue detection runs in Java via `OverdueCalculator`), but the index will be valuable when the blocked SQL-level overdue optimization is implemented.
+
+**Trade-offs:** Two indexes add write amplification on INSERT/UPDATE of `borrow_records` and increase storage proportional to row count. These costs are accepted for the read-heavy analytics workload. No quantitative production measurements are available to assess magnitude. The two single-column approach allows MySQL to use each index independently; no claim is made that MySQL will perform efficient index Merge optimization for combined queries.
+
+**Test:** `BorrowRecordsIndexTest` runs with Flyway enabled against a dedicated H2 database. It verifies V5 appears in `flyway_schema_history` and that both physical indexes exist with correct column mappings. This ensures the migration is genuinely applied by Flyway rather than testing hardcoded DDL.
+
+**Date/Commit:** V5 migration (`68bbeec`). Test rewritten to use Flyway-enabled integration test.
