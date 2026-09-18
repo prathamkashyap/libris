@@ -4,9 +4,11 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.example.lms.entity.AuditAction;
 import com.example.lms.entity.Book;
 import com.example.lms.entity.BorrowRecord;
 import com.example.lms.entity.StudentProfile;
+import com.example.lms.repository.AuditLogRepository;
 import com.example.lms.repository.BookRepository;
 import com.example.lms.repository.BorrowRecordRepository;
 import com.example.lms.repository.StudentProfileRepository;
@@ -31,6 +33,7 @@ import org.springframework.test.web.servlet.*;
 class SecurityHardeningTest {
   @Autowired MockMvc mvc;
   @Autowired ObjectMapper json;
+  @Autowired AuditLogRepository auditLogs;
   @Autowired BorrowRecordRepository borrowRecords;
   @Autowired LoginAttemptTracker loginAttempts;
   @Autowired BookRepository books;
@@ -375,5 +378,41 @@ class SecurityHardeningTest {
             getClass().getClassLoader().getResourceAsStream("static/reports.html").readAllBytes());
     Assertions.assertFalse(
         html.contains("format=csv"), "reports.html must not contain stale format=csv links");
+  }
+
+  // ==================== FAILED_LOGIN audit trail ====================
+
+  @Test
+  void failedLoginCreatesAuditRecord() throws Exception {
+    String username = "auditlogtestuser";
+    mvc.perform(
+            post("/api/auth/login")
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                .header("User-Agent", "TestAgent/1.0")
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"username\":\"%s\",\"password\":\"wrongpassword\"}".formatted(username)))
+        .andExpect(status().isUnauthorized());
+
+    var records =
+        auditLogs.findByFilters(
+            AuditAction.FAILED_LOGIN,
+            null,
+            username,
+            null,
+            null,
+            org.springframework.data.domain.PageRequest.of(0, 10));
+    Assertions.assertFalse(records.isEmpty(), "FAILED_LOGIN audit record must exist");
+    var record = records.getContent().getFirst();
+    Assertions.assertEquals(AuditAction.FAILED_LOGIN, record.getAction());
+    Assertions.assertEquals(com.example.lms.entity.AuditEntityType.ACCOUNT, record.getEntityType());
+    Assertions.assertNull(record.getEntityId(), "entityId must be null for failed login");
+    Assertions.assertNull(record.getActorId(), "actorId must be null for failed login");
+    Assertions.assertEquals(username, record.getActorUsername());
+    Assertions.assertNull(record.getActorRole(), "actorRole must be null for failed login");
+    Assertions.assertNotNull(record.getIpAddress(), "ipAddress must be populated");
+    Assertions.assertNotNull(record.getUserAgent(), "userAgent must be populated");
   }
 }

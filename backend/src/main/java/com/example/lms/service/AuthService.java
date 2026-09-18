@@ -91,6 +91,22 @@ public class AuthService {
     } catch (BadCredentialsException e) {
       loginAttempts.recordFailure(request.username());
       log.warn("Login failed: username={}, reason=bad_credentials", request.username());
+      try {
+        events.publishEvent(
+            new EntityAuditEvent(
+                this,
+                AuditAction.FAILED_LOGIN,
+                AuditEntityType.ACCOUNT,
+                null,
+                "Failed login attempt: username=%s".formatted(request.username()),
+                null,
+                request.username(),
+                null,
+                servletRequest.getRemoteAddr(),
+                servletRequest.getHeader("User-Agent")));
+      } catch (RuntimeException auditFailure) {
+        log.warn("Failed to publish FAILED_LOGIN audit event", auditFailure);
+      }
       throw e;
     }
   }
