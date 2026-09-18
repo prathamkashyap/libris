@@ -1,10 +1,13 @@
 package com.example.lms.service;
 
 import com.example.lms.dto.*;
-import com.example.lms.entity.Newspaper;
+import com.example.lms.entity.*;
+import com.example.lms.event.EntityAuditEvent;
 import com.example.lms.exception.*;
 import com.example.lms.repository.*;
+import com.example.lms.util.CurrentUser;
 import com.example.lms.util.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,10 +17,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class NewspaperService {
   private final NewspaperRepository newspapers;
   private final BorrowRecordRepository records;
+  private final ApplicationEventPublisher events;
+  private final CurrentUser currentUser;
 
-  public NewspaperService(NewspaperRepository newspapers, BorrowRecordRepository records) {
+  public NewspaperService(
+      NewspaperRepository newspapers,
+      BorrowRecordRepository records,
+      ApplicationEventPublisher events,
+      CurrentUser currentUser) {
     this.newspapers = newspapers;
     this.records = records;
+    this.events = events;
+    this.currentUser = currentUser;
   }
 
   @Transactional(readOnly = true)
@@ -39,22 +50,64 @@ public class NewspaperService {
     var entity = new Newspaper();
     apply(entity, request);
     entity.setAvailable(true);
-    return save(entity);
+    var saved = save(entity);
+    var actor = currentUser.get();
+    events.publishEvent(
+        new EntityAuditEvent(
+            this,
+            AuditAction.CREATE,
+            AuditEntityType.NEWSPAPER,
+            saved.id(),
+            "Newspaper created: " + saved.title(),
+            actor.id(),
+            actor.username(),
+            actor.role(),
+            actor.ipAddress(),
+            actor.userAgent()));
+    return saved;
   }
 
   @Transactional
   public NewspaperResponse update(Long id, NewspaperRequest request) {
     var entity = newspaper(id);
     apply(entity, request);
-    return save(entity);
+    var saved = save(entity);
+    var actor = currentUser.get();
+    events.publishEvent(
+        new EntityAuditEvent(
+            this,
+            AuditAction.UPDATE,
+            AuditEntityType.NEWSPAPER,
+            id,
+            "Newspaper updated: " + saved.title(),
+            actor.id(),
+            actor.username(),
+            actor.role(),
+            actor.ipAddress(),
+            actor.userAgent()));
+    return saved;
   }
 
   @Transactional
   public void delete(Long id) {
     var entity = newspaper(id);
+    var title = entity.getTitle();
     if (records.existsByNewspaperId(id))
       throw new ConflictException("A newspaper with borrow history cannot be deleted.");
     newspapers.delete(entity);
+    var actor = currentUser.get();
+    events.publishEvent(
+        new EntityAuditEvent(
+            this,
+            AuditAction.DELETE,
+            AuditEntityType.NEWSPAPER,
+            id,
+            "Newspaper deleted: " + title,
+            actor.id(),
+            actor.username(),
+            actor.role(),
+            actor.ipAddress(),
+            actor.userAgent()));
   }
 
   private Newspaper newspaper(Long id) {

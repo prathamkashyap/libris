@@ -1,10 +1,13 @@
 package com.example.lms.service;
 
 import com.example.lms.dto.*;
-import com.example.lms.entity.Magazine;
+import com.example.lms.entity.*;
+import com.example.lms.event.EntityAuditEvent;
 import com.example.lms.exception.*;
 import com.example.lms.repository.*;
+import com.example.lms.util.CurrentUser;
 import com.example.lms.util.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,10 +17,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class MagazineService {
   private final MagazineRepository magazines;
   private final BorrowRecordRepository records;
+  private final ApplicationEventPublisher events;
+  private final CurrentUser currentUser;
 
-  public MagazineService(MagazineRepository magazines, BorrowRecordRepository records) {
+  public MagazineService(
+      MagazineRepository magazines,
+      BorrowRecordRepository records,
+      ApplicationEventPublisher events,
+      CurrentUser currentUser) {
     this.magazines = magazines;
     this.records = records;
+    this.events = events;
+    this.currentUser = currentUser;
   }
 
   @Transactional(readOnly = true)
@@ -39,22 +50,64 @@ public class MagazineService {
     var entity = new Magazine();
     apply(entity, request);
     entity.setAvailable(true);
-    return save(entity);
+    var saved = save(entity);
+    var actor = currentUser.get();
+    events.publishEvent(
+        new EntityAuditEvent(
+            this,
+            AuditAction.CREATE,
+            AuditEntityType.MAGAZINE,
+            saved.id(),
+            "Magazine created: " + saved.title(),
+            actor.id(),
+            actor.username(),
+            actor.role(),
+            actor.ipAddress(),
+            actor.userAgent()));
+    return saved;
   }
 
   @Transactional
   public MagazineResponse update(Long id, MagazineRequest request) {
     var entity = magazine(id);
     apply(entity, request);
-    return save(entity);
+    var saved = save(entity);
+    var actor = currentUser.get();
+    events.publishEvent(
+        new EntityAuditEvent(
+            this,
+            AuditAction.UPDATE,
+            AuditEntityType.MAGAZINE,
+            id,
+            "Magazine updated: " + saved.title(),
+            actor.id(),
+            actor.username(),
+            actor.role(),
+            actor.ipAddress(),
+            actor.userAgent()));
+    return saved;
   }
 
   @Transactional
   public void delete(Long id) {
     var entity = magazine(id);
+    var title = entity.getTitle();
     if (records.existsByMagazineId(id))
       throw new ConflictException("A magazine with borrow history cannot be deleted.");
     magazines.delete(entity);
+    var actor = currentUser.get();
+    events.publishEvent(
+        new EntityAuditEvent(
+            this,
+            AuditAction.DELETE,
+            AuditEntityType.MAGAZINE,
+            id,
+            "Magazine deleted: " + title,
+            actor.id(),
+            actor.username(),
+            actor.role(),
+            actor.ipAddress(),
+            actor.userAgent()));
   }
 
   private Magazine magazine(Long id) {
