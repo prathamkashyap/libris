@@ -395,4 +395,189 @@ class LibraryManagementIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("UP"));
   }
+
+  @Test
+  void defaultBorrowRecordListReturnsAssociationsCorrectly() throws Exception {
+    MvcResult student =
+        mvc.perform(
+                post("/api/students")
+                    .session(adminSession)
+                    .cookie(csrfCookie)
+                    .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"username\":\"liststudent\",\"password\":\"Password123!\",\"name\":\"List Test\",\"email\":\"list@example.com\",\"phone\":\"555-0210\"}"))
+            .andExpect(status().isCreated())
+            .andReturn();
+    long studentId = json.readTree(student.getResponse().getContentAsString()).path("id").asLong();
+
+    MvcResult book =
+        mvc.perform(
+                post("/api/books")
+                    .session(adminSession)
+                    .cookie(csrfCookie)
+                    .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"title\":\"List Test Book\",\"author\":\"Author\",\"isbn\":\"9780000000091\",\"publishedDate\":\"2026-01-01\"}"))
+            .andExpect(status().isCreated())
+            .andReturn();
+    long bookId = json.readTree(book.getResponse().getContentAsString()).path("id").asLong();
+
+    mvc.perform(
+            post("/api/borrow-records")
+                .session(adminSession)
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"bookId\":"
+                        + bookId
+                        + ",\"studentId\":"
+                        + studentId
+                        + ",\"borrowerName\":\"List Test\",\"borrowerEmail\":\"list@example.com\",\"borrowerPhone\":\"555-0210\",\"borrowDate\":\"2026-09-01\"}"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.status").value("BORROWED"));
+
+    mvc.perform(
+            get("/api/borrow-records")
+                .session(adminSession)
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", csrfCookie.getValue()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(1))))
+        .andExpect(jsonPath("$.content[?(@.itemTitle == 'List Test Book')]").exists())
+        .andExpect(jsonPath("$.content[0].itemType").value("BOOK"))
+        .andExpect(jsonPath("$.content[0].itemId").isNumber())
+        .andExpect(jsonPath("$.content[0].studentId").isNumber())
+        .andExpect(jsonPath("$.content[0].status").value("BORROWED"))
+        .andExpect(jsonPath("$.totalElements").isNumber())
+        .andExpect(jsonPath("$.totalElements").value(greaterThanOrEqualTo(0)))
+        .andExpect(jsonPath("$.number").value(0))
+        .andExpect(jsonPath("$.totalPages").value(1))
+        .andExpect(jsonPath("$.size").value(10))
+        .andExpect(jsonPath("$.first").value(true))
+        .andExpect(jsonPath("$.last").value(true));
+  }
+
+  @Test
+  void borrowedStatusFilterReturnsOnlyActiveRecords() throws Exception {
+    MvcResult student =
+        mvc.perform(
+                post("/api/students")
+                    .session(adminSession)
+                    .cookie(csrfCookie)
+                    .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"username\":\"filterstudent\",\"password\":\"Password123!\",\"name\":\"Filter\",\"email\":\"filter@example.com\",\"phone\":\"555-0211\"}"))
+            .andExpect(status().isCreated())
+            .andReturn();
+    long studentId = json.readTree(student.getResponse().getContentAsString()).path("id").asLong();
+
+    MvcResult book =
+        mvc.perform(
+                post("/api/books")
+                    .session(adminSession)
+                    .cookie(csrfCookie)
+                    .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"title\":\"Filter Test Book\",\"author\":\"Author\",\"isbn\":\"9780000000092\",\"publishedDate\":\"2026-01-01\"}"))
+            .andExpect(status().isCreated())
+            .andReturn();
+    long bookId = json.readTree(book.getResponse().getContentAsString()).path("id").asLong();
+
+    MvcResult borrow =
+        mvc.perform(
+                post("/api/borrow-records")
+                    .session(adminSession)
+                    .cookie(csrfCookie)
+                    .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"bookId\":"
+                            + bookId
+                            + ",\"studentId\":"
+                            + studentId
+                            + ",\"borrowerName\":\"Filter\",\"borrowerEmail\":\"filter@example.com\",\"borrowerPhone\":\"555-0211\",\"borrowDate\":\"2026-09-01\"}"))
+            .andExpect(status().isCreated())
+            .andReturn();
+    long recordId = json.readTree(borrow.getResponse().getContentAsString()).path("id").asLong();
+
+    mvc.perform(
+            post("/api/borrow-records/{id}/return", recordId)
+                .session(adminSession)
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", csrfCookie.getValue()))
+        .andExpect(status().isNoContent());
+
+    mvc.perform(
+            get("/api/borrow-records?status=BORROWED")
+                .session(adminSession)
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", csrfCookie.getValue()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[?(@.itemTitle == 'Filter Test Book')]").doesNotExist());
+
+    mvc.perform(
+            get("/api/borrow-records?status=RETURNED")
+                .session(adminSession)
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", csrfCookie.getValue()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[?(@.itemTitle == 'Filter Test Book')]").exists())
+        .andExpect(jsonPath("$.content[0].status").value("RETURNED"));
+  }
+
+  @Test
+  void searchBorrowRecordsReturnsMatchingResults() throws Exception {
+    MvcResult student =
+        mvc.perform(
+                post("/api/students")
+                    .session(adminSession)
+                    .cookie(csrfCookie)
+                    .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"username\":\"searchstudent\",\"password\":\"Password123!\",\"name\":\"Search\",\"email\":\"search@example.com\",\"phone\":\"555-0212\"}"))
+            .andExpect(status().isCreated())
+            .andReturn();
+    long studentId = json.readTree(student.getResponse().getContentAsString()).path("id").asLong();
+
+    MvcResult book =
+        mvc.perform(
+                post("/api/books")
+                    .session(adminSession)
+                    .cookie(csrfCookie)
+                    .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(
+                        "{\"title\":\"Searchable\",\"author\":\"Author\",\"isbn\":\"9780000000093\",\"publishedDate\":\"2026-01-01\"}"))
+            .andExpect(status().isCreated())
+            .andReturn();
+    long bookId = json.readTree(book.getResponse().getContentAsString()).path("id").asLong();
+
+    mvc.perform(
+            post("/api/borrow-records")
+                .session(adminSession)
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    "{\"bookId\":"
+                        + bookId
+                        + ",\"studentId\":"
+                        + studentId
+                        + ",\"borrowerName\":\"Unique Searcher\",\"borrowerEmail\":\"unique-search@example.com\",\"borrowerPhone\":\"555\",\"borrowDate\":\"2026-09-01\"}"))
+        .andExpect(status().isCreated());
+
+    mvc.perform(
+            get("/api/borrow-records?query=unique-search")
+                .session(adminSession)
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", csrfCookie.getValue()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content").isArray());
+  }
 }
