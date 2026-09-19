@@ -132,22 +132,6 @@ def build_feature_dataset(conn):
         elif paper_id:
             item_loans[("newspaper", paper_id)].append(borrow_dt)
 
-    print("Pre-loading category overdue rates by date...")
-    cat_overdue_cache = {}
-    for loan in all_loans:
-        loan_id, student_id, borrow_dt, due_dt, return_dt, book_id, mag_id, paper_id = loan
-        if book_id:
-            cat = book_cats.get(book_id, "Unknown")
-        elif mag_id:
-            cat = mag_cats.get(mag_id, "Unknown")
-        else:
-            cat = "Newspaper"
-        is_od = 1 if return_dt > due_dt else 0
-        if cat not in cat_overdue_cache:
-            cat_overdue_cache[cat] = {"total": 0, "overdue": 0}
-        cat_overdue_cache[cat]["total"] += 1
-        cat_overdue_cache[cat]["overdue"] += is_od
-
     print("Building point-in-time features...")
     rows = []
     total = len(all_loans)

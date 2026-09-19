@@ -290,7 +290,7 @@ def main():
     report.append("  ─────────────────")
     report.append("  Algorithm: Logistic Regression with L2 regularization")
     report.append(f"  Features: {n_features} ({len(NUMERIC_COLS)} numeric + {len(encoder.categories)} one-hot)")
-    report.append(f"  Training: gradient descent, lr=0.05, iter=5000, L2=0.01")
+    report.append(f"  Training: gradient descent, lr=0.1, iter=2000, L2=0.01")
     report.append("  Preprocessing: StandardScaler (fit on train), OneHotEncoder (fit on train)")
     report.append("  No production code modified. No future data used.")
     report.append("")

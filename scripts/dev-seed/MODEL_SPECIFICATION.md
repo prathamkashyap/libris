@@ -56,7 +56,7 @@ Logistic Regression with L2 regularization (λ=0.01).
 | 9 | `semesterFactor` | Numeric | Academic period factor (0.6–1.0) | Yes |
 | 10 | `loanDuration` | Numeric | Planned loan duration in days (due_date − borrow_date) | Yes |
 | 11 | `itemPopularityScore` | Numeric | Number of prior borrows of this item | Yes |
-| 12 | `categoryOverdueRate` | Numeric | Overdue rate for this item's category (from prior loans only) | Yes |
+| 12 | `categoryOverdueRate` | Numeric | Borrower-specific overdue rate for this item's category, computed from the borrower's prior loans in that category only (PIT-safe) | Yes |
 
 ### Feature Classification
 
@@ -64,7 +64,7 @@ Logistic Regression with L2 regularization (λ=0.01).
 |---|---|
 | **Borrower behavior** | priorLoanCount, priorOverdueCount, historicalOverdueRate, avgDaysToReturn, daysSinceLastBorrow |
 | **Policy/context** | loanDuration, semesterFactor, borrowDayOfWeek, isWeekendBorrow |
-| **Item/ catalog** | preferredCategory, itemPopularityScore, categoryOverdueRate |
+| **Item/ catalog** | preferredCategory, itemPopularityScore, categoryOverdueRate (borrower-specific) |
 
 **Note on `loanDuration`**: This is a librarian-assigned planned duration, not borrower behavior. Removing it drops ROC-AUC by 0.066. It reflects checkout policy rather than intrinsic borrower risk.
 
@@ -247,6 +247,8 @@ python3 phase4e_robustness.py
 | 2026-09-13 | Threshold 0.25 selected as default | Best F1 (0.602), 77.6% recall |
 | 2026-09-13 | No XGBoost added | Marginal benefit not justified on synthetic data |
 | 2026-09-13 | loanDuration retained | -0.066 ROC-AUC drop without it; documented as policy feature |
+| 2026-09-19 | categoryOverdueRate clarified as borrower-specific | Implementation computes rate from borrower's prior loans in the same category, not global category rate; spec updated to match |
+| 2026-09-19 | current_active_loans excluded | Not in original feature set; information subsumed by priorLoanCount and daysSinceLastBorrow; no implementation gap |
 
 ---
 
