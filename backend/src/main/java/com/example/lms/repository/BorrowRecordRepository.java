@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long> {
   @EntityGraph(attributePaths = {"book", "magazine", "newspaper", "student"})
@@ -44,6 +45,17 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
   List<BorrowRecord> findByReturnDateIsNull();
 
   java.util.List<BorrowRecord> findByReturnDateIsNullAndBorrowDateBefore(LocalDate date);
+
+  @Query(
+      "SELECT COUNT(r) FROM BorrowRecord r WHERE r.returnDate IS NULL AND ((r.dueDate IS NOT NULL AND r.dueDate < :today) OR (r.dueDate IS NULL AND r.borrowDate < :fallbackCutoff))")
+  long countActiveOverdue(
+      @Param("today") LocalDate today, @Param("fallbackCutoff") LocalDate fallbackCutoff);
+
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper"})
+  @Query(
+      "SELECT r FROM BorrowRecord r WHERE r.returnDate IS NULL AND ((r.dueDate IS NOT NULL AND r.dueDate < :today) OR (r.dueDate IS NULL AND r.borrowDate < :fallbackCutoff))")
+  List<BorrowRecord> findActiveOverdue(
+      @Param("today") LocalDate today, @Param("fallbackCutoff") LocalDate fallbackCutoff);
 
   @Query(
       value =
