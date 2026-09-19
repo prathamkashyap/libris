@@ -580,4 +580,57 @@ class LibraryManagementIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isArray());
   }
+
+  @Test
+  void unsupportedHttpMethodOnAuthEndpointsReturns405() throws Exception {
+    // GET /api/auth/login should return 405 Method Not Allowed
+    mvc.perform(get("/api/auth/login"))
+        .andExpect(status().isMethodNotAllowed())
+        .andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"))
+        .andExpect(jsonPath("$.status").value(405))
+        .andExpect(jsonPath("$.message").value("Request method 'GET' is not supported"))
+        .andExpect(jsonPath("$.path").value("/api/auth/login"));
+
+    // GET /api/auth/register should return 405 Method Not Allowed
+    mvc.perform(get("/api/auth/register"))
+        .andExpect(status().isMethodNotAllowed())
+        .andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"))
+        .andExpect(jsonPath("$.status").value(405))
+        .andExpect(jsonPath("$.message").value("Request method 'GET' is not supported"))
+        .andExpect(jsonPath("$.path").value("/api/auth/register"));
+  }
+
+  @Test
+  void validPostOnAuthEndpointsRemainsUnchanged() throws Exception {
+    // Verify POST /api/auth/login still works correctly
+    String loginBody =
+        "{\"username\":\"admin\",\"password\":\"" + adminPassword.replace("\"", "\\\"") + "\"}";
+    mvc.perform(
+            post("/api/auth/login")
+                .cookie(csrfCookie)
+                .header("X-XSRF-TOKEN", csrfCookie.getValue())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(loginBody))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.role").value("ADMIN"));
+
+    // Verify POST /api/auth/register still works correctly
+    MvcResult csrfResult =
+        mvc.perform(get("/api/auth/csrf")).andExpect(status().isOk()).andReturn();
+    Cookie localCsrfCookie = csrfResult.getResponse().getCookie("XSRF-TOKEN");
+
+    String registerBody =
+        "{\"username\":\"posttest"
+            + System.currentTimeMillis()
+            + "\",\"password\":\"Password123!\",\"name\":\"Post Test\",\"email\":\"posttest"
+            + System.currentTimeMillis()
+            + "@example.com\",\"phone\":\"555-0300\"}";
+    mvc.perform(
+            post("/api/auth/register")
+                .cookie(localCsrfCookie)
+                .header("X-XSRF-TOKEN", localCsrfCookie.getValue())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(registerBody))
+        .andExpect(status().isCreated());
+  }
 }
