@@ -63,6 +63,14 @@ public class GlobalExceptionHandler {
     return error(400, "VALIDATION_ERROR", "Request validation failed.", r, fields);
   }
 
+  @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+  @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
+  ApiErrorResponse methodNotAllowed(
+      org.springframework.web.HttpRequestMethodNotSupportedException e, HttpServletRequest r) {
+    log.warn("Method not allowed: uri={}, method={}", r.getRequestURI(), e.getMethod());
+    return error(405, "METHOD_NOT_ALLOWED", e.getMessage(), r, List.of());
+  }
+
   @ExceptionHandler(Exception.class)
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   ApiErrorResponse handleAll(Exception e, HttpServletRequest r) {
