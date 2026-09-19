@@ -84,7 +84,7 @@ def ensure_all_months(demand_data, date_start, date_end):
 
 
 def seasonal_naive_forecast(train_data, test_months):
-    """Simplified version for testing."""
+    """Simplified version for testing (matches corrected implementation)."""
     historical = {}
     for record in train_data:
         key = f"{record['item_type']}|{record['category']}|{record['month']}"
@@ -303,6 +303,31 @@ class TestPhase5ASeasonalNaive(unittest.TestCase):
         self.assertEqual(len(test_data), 2)
         self.assertIn("2026-01", [r["month"] for r in test_data])
         self.assertIn("2026-08", [r["month"] for r in test_data])
+
+    def test_month_aware_historical_lookup(self):
+        """Test that historical lookup preserves monthly dimension (regression for overwriting bug).
+
+        This test catches the bug where historical lookup used only item_type|category
+        as the key, causing multiple months to overwrite each other. The correct
+        implementation uses item_type|category|month to preserve the monthly dimension.
+        """
+        train_data = [
+            {"month": "2023-01", "item_type": "BOOK", "category": "Fiction", "demand": 10},
+            {"month": "2024-01", "item_type": "BOOK", "category": "Fiction", "demand": 12},
+            {"month": "2025-01", "item_type": "BOOK", "category": "Fiction", "demand": 15},
+            {"month": "2025-12", "item_type": "BOOK", "category": "Fiction", "demand": 25},  # Different value
+        ]
+
+        test_data = [
+            {"month": "2026-01", "item_type": "BOOK", "category": "Fiction", "demand": 0},
+        ]
+
+        forecasts = seasonal_naive_forecast(train_data, test_data)
+
+        # Should use 2025-01 demand (15) for 2026-01 forecast
+        # The bug would use 2025-12 (25) because it overwrites 2025-01
+        self.assertEqual(forecasts[0]["forecast"], 15)
+        self.assertNotEqual(forecasts[0]["forecast"], 25)
 
 
 class TestPhase5AMetrics(unittest.TestCase):
