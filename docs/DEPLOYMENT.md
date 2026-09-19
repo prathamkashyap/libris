@@ -1,6 +1,6 @@
-# Deployment Guide
+# Deployment Guide 🚀
 
-> **Source of truth as of:** 13 September 2026
+> **Railway** • **Render** • **Fly.io** • **Docker** • **Cloud deployment**
 
 Comprehensive instructions for containerizing and deploying the Libris Library Management System across cloud providers (Railway, Render, Fly.io, Hugging Face Spaces, and Docker VPS).
 
@@ -46,7 +46,7 @@ Railway natively provisions both the Spring Boot Docker container and a managed 
 A verified Railway deployment is running at `https://libris-lms.up.railway.app`.
 
 - **Runtime:** Railway Docker + managed MySQL
-- **Schema:** Flyway V1–V4 applied; `ddl-auto=none`
+- **Schema:** Flyway V1–V5 applied; `ddl-auto=none`
 - **Admin:** `AdminSeeder` creates only the `admin` account
 - **Synthetic data:** None — the application serves real library circulation data only
 - **ML readiness:** `readiness_monitor.py` currently reports NOT READY because real-data thresholds are not yet met (insufficient historical volume)
@@ -122,7 +122,7 @@ Access at <http://localhost:8080>.
 
 | Variable | Required | Default | Notes |
 |---|---|---|---|
-| `LMS_ADMIN_PASSWORD` | Prod / Docker | `ChangeMe123!` | Admin password; main config supplies a local-dev fallback; always override in production |
+| `LMS_ADMIN_PASSWORD` | Prod / Docker | — | Admin password; main config no longer provides a default; AdminSeeder rejects blank/null and the default value `ChangeMe123!`; must be set to a strong value |
 | `LMS_DB_PASSWORD` | Prod / Docker | — | Password for the MySQL database |
 | `LMS_DB_USERNAME` | No | `root` | MySQL username |
 | `LMS_DB_URL` | No | `jdbc:mysql://localhost:3306/librarydb...` | JDBC connection URL |

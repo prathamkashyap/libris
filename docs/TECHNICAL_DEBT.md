@@ -161,15 +161,14 @@ These features are intentionally out of scope for v1.0.0. Each has a rationale f
 | **Impact** | Entities in different `EntityManager` persistence contexts comparing equal by reference but not by ID. Can cause subtle bugs in `Set`/`Map` usage, detached entity comparisons, and Hibernate cache behavior. |
 | **Fix** | Implement `equals()` and `hashCode()` based on the `@Id` field, following the JPA best-practice (business key or ID-based equality). |
 
-### 2.5 Hibernate ddl-auto=update in Production
+### 2.5 Hibernate ddl-auto=update in Production (RESOLVED)
 
 | Item | Detail |
 |------|--------|
 | **File** | `application.properties:5` |
-| **Issue** | `spring.jpa.hibernate.ddl-auto=update` is set for the production MySQL configuration. Hibernate will auto-alter tables at startup. |
-| **Impact** | Schema drift between environments. No versioned migration history. Destructive changes (column drops, renames) are silently ignored. No rollback capability. |
-| **Reference** | ARCHITECTURE.md §3.4: "No migration files exist (no Flyway or Liquibase)." |
-| **Fix** | Create Flyway migration scripts and switch to `ddl-auto=none`. |
+| **Issue** | Previously: `spring.jpa.hibernate.ddl-auto=update` was set for the production MySQL configuration. |
+| **Status** | **RESOLVED** in Phase 6.2 — Flyway migrations adopted (V1–V5) and `ddl-auto=none` now set for production. |
+| **Reference** | DATABASE.md §Schema Management, DECISIONS.md #16 |
 
 ### 2.6 Uncommitted Frontend Feature Branch Changes
 
@@ -220,21 +219,21 @@ These features are intentionally out of scope for v1.0.0. Each has a rationale f
 | `BookRepositoryTest` | Book repository persistence and constraints |
 | `TestBCrypt` | BCrypt password hashing (utility) |
 
-### 3.2 Missing: Magazine/Newspaper Service-Layer Tests
+### 3.2 Missing: Magazine/Newspaper Service-Layer Tests (RESOLVED)
 
 | Item | Detail |
 |------|--------|
-| **Issue** | No dedicated unit or integration tests for `MagazineService` or `NewspaperService`. The `CrudIntegrationTest` exercises the controller endpoints but does not test service-layer edge cases. |
-| **Untested scenarios** | Borrow-history deletion guard for magazines/newspapers, ISBN-equivalent uniqueness if added, availability transitions, audit event publishing on magazine/newspaper CRUD. |
-| **Impact** | Service-level business rules for magazines and newspapers are only validated indirectly through controller integration tests. |
+| **Issue** | Previously: No dedicated unit or integration tests for `MagazineService` or `NewspaperService`. |
+| **Status** | **RESOLVED** in Phase 6.2 — Added `MagazineServiceTest` and `NewspaperServiceTest` with 6 methods each covering CRUD audit events, borrow-history deletion guard, and NotFound handling. |
+| **Untested scenarios** | Now tested: Borrow-history deletion guard, audit event publishing with full actor metadata, NotFound error handling. |
 
-### 3.3 Missing: Dashboard/Analytics/Report Service Tests
+### 3.3 Missing: Dashboard/Analytics/Report Service Tests (RESOLVED)
 
 | Item | Detail |
 |------|--------|
-| **Issue** | No tests for `DashboardService`, `AnalyticsService`, `ReportService`, `StudentDashboardController`, or `LibrarianDashboardController`. |
-| **Untested scenarios** | Dashboard totals accuracy, analytics trend calculations, overdue summary logic, CSV report generation, student/librarian dashboard aggregations. |
-| **Impact** | Analytics and reporting features have zero automated verification. Incorrect aggregates or empty reports would go undetected. |
+| **Issue** | Previously: No tests for `AnalyticsService` and `ReportService`. |
+| **Status** | **RESOLVED** in Phase 6.2 — Added `AnalyticsServiceTest` (16 methods) and `ReportServiceTest` (26 methods) covering dashboard analytics, overdue summary, top books/readers pagination, CSV generation, pagination boundaries, and defensive null handling. |
+| **Untested scenarios** | Now tested: Dashboard totals accuracy, analytics trend calculations, overdue summary logic, CSV report generation, pagination boundaries. |
 
 ### 3.4 Missing: ProfileController Tests
 
@@ -264,15 +263,15 @@ These features are intentionally out of scope for v1.0.0. Each has a rationale f
 
 ## 4. Infrastructure Debt
 
-### 4.1 No Flyway Migrations Created
+### 4.1 No Flyway Migrations Created (RESOLVED)
 
 | Item | Detail |
 |------|--------|
-| **File** | `pom.xml` — `flyway-core` and `flyway-mysql` dependencies present but unused |
-| **Issue** | Flyway dependencies were added to `pom.xml` but no migration scripts exist. No `db/migration/` directory. `spring.jpa.hibernate.ddl-auto=update` remains active. |
-| **Current state** | Schema is managed entirely by `spring.jpa.hibernate.ddl-auto=update`. |
-| **Impact** | No versioned, repeatable, or rollback-capable schema management. Production schema changes are uncontrolled. |
-| **Fix** | Create `db/migration/V1__baseline.sql` from the current schema. Switch `ddl-auto` to `none`. |
+| **File** | `src/main/resources/db/migration/` |
+| **Issue** | Previously: Flyway dependencies were added to `pom.xml` but no migration scripts existed. |
+| **Status** | **RESOLVED** in Phase 6.2 — Added V1–V5 Flyway migrations: V1 (baseline), V2 (student email unique), V3 (borrow record due_date), V4 (book category), V5 (borrow_records indexes). Production now uses `ddl-auto=none` with Flyway enabled. |
+| **Current state** | Schema is managed by Flyway versioned migrations. |
+| **Impact** | Versioned, repeatable schema management now in place. Production schema changes are controlled. |
 
 ### 4.2 No Production Logging Configuration
 
@@ -301,9 +300,9 @@ These features are intentionally out of scope for v1.0.0. Each has a rationale f
 | Category | Items | Severity |
 |----------|-------|----------|
 | Deferred Features | 10 items (JWT, pagination, categories, copies, fines, reservations, notifications, self-registration, soft deletes, observability) | Low (intentional) |
-| Code-Level Debt | 9 items (ProfileController, no interfaces, manual mapping, no equals/hashCode, ddl-auto, uncommitted changes, no Jacoco, no benchmarks, no load tests) | Medium |
-| Testing Debt | 5 gaps (magazine/newspaper services, dashboard/analytics/reports, ProfileController, AuthController, E2E browser tests) | Medium-High |
-| Infrastructure Debt | 3 items (no Flyway, no production logging, no alerting/monitoring) | High (production readiness) |
+| Code-Level Debt | 6 items (ProfileController, no interfaces, manual mapping, no equals/hashCode, uncommitted changes, no benchmarks, no load tests) | Medium |
+| Testing Debt | 3 gaps (ProfileController, AuthController, E2E browser tests) | Medium |
+| Infrastructure Debt | 2 items (no production logging, no alerting/monitoring) | Medium (production readiness) |
 
 ---
 

@@ -36,10 +36,17 @@ This document evaluates the state of the repository answering the question: **"I
 ---
 
 ## Final Verdict
-**Status:** **Production Ready (v1.0.x baseline)**
-The system is highly polished, secure by default, and ready for a v1.0.x release. It will reliably build and run in any environment supporting Docker.
+**Status:** **Production Ready (v1.1.x baseline)**
+The system is highly polished, secure by default, and ready for a v1.1.x release. It will reliably build and run in any environment supporting Docker.
 
-### Recommended Post-v1.0 Improvements
+### Completed v1.1 Improvements
+1. ✅ Integrated Flyway for schema migrations (V1–V5).
+2. ✅ Added structured JSON logging via logstash-logback-encoder.
+3. ✅ Pessimistic locking for concurrency hardening.
+4. ✅ Overdue query optimization with SQL-level predicates.
+5. ✅ Enhanced test coverage (173 executed tests across 18 classes).
+
+### Recommended Post-v1.1 Improvements
 1. Implement a formal Content Security Policy (CSP).
-2. Integrate Flyway for schema migrations instead of `ddl-auto`.
-3. Add structured JSON logging for observability.
+2. Add file-based log appender with rotation for production.
+3. Add Prometheus metrics endpoint and Grafana dashboards.

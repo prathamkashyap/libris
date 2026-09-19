@@ -1,10 +1,10 @@
-# Testing
+# Testing 🧪
 
-> **Source of truth as of:** 30 July 2026
+> **JUnit 5** • **Spring Boot Test** • **MockMvc** • **H2** • **173 tests**
 
-**Framework:** JUnit 5 + Spring Boot Test + MockMvc  
-**Database:** H2 in MySQL compatibility mode (`MODE=MySQL;DATABASE_TO_LOWER=TRUE`)  
-**Schema strategy:** `create-drop` per test run  
+**Framework:** JUnit 5 + Spring Boot Test + MockMvc
+**Database:** H2 in MySQL compatibility mode (`MODE=MySQL;DATABASE_TO_LOWER=TRUE`)
+**Schema strategy:** `create-drop` per test run (Flyway disabled for most tests)
 **Security testing:** `spring-security-test` (`csrf()`, `user().roles()`)
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [API.md](API.md) for endpoint reference.
@@ -39,8 +39,8 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [API.md](API.md) f
 
 #### `LibraryManagementIntegrationTest`
 
-**Type:** MockMvc + admin session  
-**Methods:** 4
+**Type:** MockMvc + admin session
+**Methods:** 14
 
 | Test | What It Covers |
 |------|----------------|
@@ -48,12 +48,33 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [API.md](API.md) f
 | `fullBooksPeopleBorrowReturnAndLogoutFlow` | Book CRUD, student create, librarian create, borrow book, return book, duplicate ISBN conflict, validation errors, book deletion with history → 409, logout |
 | `invalidBookRequestReturnsFieldErrors` | Book with empty title → 400 with `VALIDATION_ERROR` and `fieldErrors` |
 | `duplicateIsbnReturnsConflictAndValidationReturnsFieldMessage` | Duplicate ISBN → 409 `CONFLICT`; invalid student email → 400 `VALIDATION_ERROR` |
+| `defaultBorrowRecordListReturnsAssociationsCorrectly` | BorrowRecord listing returns item/student associations via EntityGraph |
+| `borrowedStatusFilterReturnsOnlyActiveRecords` | Status filter correctly distinguishes BORROWED vs RETURNED |
+| `searchBorrowRecordsReturnsMatchingResults` | Search by borrower name/email works correctly |
+| `swaggerUiAccessibleWhenEnabled` | Swagger UI public access when SpringDoc enabled |
+| `actuatorHealthEndpointPublic` | `/actuator/health` public access |
+| Additional tests | Book category, register CSRF, profile validation, etc. |
 
-**Coverage:** Authentication, full CRUD + borrow/return lifecycle, validation errors, ISBN conflicts, role checks (401/403), logout.
+**Coverage:** Authentication, full CRUD + borrow/return lifecycle, validation errors, ISBN conflicts, role checks (401/403), logout, BorrowRecord listing with associations, status filtering, search.
+
+#### `CrudIntegrationTest`
+
+**Type:** MockMvc + admin session
+**Methods:** 8
+
+| Test | What It Covers |
+|------|----------------|
+| Magazine/Newspaper CRUD | Create, update, delete with borrow-history guard |
+| Student/Librarian update+delete | Profile modification and deletion |
+| Dashboard counts | Aggregate statistics |
+| Audit log access | Audit endpoint verification |
+| Duplicate username/email | Registration conflict handling |
+
+**Coverage:** Magazine/Newspaper CRUD lifecycle, profile management, dashboard aggregation, audit log access.
 
 #### `BrowserCsrfFlowIntegrationTest`
 
-**Type:** Real CSRF cookie/header flow (not MockMvc `csrf()`)  
+**Type:** Real CSRF cookie/header flow (not MockMvc `csrf()`)
 **Methods:** 1
 
 | Test | What It Covers |
@@ -62,11 +83,26 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [API.md](API.md) f
 
 **Coverage:** Verifies the browser-equivalent CSRF flow works correctly with `SpaCsrfTokenRequestHandler`.
 
+#### `SecurityHardeningTest`
+
+**Type:** MockMvc + admin session
+**Methods:** 5
+
+| Test | What It Covers |
+|------|----------------|
+| `failedLoginCreatesAuditRecord` | FAILED_LOGIN audit event persistence with null actor fields |
+| `swaggerUiAccessibleWhenEnabled` | Swagger UI public access when SpringDoc enabled |
+| `actuatorHealthEndpointPublic` | `/actuator/health` public access |
+| `unhandledExceptionReturnsStandardApiErrorResponse` | Catch-all 500 handler returns generic response |
+| Additional tests | Profile validation, CSRF, register flows |
+
+**Coverage:** Failed login audit, Swagger access control, exception handling normalization.
+
 ### Repository Tests
 
 #### `BookRepositoryTest`
 
-**Type:** Spring Data JPA repository  
+**Type:** Spring Data JPA repository
 **Methods:** 1
 
 | Test | What It Covers |
@@ -75,14 +111,165 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [API.md](API.md) f
 
 **Coverage:** Audit timestamp population, ISBN uniqueness constraint at DB level.
 
+#### `BorrowRecordsIndexTest`
+
+**Type:** Flyway-enabled integration (H2)
+**Methods:** 1
+
+| Test | What It Covers |
+|------|----------------|
+| `flywayAppliedV5AndIndexesExist` | Verifies V5 appears in `flyway_schema_history` and both physical indexes exist via JDBC DatabaseMetaData |
+
+**Coverage:** Flyway migration verification, index existence validation.
+
+### Concurrency Tests
+
+#### `BorrowConcurrencyTest`
+
+**Type:** SpringBootTest with concurrent execution
+**Methods:** 7
+
+| Test | What It Covers |
+|------|----------------|
+| `concurrentBookBorrowOneSucceedsOneFails` | Concurrent borrow of same book → 409 for loser |
+| `concurrentMagazineBorrowOneSucceedsOneFails` | Concurrent magazine borrow → 409 for loser |
+| `concurrentNewspaperBorrowOneSucceedsOneFails` | Concurrent newspaper borrow → 409 for loser |
+| `concurrentReturnOfSameRecordOneSucceedsOneFails` | Concurrent return of same record → 409 for loser |
+| `returnAndBorrowRace` | Return and borrow of same item → no lock cycle |
+| `secondReturnBlockedByFirstReturnLock` | Second return blocked by pessimistic lock |
+| `borrowEvictsBooksCache` / `returnBookEvictsBooksCache` | Cache eviction on circulation changes |
+
+**Coverage:** Pessimistic locking effectiveness, race condition handling, cache eviction.
+
+### Service Unit Tests
+
+#### `BorrowRecordServiceTest`
+
+**Type:** Unit (Mockito)
+**Methods:** 34
+
+| Test | What It Covers |
+|------|----------------|
+| Borrow logic | Book/magazine/newspaper borrow with availability check, due date handling |
+| Return logic | Return with availability restoration, already-returned guard |
+| Audit events | Borrow/return audit event publishing with full actor metadata |
+| Pagination | List methods with Pageable parameters |
+| Error handling | Resource not found, unavailable items, validation |
+
+**Coverage:** BorrowRecordService business logic, audit publishing, pagination, error paths.
+
+#### `MagazineServiceTest` / `NewspaperServiceTest`
+
+**Type:** Unit (Mockito)
+**Methods:** 6 each
+
+| Test | What It Covers |
+|------|----------------|
+| CRUD audit events | CREATE/UPDATE/DELETE audit events with actor metadata |
+| Borrow-history guard | Delete blocked when borrow history exists |
+| NotFound handling | No audit published for missing resources |
+
+**Coverage:** Magazine/Newspaper service audit events, deletion guards.
+
+#### `AnalyticsServiceTest`
+
+**Type:** Unit (Mockito)
+**Methods:** 16
+
+| Test | What It Covers |
+|------|----------------|
+| Dashboard analytics | Total counts, overdue counting via optimized query |
+| Overdue summary | Active overdue filtering, item association loading |
+| Top books/readers | Pagination, PageRequest matching |
+
+**Coverage:** AnalyticsService query optimization, pagination, aggregation logic.
+
+#### `ReportServiceTest`
+
+**Type:** Unit (Mockito)
+**Methods:** 26
+
+| Test | What It Covers |
+|------|----------------|
+| CSV generation | Borrowing, inventory, overdue, students CSV export |
+| Pagination | 500+ record batch processing, cursor progression |
+| Defensive guards | Null account handling in studentsCsv |
+
+**Coverage:** ReportService CSV generation, pagination boundaries, defensive programming.
+
+#### `AuthServiceTest`
+
+**Type:** Unit (Mockito)
+**Methods:** 2
+
+| Test | What It Covers |
+|------|----------------|
+| `auditFailureDoesNotReplaceBadCredentialsException` | FAILED_LOGIN audit publication failure does not swallow BadCredentialsException |
+
+**Coverage**: Auth service audit event error handling.
+
+### Query Optimization Tests
+
+#### `ActiveOverdueQueryTest`
+
+**Type:** DataJPA (H2)
+**Methods:** 5
+
+| Test | What It Covers |
+|------|----------------|
+| SQL overdue semantics | Explicit dueDate vs fallback 14-day logic |
+| Boundary conditions | Exactly today, exactly 14 days, null dueDate handling |
+| Returned records excluded | Overdue query filters only active loans |
+
+**Coverage:** SQL-level overdue query correctness, semantic equivalence with OverdueCalculator.
+
+#### `OverdueReportQueryTest`
+
+**Type:** DataJPA (H2)
+**Methods:** 7
+
+| Test | What It Covers |
+|------|----------------|
+| Paginated query semantics | Overdue report SQL-level filtering |
+| Keyset pagination | Last-id cursor progression |
+| OverdueCalculator agreement | SQL results match Java semantics |
+
+**Coverage:** Overdue report pagination, keyset pagination, semantic correctness.
+
+### Architecture Tests
+
+#### `ArchitectureTest`
+
+**Type:** ArchUnit
+**Methods:** 1
+
+| Test | What It Covers |
+|------|----------------|
+| `controllersMustNotDependOnRepositories` | Layered architecture enforcement |
+
+**Coverage:** Dependency rule validation.
+
 ### Summary
 
 | Test Class | Type | Methods | Total |
 |------------|------|---------|-------|
-| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 4 | |
+| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 14 | |
+| `CrudIntegrationTest` | Integration (MockMvc) | 8 | |
+| `SecurityHardeningTest` | Integration (MockMvc) | 5 | |
 | `BrowserCsrfFlowIntegrationTest` | Integration (CSRF flow) | 1 | |
 | `BookRepositoryTest` | Repository | 1 | |
-| **Total** | | | **6** |
+| `BorrowRecordsIndexTest` | Flyway Integration | 1 | |
+| `BorrowConcurrencyTest` | Concurrency (SpringBootTest) | 7 | |
+| `BorrowRecordServiceTest` | Unit (Mockito) | 34 | |
+| `MagazineServiceTest` | Unit (Mockito) | 6 | |
+| `NewspaperServiceTest` | Unit (Mockito) | 6 | |
+| `AnalyticsServiceTest` | Unit (Mockito) | 16 | |
+| `ReportServiceTest` | Unit (Mockito) | 26 | |
+| `AuthServiceTest` | Unit (Mockito) | 2 | |
+| `ActiveOverdueQueryTest` | DataJPA | 5 | |
+| `OverdueReportQueryTest` | DataJPA | 7 | |
+| `ArchitectureTest` | ArchUnit | 1 | |
+| **Total** | | | **173 executed, 178 declared** |
 
 ---
 
@@ -108,6 +295,16 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [API.md](API.md) f
 | Audit timestamp population | ✅ | `BookRepositoryTest` |
 | ISBN DB uniqueness constraint | ✅ | `BookRepositoryTest` |
 | Email validation message | ✅ | `LibraryManagementIntegrationTest` |
+| Magazine/Newspaper CRUD | ✅ | `CrudIntegrationTest` |
+| Student/Librarian update/delete | ✅ | `CrudIntegrationTest` |
+| Dashboard counts | ✅ | `CrudIntegrationTest` |
+| Audit log access | ✅ | `CrudIntegrationTest` |
+| Failed login audit | ✅ | `SecurityHardeningTest` |
+| Concurrent borrow/return | ✅ | `BorrowConcurrencyTest` |
+| Cache eviction | ✅ | `BorrowConcurrencyTest` |
+| Service-layer business logic | ✅ | Service unit tests |
+| Query optimization | ✅ | Query optimization tests |
+| Flyway migration verification | ✅ | `BorrowRecordsIndexTest` |
 
 ---
 
@@ -115,18 +312,18 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [API.md](API.md) f
 
 | Area | Status | Notes |
 |------|:------:|-------|
-| Student/librarian update (PUT) | ❌ | No test |
-| Student/librarian delete (DELETE) | ❌ | No test |
+| Student/librarian update (PUT) | ❌ | Covered in CrudIntegrationTest |
+| Student/librarian delete (DELETE) | ❌ | Covered in CrudIntegrationTest |
 | Book update (PUT) | ❌ | No test |
 | Book delete with no history (success case) | ❌ | No test |
-| Dashboard values | ❌ | No test |
+| Dashboard values | ❌ | Covered in CrudIntegrationTest |
 | Profile endpoint | ❌ | No test |
-| Username uniqueness (students/librarians) | ❌ | No test |
+| Username uniqueness (students/librarians) | ❌ | Covered in CrudIntegrationTest |
 | STUDENT role access restrictions (books GET only) | ❌ | No test |
 | LIBRARIAN role functional access | ❌ | Only 403 tested, not functional access |
 | Frontend JavaScript | ❌ | No JS tests exist |
 | Unit tests (isolated service logic) | ❌ | All tests are integration or repository level |
-| Magazine/Newspaper CRUD | ❌ | No tests |
+| Magazine/Newspaper CRUD | ❌ | Covered in CrudIntegrationTest |
 
 ---
 
@@ -193,10 +390,7 @@ GitHub Actions runs `mvn clean verify` on push to `main`. This compiles the proj
 
 | Priority | Gap | Recommendation |
 |----------|-----|----------------|
-| High | No student/librarian update or delete tests | Add MockMvc tests for PUT and DELETE endpoints |
 | High | No STUDENT role authorization test | Add tests verifying STUDENT can only GET books |
 | High | No dashboard or profile tests | Add MockMvc tests for these endpoints |
-| Medium | No unit tests for services | Add isolated service tests for borrow availability, return idempotency |
 | Medium | No frontend JavaScript tests | Consider adding vitest or jest for JS modules |
-| Medium | Magazine/Newspaper untested | Add MockMvc tests for these CRUD endpoints |
 | Low | Manual tests not executed | Run black-box matrix against local MySQL |

@@ -1,6 +1,6 @@
-# Security
+# Security 🔒
 
-> **Source of truth as of:** 30 July 2026
+> **Session-based auth** • **BCrypt** • **CSRF** • **Role-based access**
 
 The Library Management System uses **session-based authentication** with Spring Security 6.5, **BCrypt password hashing**, **CSRF protection** via a SPA-aware token handler, and **URL-pattern-based role authorization**. The frontend and API share the same origin (Spring Boot serves both), so no CORS configuration is needed.
 
@@ -200,9 +200,9 @@ Both return the standard `ApiErrorResponse` JSON shape — no HTML error pages, 
 
 ## Admin Seed
 
-A `CommandLineRunner` in `AdminSeeder` creates an `admin` account with `ROLE_ADMIN` if no `admin` username exists. Reads `lms.admin.username` and `lms.admin.password` from configuration. Throws `IllegalStateException` if the password is null or blank.
+A `CommandLineRunner` in `AdminSeeder` creates an `admin` account with `ROLE_ADMIN` if no `admin` username exists. Reads `lms.admin.username` and `lms.admin.password` from configuration. Throws `IllegalStateException` if the password is null or blank or equal to the default value `ChangeMe123!`.
 
-**Warning:** The default password is a development seed. Change it before any non-local deployment.
+**Important:** The application no longer provides a default admin password. You must set `LMS_ADMIN_PASSWORD` to a strong value for the application to start. The `ChangeMe123!` value is explicitly rejected.
 
 ---
 
@@ -226,5 +226,4 @@ spring.jackson.default-property-inclusion=non_null
 | No rate limiting | Brute-force login attempts possible | Defer to future scope |
 | No account lockout | Repeated failed logins not throttled | Defer to future scope |
 | No CORS configuration | Not needed for same-origin deployment | Add if separate frontend server is used |
-| Profile deletion may orphan accounts | No `CascadeType` or `orphanRemoval` on `@OneToOne` | Documented gap; add cascade policy if needed |
-| `ddl-auto=update` in production | Schema changes applied without migration versioning | Adopt Flyway/Liquibase for production |
+| Profile deletion may orphan accounts | No `CascadeType` or `orphanRemoval` on the `@OneToOne` | Documented gap; add cascade policy if needed |

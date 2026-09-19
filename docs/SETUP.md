@@ -1,6 +1,6 @@
-# Setup
+# Setup 🚀
 
-> **Source of truth as of:** 13 September 2026
+> **Local development** • **Docker** • **Environment configuration**
 
 How to run the Library Management System locally and with Docker.
 
@@ -28,7 +28,7 @@ All configuration is via environment variables (or a `.env` file via Spring Boot
 | `LMS_DB_URL` | No | `jdbc:mysql://localhost:3306/librarydb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC` | MySQL JDBC URL |
 | `LMS_DB_USERNAME` | No | `root` | MySQL username |
 | `LMS_DB_PASSWORD` | Prod / Docker | — | MySQL password (not needed for H2) |
-| `LMS_ADMIN_PASSWORD` | Prod / Docker | `ChangeMe123!` | Admin password; main config supplies `ChangeMe123!` fallback for local H2 dev; always override in production |
+| `LMS_ADMIN_PASSWORD` | Prod / Docker | — | Admin password; must be set to a strong value (main config throws `IllegalStateException` if blank/null) |
 | `GOOGLE_CLIENT_ID` | No | — | Google OAuth2 client ID (for OAuth login) |
 | `GOOGLE_CLIENT_SECRET` | No | — | Google OAuth2 client secret |
 
@@ -114,11 +114,11 @@ For quick development without MySQL:
 
 ```bash
 cd backend
-export LMS_ADMIN_PASSWORD=ChangeMe123!
+export LMS_ADMIN_PASSWORD=YourStrongPassword123!
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
 ```
 
-The H2 profile uses an in-memory database with `ddl-auto=create-drop`. The admin password defaults to `ChangeMe123!` via the main `application.properties`; you can override it by exporting `LMS_ADMIN_PASSWORD`.
+The H2 profile uses an in-memory database with `ddl-auto=create-drop`. The main `application.properties` no longer provides a default admin password — you must set `LMS_ADMIN_PASSWORD` for the application to start.
 
 ---
 
