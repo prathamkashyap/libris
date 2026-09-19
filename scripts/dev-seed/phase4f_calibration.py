@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase 4F — Probability Calibration for Libris overdue-risk prediction.
+Phase 4F — Probability Calibration for Libris overdue-risk prediction (EXPERIMENTAL/DEFERRED).
 
 Applies Platt (sigmoid) calibration to the Phase 4C logistic regression model.
 Uses a chronological split within the training period:
@@ -9,6 +9,16 @@ Uses a chronological split within the training period:
   - evaluation: borrow_date >= TRAIN_CUTOFF (original validation set)
 
 The final temporal test set is never used to fit calibration parameters.
+
+EXPERIMENTAL STATUS (2026-09-19):
+This calibration method was evaluated on synthetic development data and DEGRADED
+probability quality metrics (Brier score: 0.1991→0.2307, log loss: 0.5797→0.6539).
+Calibration is currently DEFERRED pending real-world circulation data and
+operational probability requirements. See MODEL_SPECIFICATION.md for detailed results.
+
+This script is retained for research/educational purposes but is NOT part of
+the current production pipeline. Use the uncalibrated logistic regression
+probabilities from Phase 4C as the current baseline.
 
 Exports:
   - phase4f_report.txt (calibration evaluation report)

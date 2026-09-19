@@ -7,6 +7,7 @@ for ML overdue-risk prediction development.
 Reproducible: fixed seed ensures identical output across runs.
 Isolated: writes only to the dev MySQL database; never touches H2 or test configs.
 """
+import os
 import random
 import string
 import sys
@@ -17,10 +18,10 @@ import pymysql
 
 SEED = 42
 DB_HOST = "127.0.0.1"
-DB_PORT = 3307
+DB_PORT = 3306
 DB_USER = "root"
-DB_PASS = ""
-DB_NAME = "librarydb"
+DB_PASS = os.environ.get("LMS_DB_PASSWORD", "")
+DB_NAME = os.environ.get("LMS_DB_NAME", "librarydb")
 
 TARGET_COMPLETED_LOANS = 10000
 TARGET_ACTIVE_LOANS = 300

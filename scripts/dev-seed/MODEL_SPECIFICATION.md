@@ -74,7 +74,9 @@ Logistic Regression with L2 regularization (λ=0.01).
 
 ### Risk Score
 
-Logistic Regression output in `[0, 1]`, interpreted as relative estimated overdue risk. Higher values indicate higher predicted overdue probability. Formal probability calibration has not been independently established.
+Logistic Regression output in `[0, 1]`, interpreted as relative estimated overdue risk. Higher values indicate higher predicted overdue probability.
+
+**Calibration Status:** Formal probability calibration has been evaluated on synthetic development data but is currently deferred. Platt scaling degraded both Brier score (0.1991→0.2307) and log loss (0.5797→0.6539) on held-out validation data. Isotonic regression also failed to improve held-out probability quality (Brier: 0.1991→0.2121, log loss: 0.5797→1.2155). The uncalibrated LR probabilities are retained as the current research baseline. Calibration will be revisited when real-world circulation data is available and operational probability requirements are defined.
 
 ### Risk Tiers
 
@@ -249,6 +251,42 @@ python3 phase4e_robustness.py
 | 2026-09-13 | loanDuration retained | -0.066 ROC-AUC drop without it; documented as policy feature |
 | 2026-09-19 | categoryOverdueRate clarified as borrower-specific | Implementation computes rate from borrower's prior loans in the same category, not global category rate; spec updated to match |
 | 2026-09-19 | current_active_loans excluded | Not in original feature set; information subsumed by priorLoanCount and daysSinceLastBorrow; no implementation gap |
+| 2026-09-19 | Calibration deferred | Platt scaling degraded Brier score (0.1991→0.2307) and log loss (0.5797→0.6539) on synthetic development data; isotonic also failed to improve held-out probability quality; uncalibrated LR probabilities retained as baseline pending real-world data and operational requirements |
+
+---
+
+## Calibration Experiment Results (2026-09-19)
+
+### Experimental Setup
+
+**Temporal Split:**
+- Model training: borrow_date < 2025-07-01 (6,694 loans)
+- Calibration fitting: 2025-07-01 ≤ borrow_date < 2025-10-01 (567 loans)
+- Final evaluation: borrow_date ≥ 2025-10-01 (2,071 loans)
+
+**Methods Evaluated:**
+- Uncalibrated Logistic Regression (baseline)
+- Platt scaling (sigmoid calibration)
+- Isotonic regression (PAV algorithm)
+
+### Numerical Results (Validation Set)
+
+| Method | Brier Score | Log Loss | ROC-AUC |
+|--------|-------------|----------|---------|
+| Uncalibrated LR | 0.1991 | 0.5797 | ~0.734 |
+| Platt scaling | 0.2307 | 0.6539 | ~0.734 |
+| Isotonic regression | 0.2121 | 1.2155 | ~0.734 |
+
+### Key Findings
+
+1. **Platt scaling degraded probability quality:** Both Brier score and log loss worsened across all temporal splits (training, calibration, validation)
+2. **Isotonic regression showed overfitting:** Improved calibration set Brier (0.1792→0.1688) but worsened validation Brier (0.1991→0.2121) and severely degraded log loss
+3. **Ranking metrics preserved:** All methods maintained essentially identical ROC-AUC, confirming ranking quality was not the issue
+4. **Probability compression:** Platt parameters (a=0.1456, b=-0.6376) compressed probability range from [0.005, 0.915] to [0.346, 0.376], losing discriminative information
+
+### Conclusion
+
+Calibration was not beneficial on the current synthetic development dataset. The uncalibrated LR probabilities achieve better probability quality metrics than both evaluated calibration methods. Calibration is deferred pending real-world circulation data and operational probability requirements.
 
 ---
 
