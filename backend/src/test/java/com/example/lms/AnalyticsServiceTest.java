@@ -1,7 +1,7 @@
 package com.example.lms;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.example.lms.dto.*;
@@ -51,7 +51,7 @@ class AnalyticsServiceTest {
     when(librarians.count()).thenReturn(5L);
     when(books.countByAvailable(false)).thenReturn(30L);
     when(books.countByAvailable(true)).thenReturn(70L);
-    when(borrowRecords.findByReturnDateIsNull()).thenReturn(List.of());
+    when(borrowRecords.countActiveOverdue(any(), any())).thenReturn(0L);
 
     AnalyticsDashboardResponse resp = service.dashboard();
 
@@ -70,7 +70,7 @@ class AnalyticsServiceTest {
     when(librarians.count()).thenReturn(0L);
     when(books.countByAvailable(false)).thenReturn(0L);
     when(books.countByAvailable(true)).thenReturn(0L);
-    when(borrowRecords.findByReturnDateIsNull()).thenReturn(List.of());
+    when(borrowRecords.countActiveOverdue(any(), any())).thenReturn(0L);
 
     AnalyticsDashboardResponse resp = service.dashboard();
 
@@ -86,16 +86,7 @@ class AnalyticsServiceTest {
     when(librarians.count()).thenReturn(0L);
     when(books.countByAvailable(false)).thenReturn(3L);
     when(books.countByAvailable(true)).thenReturn(7L);
-
-    BorrowRecord overdue1 =
-        makeBorrowRecord(1L, LocalDate.of(2026, 8, 1), LocalDate.now().minusDays(5), null);
-    BorrowRecord notOverdue =
-        makeBorrowRecord(2L, LocalDate.of(2026, 8, 1), LocalDate.now().plusDays(1), null);
-    BorrowRecord overdue2 =
-        makeBorrowRecord(3L, LocalDate.of(2026, 7, 15), LocalDate.now().minusDays(10), null);
-
-    when(borrowRecords.findByReturnDateIsNull())
-        .thenReturn(List.of(overdue1, notOverdue, overdue2));
+    when(borrowRecords.countActiveOverdue(any(), any())).thenReturn(2L);
 
     AnalyticsDashboardResponse resp = service.dashboard();
 
@@ -174,10 +165,7 @@ class AnalyticsServiceTest {
         makeBorrowRecord(1L, LocalDate.of(2026, 8, 1), LocalDate.now().minusDays(5), null);
     overdue.getBook().setTitle("Overdue Book");
 
-    BorrowRecord notOverdue =
-        makeBorrowRecord(2L, LocalDate.of(2026, 8, 1), LocalDate.now().plusDays(1), null);
-
-    when(borrowRecords.findByReturnDateIsNull()).thenReturn(List.of(overdue, notOverdue));
+    when(borrowRecords.findActiveOverdue(any(), any())).thenReturn(List.of(overdue));
 
     OverdueSummaryResponse resp = service.overdue();
 
@@ -192,9 +180,7 @@ class AnalyticsServiceTest {
 
   @Test
   void overdueSummaryEmptyWhenNoneOverdue() {
-    BorrowRecord notOverdue =
-        makeBorrowRecord(1L, LocalDate.of(2026, 8, 1), LocalDate.now().plusDays(1), null);
-    when(borrowRecords.findByReturnDateIsNull()).thenReturn(List.of(notOverdue));
+    when(borrowRecords.findActiveOverdue(any(), any())).thenReturn(List.of());
 
     OverdueSummaryResponse resp = service.overdue();
 
@@ -204,7 +190,7 @@ class AnalyticsServiceTest {
 
   @Test
   void overdueSummaryEmptyWhenNoBorrowRecords() {
-    when(borrowRecords.findByReturnDateIsNull()).thenReturn(List.of());
+    when(borrowRecords.findActiveOverdue(any(), any())).thenReturn(List.of());
 
     OverdueSummaryResponse resp = service.overdue();
 
@@ -219,7 +205,7 @@ class AnalyticsServiceTest {
     BorrowRecord r = makeBorrowRecord(1L, borrowDate, dueDate, null);
     r.setDueDate(dueDate);
 
-    when(borrowRecords.findByReturnDateIsNull()).thenReturn(List.of(r));
+    when(borrowRecords.findActiveOverdue(any(), any())).thenReturn(List.of(r));
 
     OverdueSummaryResponse resp = service.overdue();
 
@@ -232,7 +218,7 @@ class AnalyticsServiceTest {
     LocalDate borrowDate = LocalDate.now().minusDays(20);
     BorrowRecord r = makeBorrowRecord(1L, borrowDate, null, null);
 
-    when(borrowRecords.findByReturnDateIsNull()).thenReturn(List.of(r));
+    when(borrowRecords.findActiveOverdue(any(), any())).thenReturn(List.of(r));
 
     OverdueSummaryResponse resp = service.overdue();
 
@@ -253,7 +239,7 @@ class AnalyticsServiceTest {
     r.setStudent(student);
     r.setBorrowerName(student.getName());
 
-    when(borrowRecords.findByReturnDateIsNull()).thenReturn(List.of(r));
+    when(borrowRecords.findActiveOverdue(any(), any())).thenReturn(List.of(r));
 
     OverdueSummaryResponse resp = service.overdue();
 
@@ -273,7 +259,7 @@ class AnalyticsServiceTest {
     r.setStudent(student);
     r.setBorrowerName(student.getName());
 
-    when(borrowRecords.findByReturnDateIsNull()).thenReturn(List.of(r));
+    when(borrowRecords.findActiveOverdue(any(), any())).thenReturn(List.of(r));
 
     OverdueSummaryResponse resp = service.overdue();
 

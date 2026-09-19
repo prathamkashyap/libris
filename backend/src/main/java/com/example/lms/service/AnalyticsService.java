@@ -3,6 +3,7 @@ package com.example.lms.service;
 import com.example.lms.dto.*;
 import com.example.lms.repository.*;
 import com.example.lms.util.OverdueCalculator;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -33,10 +34,8 @@ public class AnalyticsService {
     var totalLibrarians = librarians.count();
     var borrowedBooks = books.countByAvailable(false);
     var availableBooks = books.countByAvailable(true);
-    var overdueCount =
-        borrowRecords.findByReturnDateIsNull().stream()
-            .filter(OverdueCalculator::isOverdue)
-            .count();
+    var today = LocalDate.now();
+    var overdueCount = borrowRecords.countActiveOverdue(today, today.minusDays(14));
     return new AnalyticsDashboardResponse(
         totalBooks, totalStudents, totalLibrarians, borrowedBooks, availableBooks, overdueCount);
   }
@@ -75,9 +74,9 @@ public class AnalyticsService {
 
   @Transactional(readOnly = true)
   public OverdueSummaryResponse overdue() {
+    var today = LocalDate.now();
     var items =
-        borrowRecords.findByReturnDateIsNull().stream()
-            .filter(OverdueCalculator::isOverdue)
+        borrowRecords.findActiveOverdue(today, today.minusDays(14)).stream()
             .map(
                 r ->
                     new OverdueSummaryResponse.OverdueItem(
