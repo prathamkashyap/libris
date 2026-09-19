@@ -22,10 +22,10 @@ from datetime import date, datetime
 import pymysql
 
 DB_HOST = "127.0.0.1"
-DB_PORT = 3307
+DB_PORT = 3306
 DB_USER = "root"
-DB_PASS = ""
-DB_NAME = "librarydb"
+DB_PASS = os.environ.get("LMS_DB_PASSWORD", "")
+DB_NAME = os.environ.get("LMS_DB_NAME", "librarydb")
 
 SIMULATED_TODAY = date(2026, 7, 15)
 TRAIN_CUTOFF = date(2025, 10, 1)
