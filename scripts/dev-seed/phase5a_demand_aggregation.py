@@ -167,7 +167,7 @@ def seasonal_naive_forecast(train_data, test_months):
     # Build historical lookup from training data
     historical = {}
     for record in train_data:
-        key = f"{record['item_type']}|{record['category']}"
+        key = f"{record['item_type']}|{record['category']}|{record['month']}"
         historical[key] = record["demand"]
     
     forecasts = []
@@ -176,7 +176,6 @@ def seasonal_naive_forecast(train_data, test_months):
     for record in test_months:
         month_key = record["month"]
         series_key = f"{record['item_type']}|{record['category']}"
-        series_key_year_month = f"{series_key}|{month_key}"
         
         # Calculate previous year month
         year, month = map(int, month_key.split("-"))
