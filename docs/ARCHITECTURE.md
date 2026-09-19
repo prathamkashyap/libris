@@ -1,6 +1,6 @@
-# Architecture
+# Architecture 🏗️
 
-> **Source of truth as of:** 30 July 2026
+> **Spring Boot 3.5 monolith** • **Layered MVC** • **Multi-page frontend**
 
 The Library Management System is a **single-deployable Spring Boot 3.5 monolith** following a layered MVC architecture. The browser frontend is a multi-page application served as static resources from Spring Boot and communicates with the REST API through the Fetch API. No layer violations were detected — controllers never access repositories directly (except `ProfileController`, noted in §3.6), services never produce HTTP responses, and repositories contain no business logic.
 
@@ -87,7 +87,7 @@ Repositories extend `JpaRepository` and isolate data access. All queries use der
 
 ### 3.4 Persistence layer
 
-JPA entities map to normalized MySQL tables. Hibernate generates SQL from mappings using `spring.jpa.hibernate.ddl-auto=update` for production and `ddl-auto=create-drop` for tests. No migration files exist (no Flyway or Liquibase).
+JPA entities map to normalized MySQL tables. Hibernate generates SQL from mappings using `spring.jpa.hibernate.ddl-auto=none` for production with Flyway versioned migrations (V1–V5). Tests use `ddl-auto=create-drop` with Flyway disabled (except `BorrowRecordsIndexTest` which uses Flyway-enabled H2 for migration verification).
 
 ### 3.5 Package structure
 

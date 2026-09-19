@@ -1,12 +1,80 @@
-# Changelog
+# Changelog 📝
 
-> **Source of truth as of:** 30 July 2026
+> **All notable changes** to this project are documented here.
 
-All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/).
+Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-_No unreleased changes._
+### Added
+
+- Pessimistic locking for borrow/return race protection via `@Lock(LockModeType.PESSIMISTIC_WRITE)` on dedicated repository methods
+- Failed login audit events with null actor fields (actorId, actorRole null for failed attempts)
+- Magazine/Newspaper CRUD audit events with full actor metadata (id, username, role, IP, UA)
+- Operational logging for authentication success/failure, access denied, validation errors, lock contention
+- V5 Flyway migration: `idx_borrow_records_return_date` and `idx_borrow_records_due_date` indexes
+- SQL-level overdue query optimization via JPQL predicates replacing Java filtering
+- Keyset pagination for overdue report generation
+- Service-layer unit tests for BorrowRecordService, AnalyticsService, ReportService, MagazineService, NewspaperService, AuthService
+- Concurrency tests for borrow/return race conditions and cache eviction
+- Query optimization tests for SQL-level overdue semantics and pagination
+- Flyway-enabled integration test for V5 migration verification
+- Catch-all exception handler for unhandled exceptions (re-throws AuthenticationException/AccessDeniedException)
+
+### Changed
+
+- Frontend overdue status aligned with backend due-date semantics (removed hardcoded 14-day calculation)
+- Frontend overdue description changed from "past 14 days" to "past due date"
+- AdminSeeder now rejects the default password `ChangeMe123!` and requires a strong password
+- Main application.properties no longer provides a default admin password
+- Overdue dashboard and report queries now use SQL-level predicates instead of Java filtering
+- BorrowRecord pagination uses EntityGraph to prevent N+1 queries
+
+### Fixed
+
+- Stale book cache after circulation changes now evicted via `@CacheEvict(cacheNames = "books", allEntries = true)`
+- BorrowRecord listing N+1 queries resolved via `@EntityGraph` on `findAll(Pageable)`
+- Magazine/Newspaper audit events now published on all CRUD operations
+- Failed login audit publication failure no longer swallows BadCredentialsException
+
+## [1.1.0] - 2026-09-19
+
+### Added
+
+- Concurrency hardening: pessimistic locking for borrow/return race protection
+- Failed login audit events with null actor fields
+- Magazine/Newspaper CRUD audit events with full actor metadata
+- Operational logging for authentication, access denied, validation errors, lock contention
+- V5 Flyway migration: return_date and due_date indexes on borrow_records
+- SQL-level overdue query optimization replacing Java filtering
+- Keyset pagination for overdue report generation
+- Service-layer unit tests for BorrowRecordService, AnalyticsService, ReportService, MagazineService, NewspaperService, AuthService
+- Concurrency tests for borrow/return race conditions and cache eviction
+- Query optimization tests for SQL-level overdue semantics and pagination
+- Flyway-enabled integration test for V5 migration verification
+- Catch-all exception handler for unhandled exceptions
+
+### Changed
+
+- Frontend overdue status aligned with backend due-date semantics
+- AdminSeeder now rejects default password and requires strong password
+- Main application.properties no longer provides default admin password
+- Overdue dashboard and report queries use SQL-level predicates
+- BorrowRecord pagination uses EntityGraph to prevent N+1 queries
+
+### Fixed
+
+- Stale book cache after circulation changes now evicted
+- BorrowRecord listing N+1 queries resolved via EntityGraph
+- Magazine/Newspaper audit events now published on all CRUD operations
+- Failed login audit publication failure no longer swallows BadCredentialsException
+
+### Security
+
+- Pessimistic locking prevents concurrent borrow/return race conditions
+- Failed login audit trail without credential leakage
+- Operational logging for security-relevant events
+- Catch-all exception handler preserves AuthenticationException/AccessDeniedException semantics
 
 ## [1.0.0] - 2026-07-23
 

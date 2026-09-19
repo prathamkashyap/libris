@@ -1,10 +1,10 @@
-# Database
+# Database 🗄️
 
-> **Source of truth as of:** 30 July 2026
+> **MySQL 8** (production) • **H2** (tests/dev) • **Flyway** migrations
 
-**Engine:** MySQL 8 (production) / H2 in MySQL-compatibility mode (tests)  
-**Schema management:** Hibernate `ddl-auto=update` (production) / `ddl-auto=create-drop` (tests)  
-**Migrations:** None — no Flyway or Liquibase. Schema is generated from entity annotations.
+**Engine:** MySQL 8 (production) / H2 in MySQL-compatibility mode (tests)
+**Schema management:** Flyway versioned migrations (production) / `ddl-auto=create-drop` (tests)
+**Migrations:** V1 (baseline), V2 (student email unique), V3 (borrow record due_date), V4 (book category), V5 (borrow_records indexes)
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for entity design rationale and [API.md](API.md) for endpoint reference.
 
@@ -272,7 +272,14 @@ Server-side audit trail. Stores denormalized actor and entity references for que
 | `borrow_records` | `newspaper_id` FK | Referential integrity to newspapers |
 | `borrow_records` | `student_id` FK (nullable) | Referential integrity to students |
 
-Hibernate `ddl-auto=update` generates indexes for primary keys and unique constraints automatically. No additional custom indexes are defined.
+### Indexes (V5 Migration)
+
+| Index | Table | Columns | Purpose |
+|-------|-------|---------|---------|
+| `idx_borrow_records_return_date` | `borrow_records` | `return_date` | Accelerates active-loan, history, and overdue queries |
+| `idx_borrow_records_due_date` | `borrow_records` | `due_date` | Supports SQL-level overdue optimization |
+
+**Rationale:** `return_date` is filtered in 7 repository methods (active-loan queries, history, overdue counts). `due_date` supports the SQL-level overdue optimization implemented in Phase 6.2. Two single-column indexes are chosen over a composite because `return_date` is queried independently in most access paths. See DECISIONS.md #16 for full rationale.
 
 ---
 
@@ -298,11 +305,9 @@ JPA auditing is enabled by `@EnableJpaAuditing` on `LibraryManagementApplication
 
 ## Schema Management
 
-- **Production:** `spring.jpa.hibernate.ddl-auto=update` — Hibernate generates or alters tables from entity annotations. No migration files exist.
-- **Tests:** `spring.jpa.hibernate.ddl-auto=create-drop` — schema is created on test start and dropped on exit.
+- **Production:** `spring.jpa.hibernate.ddl-auto=none` + Flyway enabled. Schema changes are applied via versioned migrations under `src/main/resources/db/migration/`.
+- **Tests:** `spring.jpa.hibernate.ddl-auto=create-drop` — schema is created on test start and dropped on exit. Flyway is disabled for tests (except `BorrowRecordsIndexTest` which uses Flyway-enabled H2 for migration verification).
 - **Seeding:** `AdminSeeder` (`CommandLineRunner`) creates an `admin` account with `ROLE_ADMIN` if no `admin` username exists. Reads `lms.admin.username` and `lms.admin.password` from configuration. Throws `IllegalStateException` if the password is null or blank.
-
-**Known gap:** No Flyway or Liquibase migration strategy. Schema changes are applied directly by Hibernate. For production use, a migration tool should be adopted to provide versioned, repeatable schema management.
 
 ---
 
