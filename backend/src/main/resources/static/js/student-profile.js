@@ -47,7 +47,7 @@ async function loadStudent() {
 function renderStudent(borrows) {
   const student = currentStudent;
   const activeLoans = borrows.filter(record => record.status === "BORROWED");
-  const overdue = activeLoans.filter(record => (Date.now() - new Date(record.borrowDate).getTime()) > 14 * 86400000);
+  const overdue = activeLoans.filter(record => record.daysOverdue > 0);
   const manager = canManage();
   document.getElementById("studentProfileContainer").innerHTML = `
     <header class="page-head"><p class="eyebrow">Member record</p><div class="page-title-row"><div><h1 class="serif">${esc(student.name)}</h1><p class="page-sub">Student account and borrowing record.</p></div>${manager ? `<div class="page-actions"><button class="btn-ghost" id="editStudentBtn" type="button">Edit</button><button class="btn-ghost btn-danger-ghost" id="deleteStudentBtn" type="button">Deactivate</button></div>` : ""}</div></header>
