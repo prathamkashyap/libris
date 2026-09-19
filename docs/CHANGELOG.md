@@ -20,6 +20,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - Query optimization tests for SQL-level overdue semantics and pagination
 - Flyway-enabled integration test for V5 migration verification
 - Catch-all exception handler for unhandled exceptions (re-throws AuthenticationException/AccessDeniedException)
+- Phase 5A demand forecasting baseline with seasonal-naive forecasting (`scripts/dev-seed/phase5a_demand_aggregation.py`)
+- Phase 5B demand forecasting baselines with seasonal naive, 3-month moving average, and 6-month moving average (`scripts/dev-seed/phase5b_calendar_baselines.py`)
+- Synthetic academic-calendar regime analysis for demand forecasting (BREAK/NORMAL/REDUCED months based on semester_factor())
+- Phase 5A/5B unit tests for forecasting methodology verification
 
 ### Changed
 
@@ -36,6 +40,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - BorrowRecord listing N+1 queries resolved via `@EntityGraph` on `findAll(Pageable)`
 - Magazine/Newspaper audit events now published on all CRUD operations
 - Failed login audit publication failure no longer swallows BadCredentialsException
+- Phase 5A seasonal-naive historical lookup corrected to preserve monthly dimension (item_type|category|month) instead of series-only key (item_type|category), which caused multiple training months to overwrite each other
 
 ## [1.1.0] - 2026-09-19
 
