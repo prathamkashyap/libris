@@ -184,21 +184,22 @@ public class ReportService {
   public String overdueCsv() {
     var header = csvLine("ID", "Item Title", "Borrower Name", "Borrow Date", "Days Overdue");
     var rows = new ArrayList<String>();
+    var today = java.time.LocalDate.now();
+    var fallbackCutoff = today.minusDays(14);
     long lastId = 0;
     while (true) {
       var batch =
-          borrowRecords.findByIdGreaterThan(lastId, PageRequest.of(0, BATCH_SIZE, Sort.by("id")));
+          borrowRecords.findActiveOverduePaginated(
+              today, fallbackCutoff, lastId, PageRequest.of(0, BATCH_SIZE));
       if (batch.isEmpty()) break;
       for (var r : batch) {
-        if (r.getReturnDate() == null && OverdueCalculator.isOverdue(r)) {
-          rows.add(
-              csvLine(
-                  r.getId(),
-                  itemTitle(r),
-                  r.getBorrowerName(),
-                  r.getBorrowDate().toString(),
-                  OverdueCalculator.daysOverdue(r)));
-        }
+        rows.add(
+            csvLine(
+                r.getId(),
+                itemTitle(r),
+                r.getBorrowerName(),
+                r.getBorrowDate().toString(),
+                OverdueCalculator.daysOverdue(r)));
       }
       lastId = batch.get(batch.size() - 1).getId();
     }

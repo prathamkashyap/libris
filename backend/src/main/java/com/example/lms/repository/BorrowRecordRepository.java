@@ -57,6 +57,15 @@ public interface BorrowRecordRepository extends JpaRepository<BorrowRecord, Long
   List<BorrowRecord> findActiveOverdue(
       @Param("today") LocalDate today, @Param("fallbackCutoff") LocalDate fallbackCutoff);
 
+  @EntityGraph(attributePaths = {"book", "magazine", "newspaper"})
+  @Query(
+      "SELECT r FROM BorrowRecord r WHERE r.returnDate IS NULL AND ((r.dueDate IS NOT NULL AND r.dueDate < :today) OR (r.dueDate IS NULL AND r.borrowDate < :fallbackCutoff)) AND r.id > :lastId ORDER BY r.id ASC")
+  List<BorrowRecord> findActiveOverduePaginated(
+      @Param("today") LocalDate today,
+      @Param("fallbackCutoff") LocalDate fallbackCutoff,
+      @Param("lastId") Long lastId,
+      org.springframework.data.domain.Pageable pageable);
+
   @Query(
       value =
           "SELECT YEAR(r.borrow_date) yr,MONTH(r.borrow_date) mo,COUNT(*) cnt FROM borrow_records r GROUP BY yr,mo ORDER BY yr ASC,mo ASC",

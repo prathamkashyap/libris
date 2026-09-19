@@ -393,7 +393,12 @@ class ReportServiceTest {
 
   @Test
   void overdueCsvHeaders() {
-    when(borrowRecords.findByIdGreaterThan(eq(0L), any(PageRequest.class))).thenReturn(List.of());
+    when(borrowRecords.findActiveOverduePaginated(
+            any(java.time.LocalDate.class),
+            any(java.time.LocalDate.class),
+            eq(0L),
+            any(PageRequest.class)))
+        .thenReturn(List.of());
 
     String csv = service.overdueCsv();
     String[] lines = csv.split("\n");
@@ -414,26 +419,18 @@ class ReportServiceTest {
     overdue.setDueDate(LocalDate.now().minusDays(5));
     overdue.setStudent(student);
 
-    BorrowRecord notOverdue = new BorrowRecord();
-    setId(notOverdue, 20L);
-    notOverdue.setBook(book);
-    notOverdue.setBorrowerName("Bob");
-    notOverdue.setBorrowDate(LocalDate.of(2026, 9, 1));
-    notOverdue.setDueDate(LocalDate.now().plusDays(5));
-    notOverdue.setStudent(student);
-
-    BorrowRecord returned = new BorrowRecord();
-    setId(returned, 30L);
-    returned.setBook(book);
-    returned.setBorrowerName("Charlie");
-    returned.setBorrowDate(LocalDate.of(2026, 6, 1));
-    returned.setDueDate(LocalDate.of(2026, 6, 15));
-    returned.setReturnDate(LocalDate.of(2026, 6, 10));
-    returned.setStudent(student);
-
-    when(borrowRecords.findByIdGreaterThan(eq(0L), any(PageRequest.class)))
-        .thenReturn(List.of(overdue, notOverdue, returned));
-    when(borrowRecords.findByIdGreaterThan(eq(30L), any(PageRequest.class))).thenReturn(List.of());
+    when(borrowRecords.findActiveOverduePaginated(
+            any(java.time.LocalDate.class),
+            any(java.time.LocalDate.class),
+            eq(0L),
+            any(PageRequest.class)))
+        .thenReturn(List.of(overdue));
+    when(borrowRecords.findActiveOverduePaginated(
+            any(java.time.LocalDate.class),
+            any(java.time.LocalDate.class),
+            eq(10L),
+            any(PageRequest.class)))
+        .thenReturn(List.of());
 
     String csv = service.overdueCsv();
     String[] lines = csv.split("\n");
@@ -447,17 +444,12 @@ class ReportServiceTest {
 
   @Test
   void overdueCsvEmptyWhenNoOverdue() {
-    BorrowRecord notOverdue = new BorrowRecord();
-    setId(notOverdue, 1L);
-    notOverdue.setBook(new Book());
-    notOverdue.setBorrowerName("Alice");
-    notOverdue.setBorrowDate(LocalDate.of(2026, 9, 1));
-    notOverdue.setDueDate(LocalDate.now().plusDays(5));
-    notOverdue.setStudent(student);
-
-    when(borrowRecords.findByIdGreaterThan(eq(0L), any(PageRequest.class)))
-        .thenReturn(List.of(notOverdue));
-    when(borrowRecords.findByIdGreaterThan(eq(1L), any(PageRequest.class))).thenReturn(List.of());
+    when(borrowRecords.findActiveOverduePaginated(
+            any(java.time.LocalDate.class),
+            any(java.time.LocalDate.class),
+            eq(0L),
+            any(PageRequest.class)))
+        .thenReturn(List.of());
 
     String csv = service.overdueCsv();
     assertEquals(1, csv.split("\n").length, "Should have header only");
@@ -477,8 +469,12 @@ class ReportServiceTest {
     r.setReturnDate(LocalDate.of(2026, 7, 20));
     r.setStudent(student);
 
-    when(borrowRecords.findByIdGreaterThan(eq(0L), any(PageRequest.class))).thenReturn(List.of(r));
-    when(borrowRecords.findByIdGreaterThan(eq(10L), any(PageRequest.class))).thenReturn(List.of());
+    when(borrowRecords.findActiveOverduePaginated(
+            any(java.time.LocalDate.class),
+            any(java.time.LocalDate.class),
+            eq(0L),
+            any(PageRequest.class)))
+        .thenReturn(List.of());
 
     String csv = service.overdueCsv();
     String[] lines = csv.split("\n");
@@ -498,8 +494,18 @@ class ReportServiceTest {
     r.setDueDate(LocalDate.now().minusDays(3));
     r.setStudent(student);
 
-    when(borrowRecords.findByIdGreaterThan(eq(0L), any(PageRequest.class))).thenReturn(List.of(r));
-    when(borrowRecords.findByIdGreaterThan(eq(15L), any(PageRequest.class))).thenReturn(List.of());
+    when(borrowRecords.findActiveOverduePaginated(
+            any(java.time.LocalDate.class),
+            any(java.time.LocalDate.class),
+            eq(0L),
+            any(PageRequest.class)))
+        .thenReturn(List.of(r));
+    when(borrowRecords.findActiveOverduePaginated(
+            any(java.time.LocalDate.class),
+            any(java.time.LocalDate.class),
+            eq(15L),
+            any(PageRequest.class)))
+        .thenReturn(List.of());
 
     String csv = service.overdueCsv();
     String[] lines = csv.split("\n");
@@ -520,8 +526,18 @@ class ReportServiceTest {
     r.setDueDate(LocalDate.now().minusDays(10));
     r.setStudent(student);
 
-    when(borrowRecords.findByIdGreaterThan(eq(0L), any(PageRequest.class))).thenReturn(List.of(r));
-    when(borrowRecords.findByIdGreaterThan(eq(16L), any(PageRequest.class))).thenReturn(List.of());
+    when(borrowRecords.findActiveOverduePaginated(
+            any(java.time.LocalDate.class),
+            any(java.time.LocalDate.class),
+            eq(0L),
+            any(PageRequest.class)))
+        .thenReturn(List.of(r));
+    when(borrowRecords.findActiveOverduePaginated(
+            any(java.time.LocalDate.class),
+            any(java.time.LocalDate.class),
+            eq(16L),
+            any(PageRequest.class)))
+        .thenReturn(List.of());
 
     String csv = service.overdueCsv();
     String[] lines = csv.split("\n");
