@@ -41,7 +41,7 @@ flowchart LR
     Fetch --> Controller["REST Controllers<br/>(/api/**)"]
     Controller --> Service["Transactional Services<br/>(@Service)"]
     Service --> Repository["Spring Data JPA<br/>(@Repository)"]
-    Repository --> Database[("MySQL 8<br/>(Flyway Migrated)"]
+    Repository --> Database[("MySQL 8<br/>(Flyway Migrated)")]
 ```
 
 ### Technology Stack
