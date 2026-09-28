@@ -27,5 +27,8 @@ output/
 *.log
 backend/logs/
 
+# MySQL dumps produced by scripts/backup-mysql.sh
+backups/
+
 # Maven wrapper (root convenience wrapper is tracked; backend/.mvn/wrapper is tracked)
 # backend/target/ already covered above

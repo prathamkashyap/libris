@@ -1,44 +1,93 @@
-version: "3.9"
+# Libris — production stack for a single OCI Compute instance.
+#
+# Brings up MySQL and the Spring Boot application. Flyway migrates the schema
+# on application startup, so no separate migration step is required.
+#
+# Every secret is read from the environment (populate ./.env from .env.example).
+# Compose refuses to start if a required value is missing — there are no
+# fallback passwords in this file.
+#
+#   cp .env.example .env && chmod 600 .env
+#   docker compose up -d
+#
+# The application publishes on 127.0.0.1 only. Terminate TLS in a reverse proxy
+# on the host and open only 443 in the OCI security list. See docs/DEPLOYMENT.md.
 
 services:
   mysql:
-    image: mysql:8.0
-    container_name: lms-mysql
+    image: mysql:8.4
+    container_name: libris-mysql
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
     environment:
-      MYSQL_ROOT_PASSWORD: ${LMS_DB_PASSWORD:-rootpass}
-      MYSQL_DATABASE: librarydb
-    ports:
-      - "3306:3306"
+      MYSQL_ROOT_PASSWORD: ${LMS_DB_ROOT_PASSWORD:?LMS_DB_ROOT_PASSWORD is required}
+      MYSQL_DATABASE: ${LMS_DB_NAME:-librarydb}
+      MYSQL_USER: ${LMS_DB_USERNAME:-libris}
+      MYSQL_PASSWORD: ${LMS_DB_PASSWORD:?LMS_DB_PASSWORD is required}
     volumes:
       - mysql-data:/var/lib/mysql
+    # Deliberately not published to the host. The app reaches it over the
+    # compose network; nothing outside the instance needs port 3306.
+    expose:
+      - "3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${LMS_DB_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 20
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    stop_grace_period: 30s
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: lms-app
+    image: libris:local
+    container_name: libris-app
+    restart: unless-stopped
     depends_on:
       mysql:
+        # Flyway runs at startup, so the database must be accepting
+        # connections before the JVM boots.
         condition: service_healthy
     environment:
-      LMS_DB_URL: jdbc:mysql://mysql:3306/librarydb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      LMS_DB_USERNAME: root
-      LMS_DB_PASSWORD: ${LMS_DB_PASSWORD:-rootpass}
-      LMS_ADMIN_PASSWORD: ${LMS_ADMIN_PASSWORD:-Admin123!}
-      JAVA_OPTS: "-Xms256m -Xmx512m"
+      # prod disables Swagger/OpenAPI and pins the production security
+      # invariants (see backend/src/main/resources/application-prod.properties).
+      SPRING_PROFILES_ACTIVE: prod
+      LMS_DB_URL: ${LMS_DB_URL:-jdbc:mysql://mysql:3306/librarydb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&connectionTimeZone=UTC}
+      LMS_DB_USERNAME: ${LMS_DB_USERNAME:-libris}
+      LMS_DB_PASSWORD: ${LMS_DB_PASSWORD:?LMS_DB_PASSWORD is required}
+      LMS_ADMIN_USERNAME: ${LMS_ADMIN_USERNAME:-admin}
+      LMS_ADMIN_PASSWORD: ${LMS_ADMIN_PASSWORD:?LMS_ADMIN_PASSWORD is required}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=70.0 -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom}
+    # Loopback only. A reverse proxy on the host forwards 443 -> 8080.
     ports:
-      - "8080:8080"
+      - "${LMS_BIND_ADDRESS:-127.0.0.1}:8080:8080"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/actuator/health"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 20s
+      start_period: 180s
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    stop_grace_period: 30s
 
 volumes:
   mysql-data:
