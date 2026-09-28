@@ -66,6 +66,7 @@ MOVING_AVERAGE_WINDOWS = (3, 6)
 STATIC_HOLDOUT = "static-holdout"
 ROLLING_ORIGIN = "rolling-origin"
 PROTOCOLS = (STATIC_HOLDOUT, ROLLING_ORIGIN)
+METHODS = ("seasonal_naive", "trailing_mean")
 
 # Forecast source labels, reported per point so a substituted forecast is visible.
 SOURCE_SEASONAL = "seasonal_lookup"
@@ -194,6 +195,30 @@ def observed_month_range(records):
     if not months:
         return None, None
     return months[0], months[-1]
+
+
+def filter_records_to_range(records, first_month, last_month):
+    """
+    Drop borrow records whose month falls outside ``[first_month, last_month]``.
+
+    ``resolve_grid_bounds`` bounds the *month* axis of the grid, but
+    densification derives its series keys from every row it is handed. A
+    category that appears only outside the resolved window would therefore be
+    zero-filled across the whole grid and then scored as a real, all-zero
+    series, silently inflating both the series count and the number of forecast
+    points.
+
+    Clipping only ever removes rows. It cannot manufacture an observation, and
+    it cannot turn an unobserved month into observed zero demand: the caller
+    still passes the resolved bounds to the densifier, so months the generator
+    never emitted stay absent rather than becoming zeros.
+    """
+    return [
+        record
+        for record in records
+        if compare_months(month_key(record["borrow_date"]), first_month) >= 0
+        and compare_months(month_key(record["borrow_date"]), last_month) <= 0
+    ]
 
 
 def densify_monthly_grid(demand_data, first_month, last_month):
@@ -360,12 +385,43 @@ def forecast_all(demand_data, test_months, origin, protocol, method, window=None
     """
     if protocol not in PROTOCOLS:
         raise ValueError(f"unknown protocol: {protocol!r}")
+    # Validate the request before the empty-horizon shortcut below, so a bad
+    # method or window is still rejected rather than being masked by it.
+    if method not in METHODS:
+        raise ValueError(f"unknown method: {method!r}")
+    if method == "trailing_mean" and (not window or window < 1):
+        raise ValueError("trailing_mean requires a positive window_months")
     for record in test_months:
         if compare_months(record["month"], origin) <= 0:
             raise ValueError(
                 f"forecast month {record['month']} is not after the origin {origin}; "
                 "a holdout may only score months beyond the training data"
             )
+
+    if not test_months:
+        # An empty horizon has nothing to score. Return an empty result so the
+        # caller does not have to guard its own indexing against it.
+        return []
+
+    if method == "seasonal_naive":
+        # seasonal_naive reads a single observation SEASONAL_LAG months before
+        # each target. That month is only in the information set if it does not
+        # lie past this protocol's boundary: the origin under a frozen holdout,
+        # the prior month under rolling origin. Past that point the method would
+        # silently change itself into a series mean, so refuse the horizon
+        # instead -- scoring a different estimator under the method's name is
+        # exactly the failure the per-point audit columns exist to prevent.
+        for record in test_months:
+            lag_month = shift_month(record["month"], -SEASONAL_LAG)
+            limit = origin if protocol == STATIC_HOLDOUT else shift_month(record["month"], -1)
+            if compare_months(lag_month, limit) > 0:
+                raise ValueError(
+                    f"seasonal_naive cannot forecast {record['month']} under "
+                    f"{protocol}: it needs the observation for {lag_month}, which is "
+                    f"after the {protocol} information boundary {limit}. Use the "
+                    f"{ROLLING_ORIGIN} protocol or a horizon within "
+                    f"{SEASONAL_LAG} months of the origin."
+                )
 
     history = build_history(demand_data)
     forecasts = []

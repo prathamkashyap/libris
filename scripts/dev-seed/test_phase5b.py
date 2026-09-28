@@ -545,6 +545,88 @@ class TestProtocolInformationSets(unittest.TestCase):
         self.assertEqual(f.series_mean(history, "BOOK|Missing"), 0.0)
 
 
+class TestHorizonLimits(unittest.TestCase):
+    """
+    An unsupported horizon must be refused, not silently downgraded.
+
+    seasonal_naive reads one observation 12 months before each target. Once the
+    target is far enough past the origin that its t-12 month falls outside the
+    information set, the method cannot answer; the old behaviour fell through to
+    the series mean, which reported a different estimator under the method's
+    name. The refusal is scoped to the protocol that actually runs out of data,
+    so rolling origin -- whose information set grows with the target -- stays
+    usable for long horizons.
+    """
+
+    def setUp(self):
+        self.grid = flat_grid("2023-01", "2025-12",
+                             {m: 3 for m in f.month_sequence("2023-01", "2025-12")})
+
+    def horizon(self, first, last):
+        return [record(m, 3) for m in f.month_sequence(first, last)]
+
+    def test_the_shipped_seven_month_horizon_is_accepted(self):
+        test = self.horizon("2026-01", "2026-07")
+        rows = f.forecast_all(self.grid, test, ORIGIN, f.STATIC_HOLDOUT, "seasonal_naive")
+        self.assertEqual(len(rows), 7)
+        self.assertTrue(all(r["source"] == f.SOURCE_SEASONAL for r in rows))
+
+    def test_twelve_month_horizon_is_the_last_one_supported(self):
+        test = self.horizon("2026-01", "2026-12")
+        rows = f.forecast_all(self.grid, test, ORIGIN, f.STATIC_HOLDOUT, "seasonal_naive")
+        self.assertEqual(len(rows), 12)
+        self.assertTrue(all(r["source"] == f.SOURCE_SEASONAL for r in rows))
+
+    def test_thirteen_month_horizon_is_refused(self):
+        """2027-01 needs 2026-01, which is inside the holdout, not the history."""
+        test = self.horizon("2026-01", "2027-01")
+        with self.assertRaises(ValueError) as ctx:
+            f.forecast_all(self.grid, test, ORIGIN, f.STATIC_HOLDOUT, "seasonal_naive")
+        self.assertIn("2026-01", str(ctx.exception))
+        self.assertIn("seasonal_naive", str(ctx.exception))
+
+    def test_rolling_origin_is_not_restricted(self):
+        """Its information set grows with the target, so t-12 is always available."""
+        grid = flat_grid("2023-01", "2027-06",
+                         {m: 3 for m in f.month_sequence("2023-01", "2027-06")})
+        test = self.horizon("2026-01", "2027-06")
+        rows = f.forecast_all(grid, test, ORIGIN, f.ROLLING_ORIGIN, "seasonal_naive")
+        self.assertEqual(len(rows), 18)
+        self.assertTrue(all(r["source"] == f.SOURCE_SEASONAL for r in rows))
+
+    def test_trailing_mean_is_not_restricted_by_the_seasonal_lag(self):
+        """The guard is specific to seasonal_naive and must not leak to other methods."""
+        test = self.horizon("2026-01", "2027-06")
+        rows = f.forecast_all(self.grid, test, ORIGIN, f.STATIC_HOLDOUT,
+                              "trailing_mean", window=3)
+        self.assertEqual(len(rows), 18)
+
+    def test_empty_horizon_returns_an_empty_result(self):
+        self.assertEqual(
+            f.forecast_all(self.grid, [], ORIGIN, f.STATIC_HOLDOUT, "seasonal_naive"), []
+        )
+
+    def test_empty_horizon_is_empty_for_every_method(self):
+        for method, window in (("seasonal_naive", None), ("trailing_mean", 3)):
+            with self.subTest(method=method):
+                self.assertEqual(
+                    f.forecast_all(self.grid, [], ORIGIN, f.STATIC_HOLDOUT, method, window), []
+                )
+
+    def test_empty_horizon_still_validates_the_protocol(self):
+        """The empty-horizon shortcut must not skip request validation."""
+        with self.assertRaises(ValueError):
+            f.forecast_all(self.grid, [], ORIGIN, "not-a-protocol", "seasonal_naive")
+
+    def test_unknown_method_still_raises_on_an_empty_horizon(self):
+        with self.assertRaises(ValueError):
+            f.forecast_all(self.grid, [], ORIGIN, f.STATIC_HOLDOUT, "not_a_method")
+
+    def test_invalid_window_still_raises_on_an_empty_horizon(self):
+        with self.assertRaises(ValueError):
+            f.forecast_all(self.grid, [], ORIGIN, f.STATIC_HOLDOUT, "trailing_mean", window=0)
+
+
 class TestPhase5BReportContents(unittest.TestCase):
     """The generated report must state the protocol and the numbers."""
 

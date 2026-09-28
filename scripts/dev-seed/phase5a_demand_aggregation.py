@@ -30,6 +30,7 @@ from phase5_forecasting import (  # noqa: E402
     compare_months,
     coverage,
     densify_monthly_grid,
+    filter_records_to_range,
     forecast_all,
     metrics,
     metrics_by,
@@ -264,6 +265,18 @@ def main():
     if truncated:
         print(f"  Data ends {last_month}; excluding unobserved configured months {truncated}")
 
+    # The grid is bounded to [first_month, last_month], but densification derives
+    # its series keys from every row it is given, so a record outside the window
+    # would add a series that is then scored as if it were real.
+    in_range = filter_records_to_range(borrow_data, first_month, last_month)
+    out_of_range = len(borrow_data) - len(in_range)
+    if out_of_range:
+        print(
+            f"  Dropped {out_of_range} borrow records outside the analysis window "
+            f"{first_month} to {last_month}"
+        )
+    borrow_data = in_range
+
     print("Aggregating monthly demand by item type and category...")
     demand_data = aggregate_monthly_demand(borrow_data)
     print(f"  {len(demand_data)} non-zero monthly observations")
@@ -275,6 +288,13 @@ def main():
     demand_data = add_calendar_regime(demand_data)
     train_data, test_data, origin = split_train_test(demand_data)
     print(f"  Origin: {origin} | Train: {len(train_data)} | Test: {len(test_data)}")
+
+    if not test_data:
+        raise SystemExit(
+            f"No forecast horizon: the data covers {first_month} to {last_month}, which "
+            f"does not extend past the training origin {origin}. There is nothing to "
+            "score."
+        )
 
     print("Generating seasonal naive forecasts (static holdout)...")
     forecasts = forecast_all(
