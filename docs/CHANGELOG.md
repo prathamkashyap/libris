@@ -8,6 +8,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- Oracle Cloud Infrastructure deployment path: a `prod`-profile Docker Compose stack (MySQL 8.4 on a persistent `mysql-data` volume, application published on `127.0.0.1:8080` only) with the application gated on MySQL health, so Flyway never races the database
+- `scripts/backup-mysql.sh` for logical MySQL dumps. Reads credentials from `.env` and passes them via `MYSQL_PWD` so they never appear in the process list, dumps with `--single-transaction`, gzips, rejects an implausibly small dump, and keeps the 14 newest
+- Explicit production `prod` profile (`application-prod.properties`) restating the production invariants: `Secure`/`SameSite=Lax` session cookies, `forward-headers-strategy=framework` for the TLS-terminating reverse proxy, actuator narrowed to `health` with `show-details=never`, Swagger/OpenAPI disabled, and `lms.admin.password` with no default so an unset value fails startup rather than booting with a known password
+- Full OCI runbook in `docs/DEPLOYMENT.md`: shape sizing and `MaxRAMPercentage` guidance, host nginx with Certbot, OCI Load Balancer alternative, security-list and instance-firewall rules, systemd unit, backup scheduling, restore testing and troubleshooting
+
 - Pessimistic locking for borrow/return race protection via `@Lock(LockModeType.PESSIMISTIC_WRITE)` on dedicated repository methods
 - Failed login audit events with null actor fields (actorId, actorRole null for failed attempts)
 - Magazine/Newspaper CRUD audit events with full actor metadata (id, username, role, IP, UA)
@@ -31,6 +36,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - Phase 5 series-range guard: borrow records outside the configured analysis window are dropped before aggregation, so a category seen only outside that window can no longer contribute a scored series
 - Phase 5 explicit horizon validation: `seasonal_naive` now rejects a holdout longer than the 12-month seasonal lag, and an empty forecast horizon returns an empty result instead of raising `IndexError` at the call site
 - Phase 5 test coverage for the NULL-category UNCATEGORIZED branch of `classify_borrow_row()`, the series-mean fallback, partial trailing windows, and both protocols' information sets
+
+### Removed
+
+- Railway and Render deployment configuration (`railway.json`, `render.yaml`), replaced by the OCI Compose stack. The previous `ON_FAILURE` restart policy would not have restarted a cleanly-exiting container, leaving a web service permanently down
+- The duplicate `backend/Dockerfile`, `backend/docker-compose.yml` and `backend/.env.example`. They disagreed with the root pair on the MySQL major version, ran the container as root, and had no healthcheck, so there were two divergent images and two entry points
+
+### Security
+
+- Production datasource is now read from `LMS_DB_URL` with **no fallback**. The base configuration also accepts `MYSQL_URL` / `MYSQL_PRIVATE_URL`, which are platform-injected `mysql://user:pass@host:port/db` strings and are not valid JDBC URLs; a production instance can no longer silently consume one and fail later with an opaque connection-pool error
+- Production datasource user defaults to the least-privilege `libris` account rather than `root`
+- `spring.flyway.baseline-on-migrate` is now **false** in production. With it enabled, a populated schema lacking `flyway_schema_history` was baselined at V1 and left with V2–V5 never applied — the application started and looked healthy on an incomplete schema. It now refuses to start instead. Fresh installs and restores of `backup-mysql.sh` dumps (which include the history table) are unaffected
 
 ### Changed
 

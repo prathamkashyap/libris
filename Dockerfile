@@ -27,7 +27,16 @@ USER app
 
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
+# MaxRAMPercentage sizes the heap from the OCI compute shape / container memory
+# limit instead of a hard-coded -Xmx. Override JAVA_OPTS per instance in .env.
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=70.0 -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom"
+
+# start-period covers a cold start on a small compute shape: Spring context
+# init plus the Flyway run on first boot can exceed 60s. Do not shorten it
+# below the observed startup time or Docker will mark a healthy container
+# unhealthy during a legitimate boot.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=180s --retries=3 \
   CMD wget -qO- http://localhost:8080/actuator/health || exit 1
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# exec keeps java as PID 1 so SIGTERM from `docker stop` reaches the JVM.
+ENTRYPOINT ["/bin/sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]

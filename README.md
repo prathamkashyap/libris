@@ -63,13 +63,18 @@ flowchart LR
 
 ```bash
 git clone https://github.com/prathamkashyap/libris.git
-cd libris/backend
+cd libris
 cp .env.example .env
-# Edit .env: set LMS_DB_PASSWORD and LMS_ADMIN_PASSWORD
-docker compose up --build
+# Edit .env and set LMS_DB_ROOT_PASSWORD, LMS_DB_PASSWORD and LMS_ADMIN_PASSWORD
+docker compose up -d --build
 ```
 
-Navigate to <http://localhost:8080>. Log in with `admin` / your `LMS_ADMIN_PASSWORD`.
+Navigate to <http://127.0.0.1:8080>. Log in with `LMS_ADMIN_USERNAME` / `LMS_ADMIN_PASSWORD`.
+
+> The compose stack runs with `SPRING_PROFILES_ACTIVE=prod`, which sets
+> `Secure` session cookies. Logging in therefore requires HTTPS. Use this for a
+> local smoke test of the health endpoint; for a usable login put a TLS
+> reverse proxy in front, as in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) §8.
 
 ### Option B — H2 In-Memory (No Docker)
 
@@ -78,14 +83,19 @@ export LMS_ADMIN_PASSWORD=YourStrongPassword123!
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
 ```
 
-### Option C — Deploy to Railway
+### Option C — Deploy to Oracle Cloud Infrastructure (Production)
 
-1. Go to [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo**
-2. Add a **MySQL** database plugin
-3. Set env vars: `LMS_DB_URL`, `LMS_DB_USERNAME`, `LMS_DB_PASSWORD`, `LMS_ADMIN_PASSWORD`, `SPRING_PROFILES_ACTIVE=docker`
-4. Railway auto-detects `railway.json` and the multi-stage `Dockerfile`
+1. Provision an OCI Compute instance (Oracle Linux or Ubuntu)
+2. Copy the repository, then:
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment guides (Railway, Render, Fly.io, Hugging Face Spaces).
+   ```bash
+   cp .env.example .env && $EDITOR .env   # set the three required secrets
+   docker compose up -d --build
+   ```
+
+Runs MySQL and the application on one Compute instance, published on loopback
+behind a host reverse proxy. See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for
+build, TLS, health checks, backups and troubleshooting.
 
 ---
 
@@ -133,7 +143,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment guides (Rai
 | [API.md](docs/API.md) | All endpoints, request/response shapes, error codes |
 | [DATABASE.md](docs/DATABASE.md) | ER diagram, table schemas, Flyway migration log |
 | [SECURITY.md](docs/SECURITY.md) | CSRF, session, OAuth2 OIDC, role matrix |
-| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Railway, Render, Fly.io, Hugging Face, Docker Compose |
+| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Oracle Cloud Infrastructure: build, environment, TLS, health checks, backups |
 | [FRONTEND.md](docs/FRONTEND.md) | ES module architecture, component injection, theming |
 | [CURRENT_STATE.md](docs/CURRENT_STATE.md) | Current release, test inventory, deployment state |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture, data flow, REST API design |
