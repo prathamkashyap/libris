@@ -3,7 +3,7 @@
 Spring Boot 3.5 (Java 21) REST API + vanilla HTML/CSS/JS frontend served as
 static resources from Spring Boot. MySQL (prod) / H2 in-memory (tests & dev).
 
-**Current version:** `v1.1.0` — Libris branding, Swagger UI, book categories, circulation due dates, Railway live deployment.
+**Current version:** `v1.1.0` — Libris branding, Swagger UI, book categories, circulation due dates, Oracle Cloud Infrastructure deployment target.
 
 ## Build & test commands
 
@@ -26,11 +26,14 @@ CI (`.github/workflows/ci.yml`) runs `mvn spotless:check` then
 
 | Variable | Required | Notes |
 |----------|----------|-------|
-| `LMS_DB_PASSWORD` | prod/dev MySQL, Docker | MySQL root password |
-| `LMS_ADMIN_PASSWORD` | Prod / Docker | `AdminSeeder` rejects blank/null; main config defaults to `ChangeMe123!` for local dev; always override in production |
+| `LMS_DB_ROOT_PASSWORD` | OCI stack only | MySQL root password; used solely for container bootstrap and the mysql healthcheck. The app never connects as root |
+| `LMS_DB_PASSWORD` | prod/dev MySQL, Docker, OCI | Password for the application account (`libris` on the OCI stack) |
+| `LMS_ADMIN_PASSWORD` | Prod / Docker / OCI | `AdminSeeder` rejects blank/null. **The `prod` profile has no default**, so an unset value fails startup; always set it in production |
+| `LMS_DB_URL` | OCI stack | Full JDBC URL. Supplied by `docker-compose.yml`; the `prod` profile reads it with no fallback |
 
-Tests default `LMS_ADMIN_PASSWORD` to `ChangeMe123!` via
+Tests supply their own `LMS_ADMIN_PASSWORD` via
 `backend/src/test/resources/application.properties`, so `./mvnw test` needs no env.
+It must not be the literal `ChangeMe123!`, which `AdminSeeder` rejects.
 
 Main `application.properties` also defaults `lms.admin.password` to `ChangeMe123!`
 if the env var is absent. **Always override this in production.**
@@ -39,7 +42,11 @@ Profiles (`application.properties`):
 - `h2` — dev: in-memory H2, `ddl-auto=create-drop`, Flyway **disabled**.
 - `docker` / (default) — MySQL, Flyway migrations (`db/migration/V1__baseline.sql`).
 - `oauth` — opt-in Google OIDC; only enables login for existing STUDENT accounts whose profile email matches Google's claim.
-- `prod` — disables Swagger/OpenAPI.
+- `prod` — production invariants restated explicitly: Secure/SameSite=Lax session
+  cookies, `forward-headers-strategy=framework`, actuator narrowed to `health`
+  only, datasource read from `LMS_DB_URL` with no `MYSQL_URL` fallback, and
+  `spring.flyway.baseline-on-migrate=false`. Swagger/OpenAPI are already off in
+  the base config; this profile repeats the setting rather than relying on it.
 
 Main `application.properties` has `spring.jpa.hibernate.ddl-auto=none` +
 Flyway **enabled**; never rely on `ddl-auto` for MySQL schema changes —
@@ -49,6 +56,7 @@ and bump the version. Current migrations:
 - `V2__student_profile_email_unique.sql` — unique email constraint
 - `V3__borrow_record_due_date.sql` — `due_date DATE` column on `borrow_records`
 - `V4__book_category.sql` — `category VARCHAR(100)` on `books`
+- `V5__borrow_records_indexes.sql` — indexes on `borrow_records.return_date` and `due_date`
 
 The H2/dev/test profiles disable Flyway and use `create-drop`, so migration files are **not** applied to them.
 
@@ -62,9 +70,9 @@ The H2/dev/test profiles disable Flyway and use `create-drop`, so migration file
 export LMS_ADMIN_PASSWORD=ChangeMe123!
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=h2
 
-# Docker (needs LMS_DB_PASSWORD + LMS_ADMIN_PASSWORD in backend/.env)
-cd backend && cp .env.example .env && docker compose up --build
-# Dev profile adds phpMyAdmin on :8081:  docker compose --profile dev up --build
+# OCI production stack (repo root; needs the three secrets in ./.env)
+cp .env.example .env && $EDITOR .env
+docker compose up -d --build
 ```
 
 App runs at <http://localhost:8080>; Swagger UI at
@@ -100,9 +108,22 @@ Browser → Fetch API → REST Controllers (/api/**) → @Transactional Services
 - Mockito 5 needs an inline mock-maker agent; `pom.xml` configures the
   surefire `argLine` with the mockito-core jar. Don't override `argLine`
   without preserving `@{argLine}` (JaCoCo agent) and the mockito agent.
-- Root `Dockerfile` is multi-stage (build → runtime); uses `java -jar /app/app.jar`.
-  Railway auto-detects via `railway.json`; `render.yaml` exists for Render.
-- Dynamic port: `server.port=${PORT:8080}` — Railway/Render auto-set `PORT`.
+- The **root** `Dockerfile` and `docker-compose.yml` are the single supported
+  deployment path: a multi-stage build (Java 21) onto a non-root `eclipse-temurin:21-jre-alpine`
+  runtime, plus MySQL 8.4 on a `mysql-data` volume. There is no `backend/Dockerfile`
+  and no `backend/docker-compose.yml`; the duplicate pair was removed so there is one
+  image definition. `railway.json` and `render.yaml` were removed with it — do not
+  reintroduce a second Dockerfile or a platform-specific deploy file.
+- The container runs as user `app`, honours `JAVA_OPTS` (the ENTRYPOINT is shell-form
+  and `exec`s java, so the variable is actually expanded), and carries a HEALTHCHECK
+  with a 180s start-period for cold starts.
+- In the OCI stack the app is published on `127.0.0.1:8080` only; TLS terminates at a
+  host reverse proxy. **3306 and 8080 must stay closed** in the OCI security list and
+  the instance firewall.
+- Logical backups: `scripts/backup-mysql.sh` (writes to the git-ignored `backups/`,
+  keeps the 14 newest). Schedule it from host cron and copy dumps off the instance.
+- Dynamic port: `server.port=${PORT:8080}` — retained so a platform-assigned port still
+  works; the OCI stack pins 8080.
 
 ## Test layout
 
