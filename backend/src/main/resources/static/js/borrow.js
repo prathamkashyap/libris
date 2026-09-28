@@ -20,28 +20,43 @@ const pagerEl = document.createElement("div");
 const tableFoot = document.createElement("div");
 
 function setupFooter() {
-  const card = document.querySelector(".card");
-  if (!card || card.contains(tableFoot)) return;
+  const panel = document.querySelector(".collection-panel");
+  if (!panel || panel.contains(tableFoot)) return;
   tableFoot.className = "table-foot";
   pageInfoEl.className = "muted";
   tableFoot.appendChild(pageInfoEl);
   tableFoot.appendChild(pagerEl);
-  card.appendChild(tableFoot);
+  panel.appendChild(tableFoot);
 }
 
 function showLoading() {
   if (!timelineEl) return;
-  timelineEl.innerHTML = '<div class="loading-state">Loading records…</div>';
+  timelineEl.innerHTML = '<tr><td colspan="7"><div class="loading-state">Loading records…</div></td></tr>';
 }
 
 function showEmpty() {
   if (!timelineEl) return;
-  timelineEl.innerHTML = '<div class="empty-state"><p>No borrow records match this view.</p></div>';
+  const message = state.search ? "No borrow records match your search." : "No borrow records yet";
+  const description = state.search ? "Try adjusting your search terms." : "Issue items to start tracking circulation.";
+  timelineEl.innerHTML = `
+    <tr><td colspan="7">
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        <h3>${message}</h3>
+        <p>${description}</p>
+        ${!state.search && canManageCirculation() ? '<button class="btn-primary" id="emptyIssueItem">Issue item</button>' : ''}
+      </div>
+    </td></tr>
+  `;
+  const emptyIssueBtn = document.getElementById('emptyIssueItem');
+  if (emptyIssueBtn) {
+    emptyIssueBtn.addEventListener('click', openBorrowModal);
+  }
 }
 
 function showError(msg) {
   if (!timelineEl) return;
-  timelineEl.innerHTML = `<div class="error-state"><p>${esc(msg)}</p><button class="btn-ghost sm" type="button" data-retry>Try again</button></div>`;
+  timelineEl.innerHTML = `<tr><td colspan="7"><div class="error-state"><p>${esc(msg)}</p><button class="btn-ghost sm" type="button" data-retry>Try again</button></div></td></tr>`;
   timelineEl.querySelector("[data-retry]")?.addEventListener("click", loadRecords);
 }
 
@@ -71,19 +86,25 @@ function renderTimeline() {
     const isBorrowed = r.status === "BORROWED";
     const isReturned = r.status === "RETURNED";
     const isOverdue = isBorrowed && (r.daysOverdue > 0);
-    const dotClass = isOverdue ? "dot-warn" : isBorrowed ? "dot-out" : "dot-in";
     const badgeClass = isOverdue ? "badge-warn" : isBorrowed ? "badge-out" : "badge-return";
     const label = isOverdue ? `${r.daysOverdue}d Overdue` : isBorrowed ? "Active" : "Returned";
+    const itemLink = r.itemType === "BOOK" ?
+      `<a href="book-details.html?id=${r.itemId}">${esc(r.itemTitle)}</a>` :
+      `<span>${esc(r.itemTitle)}</span>`;
+    const studentLink = `<a href="student-profile.html?id=${r.studentId}">${esc(r.borrowerName)}</a>`;
+
     return `
-      <div class="tl-row">
-        <div class="tl-dot ${dotClass}"></div>
-        <div class="tl-body">
-          ${r.itemType === "BOOK" ? `<a href="book-details.html?id=${r.itemId}">${esc(r.itemTitle)}</a>` : `<b>${esc(r.itemTitle)}</b>`} (${esc(r.itemType)}) ${isBorrowed ? "issued to" : "returned by"} <a href="student-profile.html?id=${r.studentId}">${esc(r.borrowerName)}</a>
-          <span class="badge ${badgeClass}">${label}</span>
-          <small>Issued ${r.borrowDate}${r.dueDate ? ` · Due ${r.dueDate}` : ""}${r.returnDate ? ` · Returned ${r.returnDate}` : ""}</small>
-        </div>
-        ${isBorrowed ? `<button class="btn-ghost sm return-book" data-id="${r.id}">Quick return</button>` : `<button class="btn-ghost sm" disabled>Closed</button>`}
-      </div>
+      <tr class="circulation-row">
+        <td data-label="Item">${itemLink}</td>
+        <td data-label="Type"><span class="badge badge-muted">${esc(r.itemType)}</span></td>
+        <td data-label="Student">${studentLink}</td>
+        <td data-label="Issue Date">${esc(r.borrowDate)}</td>
+        <td data-label="Due Date">${r.dueDate ? esc(r.dueDate) : "—"}</td>
+        <td data-label="Status"><span class="badge ${badgeClass}">${label}</span></td>
+        <td data-label="Action">
+          ${isBorrowed ? `<button class="btn-ghost sm return-book" data-id="${r.id}">Return</button>` : `<button class="btn-ghost sm" disabled>Closed</button>`}
+        </td>
+      </tr>
     `;
   }).join("");
 
@@ -91,10 +112,10 @@ function renderTimeline() {
     const id = parseInt(btn.dataset.id);
     try {
       await borrowApi.returnBook(id);
-      toast("Book returned successfully.", "success");
+      toast("Item returned successfully.", "success");
       loadRecords();
     } catch (err) {
-      toast(err.message || "Failed to return book.", "error");
+      toast(err.message || "Failed to return item.", "error");
     }
   }));
 }
@@ -116,7 +137,7 @@ function canManageCirculation() {
 function showStudentAccessState() {
   toolbarEl?.setAttribute("hidden", "");
   issueButton?.setAttribute("hidden", "");
-  if (timelineEl) timelineEl.innerHTML = '<div class="empty-state"><p>Circulation management is available to library staff. Use your student dashboard to view your own borrowing information.</p><a class="btn-ghost sm" href="/index.html">Open student dashboard</a></div>';
+  if (timelineEl) timelineEl.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>Circulation management is available to library staff. Use your student dashboard to view your own borrowing information.</p><a class="btn-ghost sm" href="/index.html">Open student dashboard</a></div></td></tr>';
 }
 
 async function openBorrowModal() {
