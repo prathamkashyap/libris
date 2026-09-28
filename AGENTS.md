@@ -120,11 +120,47 @@ H2 + `create-drop` + Flyway disabled — tests run fully in isolation, no MySQL.
 
 Run one: `./mvnw test -Dtest=LibraryManagementIntegrationTest`.
 
+### Phase 5 demand forecasting (Python, not part of Maven)
+
+Standalone `unittest` suites under `scripts/dev-seed/`, run by the separate
+`phase5` job in `.github/workflows/ci.yml` (Maven CI does not cover them).
+They import the shipped implementation from
+`scripts/dev-seed/phase5_forecasting.py` — do not reimplement forecasting logic
+inside tests. The shared module is import-safe, so the tests need neither MySQL
+nor any third-party package:
+
+```bash
+python3 -m unittest discover -s scripts/dev-seed -p "test_phase5*.py"   # 105 tests
+```
+
+**105 tests** across `test_phase5a.py` (month arithmetic, record classification,
+aggregation, grid densification, seasonal lookup, metrics) and
+`test_phase5b.py` (moving-average window, static-holdout vs rolling-origin
+anchoring, fallback behaviour, UNCATEGORIZED series, leakage, report contents).
+
+The two entry points need a populated database (`LMS_DB_NAME` defaults to
+`libris_ml_dev`, which is **not** the default of `seed_generator.py`
+(`librarydb`) — set it explicitly):
+
+```bash
+export LMS_DB_PASSWORD=... LMS_DB_NAME=libris_ml_dev
+python3 scripts/dev-seed/phase5a_demand_aggregation.py
+python3 scripts/dev-seed/phase5b_calendar_baselines.py
+```
+
+Evaluation protocol: static holdout (origin 2025-12, horizon 2026-01..2026-07,
+182 forecast points, 26 series) with rolling origin reported alongside. The
+horizon is clipped to the last month the data actually covers — `seed_generator.py`
+stops at `SIMULATED_TODAY` (2026-07-15), so 2026-08 is unobserved and must not be
+densified into a scored zero row. See `docs/CURRENT_STATE.md` §7 for the numbers.
+
 ## Docs worth referencing
 
 `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/SECURITY.md`, `docs/SETUP.md`,
 `docs/TESTING.md`, `docs/DATABASE.md`, `docs/FRONTEND.md`, `docs/DEPLOYMENT.md`,
 `docs/CURRENT_STATE.md`, `scripts/dev-seed/MODEL_SPECIFICATION.md`,
+`scripts/dev-seed/phase5_forecasting.py` (Phase 5 evaluation protocols and
+baseline definitions),
 `scripts/dev-realdata/ML_POPULATION_DEFINITION.md` (Phase 5 batch; not independently validated),
 `scripts/dev-realdata/readiness_monitor.py`.
 

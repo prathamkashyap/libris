@@ -24,6 +24,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - Phase 5B demand forecasting baselines with seasonal naive, 3-month moving average, and 6-month moving average (`scripts/dev-seed/phase5b_calendar_baselines.py`)
 - Synthetic academic-calendar regime analysis for demand forecasting (BREAK/NORMAL/REDUCED months based on semester_factor())
 - Phase 5A/5B unit tests for forecasting methodology verification
+- Phase 5 shared forecasting core (`scripts/dev-seed/phase5_forecasting.py`) as the single source of truth for month arithmetic, record classification, the demand grid, baseline methods, evaluation protocols and MAE/RMSE; import-safe so the unit tests need no database
+- Explicit rolling-origin evaluation protocol reported alongside the static holdout, so a trailing moving average can be evaluated in the operational setting it is meant for
+- Per-forecast-point audit columns (`source`, `window_requested`, `window_covered`, `window_start`, `window_end`) and per-baseline window-coverage reporting, so a partial or substituted forecast cannot pass silently
+- Phase 5 data-coverage guard (`resolve_grid_bounds`) that clips the demand grid to the last month the data actually covers
+- Phase 5 test coverage for the NULL-category UNCATEGORIZED branch of `classify_borrow_row()`, the series-mean fallback, partial moving-average windows, and both protocols' information sets
 
 ### Changed
 
@@ -41,6 +46,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - Magazine/Newspaper audit events now published on all CRUD operations
 - Failed login audit publication failure no longer swallows BadCredentialsException
 - Phase 5A seasonal-naive historical lookup corrected to preserve monthly dimension (item_type|category|month) instead of series-only key (item_type|category), which caused multiple training months to overwrite each other
+- Phase 5B moving-average window no longer slides off the end of the frozen training data. The W-month window is now anchored at the origin under static holdout and at the prior month under rolling origin, so both baselines are a genuine moving average at every forecast point
+- Phase 5B moving average no longer silently substitutes a mean over the entire 36-month training history when no window month is visible. That degeneration affected 104 of 182 forecast points (2026-04 onward for the 3-month window) and made the three baselines incomparable
+- Phase 5 seasonal-naive window off by one month: the trailing window previously started `W` months before the anchor instead of `W-1`, omitting the most recent observation
+- Phase 5 evaluation horizon no longer includes a fabricated 2026-08 all-zero month. `seed_generator.py` stops at `SIMULATED_TODAY` (2026-07-15) and real borrow data ends 2026-07-14, so 26 of the previous 208 scored rows were observations that were never generated. The horizon is now 2026-01 through 2026-07 (182 points)
+- Phase 5 test suite no longer reimplements the forecasting logic. `test_phase5a.py` and `test_phase5b.py` import the shipped modules, so a stale copy of the logic can no longer pass while the real implementation is broken
+- Phase 5 metrics recomputed from the corrected implementation. Seasonal naive MAE 2.7933→2.3791 and RMSE 4.2171→3.4949; 3-month MA MAE 3.1886→2.2930 and RMSE 4.7722→3.0714; 6-month MA MAE 3.2042→2.3278 and RMSE 4.8113→3.0784. The previously documented values are superseded and no longer valid
 
 ## [1.1.0] - 2026-09-19
 
