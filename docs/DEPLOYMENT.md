@@ -73,7 +73,7 @@ Two options. Both produce the same artifact; pick one.
 ```bash
 git clone https://github.com/prathamkashyap/libris.git
 cd libris
-git checkout oci-prep       # or whatever branch you are deploying
+git checkout oci-deployment-prep       # or whatever branch you are deploying
 docker compose build
 ```
 
