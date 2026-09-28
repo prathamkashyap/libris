@@ -9,8 +9,8 @@ import { openModal } from "/components/modal.js";
 import { avatarMarkup } from "/js/utils/avatar.js";
 let state = { page: 0, size: 10, search: "", totalPages: 0, totalElements: 0, librarians: [], loading: false };
 
-const tbody = document.querySelector(".card.table-card tbody");
-const foot = document.querySelector(".card.table-card .table-foot");
+const tbody = document.querySelector("#librariansTable tbody");
+const foot = document.querySelector(".collection-panel .table-foot");
 const muted = foot?.querySelector(".muted");
 const pager = foot?.querySelector(".pager");
 const searchInput = document.querySelector(".search input");
@@ -21,23 +21,46 @@ function isAdmin() {
 
 function showAdminOnly() {
   document.querySelector(".toolbar")?.setAttribute("hidden", "");
-  if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="table-state">Library team management is available to administrators only.</td></tr>';
+  if (tbody) tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>Library team management is available to administrators only.</p><a class="btn-ghost sm" href="/index.html">Open dashboard</a></div></td></tr>';
+  if (muted) muted.textContent = '';
+  if (pager) pager.innerHTML = '';
 }
 
 function showLoading() {
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" class="table-state">Loading librarians…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6"><div class="loading-state">Loading librarians…</div></td></tr>';
+  if (muted) muted.textContent = 'Loading results…';
+  if (pager) pager.innerHTML = '';
 }
 
 function showEmpty() {
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" class="table-state">No librarians found.</td></tr>';
+  const message = state.search ? "No librarians match your search." : "No librarians found";
+  const description = state.search ? "Try adjusting your search terms." : "Add librarians to manage your library team.";
+  tbody.innerHTML = `
+    <tr><td colspan="6">
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <h3>${message}</h3>
+        <p>${description}</p>
+        ${!state.search && isAdmin() ? '<button class="btn-primary" id="emptyAddLibrarian">Add librarian</button>' : ''}
+      </div>
+    </td></tr>
+  `;
+  const emptyAddBtn = document.getElementById('emptyAddLibrarian');
+  if (emptyAddBtn) {
+    emptyAddBtn.addEventListener('click', () => openLibrarianModal(null));
+  }
+  if (muted) muted.textContent = 'Showing 0–0 of 0';
+  if (pager) pager.innerHTML = '';
 }
 
 function showError(msg) {
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="6" class="table-state table-state-error">${esc(msg)}<br><button class="btn-ghost sm" type="button" data-retry>Try again</button></td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="6"><div class="error-state"><p>${esc(msg)}</p><button class="btn-ghost sm" type="button" data-retry>Try again</button></div></td></tr>`;
   tbody.querySelector("[data-retry]")?.addEventListener("click", loadLibrarians);
+  if (muted) muted.textContent = '';
+  if (pager) pager.innerHTML = '';
 }
 
 async function loadLibrarians() {
@@ -63,18 +86,22 @@ async function loadLibrarians() {
 function renderTable() {
   if (!tbody) return;
   tbody.innerHTML = state.librarians.map(l => `
-    <tr>
-      <td class="person-row">
-        ${avatarMarkup(l.name)}
-        <a href="librarian-profile.html?id=${l.id}">${esc(l.name)}</a>
+    <tr class="person-row" data-id="${l.id}">
+      <td data-label="Name">
+        <div class="person-cell">
+          ${avatarMarkup(l.name)}
+          <a href="librarian-profile.html?id=${l.id}">${esc(l.name)}</a>
+        </div>
       </td>
-      <td class="mono">${esc(l.username || "—")}</td>
-      <td><span class="tag tag-role">${esc(l.role || "Librarian")}</span></td>
-      <td>${l.age || "—"}</td>
-      <td>${esc(l.phone || "—")}</td>
-      <td class="row-actions">
-        <button class="btn-ghost sm edit-librarian" data-id="${l.id}" type="button">Edit</button>
-        <button class="btn-ghost sm delete-librarian" data-id="${l.id}" type="button">Delete</button>
+      <td data-label="Username" class="mono">${esc(l.username || "—")}</td>
+      <td data-label="Role"><span class="badge badge-muted">${esc(l.role || "Librarian")}</span></td>
+      <td data-label="Age">${l.age || "—"}</td>
+      <td data-label="Phone">${esc(l.phone || "—")}</td>
+      <td data-label="Actions">
+        <div class="row-actions">
+          <button class="btn-ghost sm edit-librarian" data-id="${l.id}" type="button">Edit</button>
+          <button class="btn-ghost sm delete-librarian" data-id="${l.id}" type="button">Delete</button>
+        </div>
       </td>
     </tr>
   `).join("");
