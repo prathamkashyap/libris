@@ -28,7 +28,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - Explicit rolling-origin evaluation protocol reported alongside the static holdout, so a trailing moving average can be evaluated in the operational setting it is meant for
 - Per-forecast-point audit columns (`source`, `window_requested`, `window_covered`, `window_start`, `window_end`) and per-baseline window-coverage reporting, so a partial or substituted forecast cannot pass silently
 - Phase 5 data-coverage guard (`resolve_grid_bounds`) that clips the demand grid to the last month the data actually covers
-- Phase 5 test coverage for the NULL-category UNCATEGORIZED branch of `classify_borrow_row()`, the series-mean fallback, partial moving-average windows, and both protocols' information sets
+- Phase 5 series-range guard: borrow records outside the configured analysis window are dropped before aggregation, so a category seen only outside that window can no longer contribute a scored series
+- Phase 5 explicit horizon validation: `seasonal_naive` now rejects a holdout longer than the 12-month seasonal lag, and an empty forecast horizon returns an empty result instead of raising `IndexError` at the call site
+- Phase 5 test coverage for the NULL-category UNCATEGORIZED branch of `classify_borrow_row()`, the series-mean fallback, partial trailing windows, and both protocols' information sets
 
 ### Changed
 
@@ -46,12 +48,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - Magazine/Newspaper audit events now published on all CRUD operations
 - Failed login audit publication failure no longer swallows BadCredentialsException
 - Phase 5A seasonal-naive historical lookup corrected to preserve monthly dimension (item_type|category|month) instead of series-only key (item_type|category), which caused multiple training months to overwrite each other
-- Phase 5B moving-average window no longer slides off the end of the frozen training data. The W-month window is now anchored at the origin under static holdout and at the prior month under rolling origin, so both baselines are a genuine moving average at every forecast point
-- Phase 5B moving average no longer silently substitutes a mean over the entire 36-month training history when no window month is visible. That degeneration affected 104 of 182 forecast points (2026-04 onward for the 3-month window) and made the three baselines incomparable
-- Phase 5 seasonal-naive window off by one month: the trailing window previously started `W` months before the anchor instead of `W-1`, omitting the most recent observation
+- Phase 5B trailing-window baseline no longer slides off the end of the frozen training data. The W-month window is now anchored explicitly: at the origin under static holdout, and at the prior month under rolling origin. Under static holdout the window is therefore *frozen* at the origin and the baseline is a level estimated once and held across the horizon, not a value that moves at each forecast point; the sliding window that genuinely moves between forecast points is the rolling-origin protocol, which is reported alongside it
+- Phase 5B trailing-mean baseline no longer silently substitutes a mean over the entire 36-month training history when no window month is visible. That degeneration affected 104 of 182 forecast points (2026-04 onward for the 3-month window) and made the three baselines incomparable
 - Phase 5 evaluation horizon no longer includes a fabricated 2026-08 all-zero month. `seed_generator.py` stops at `SIMULATED_TODAY` (2026-07-15) and real borrow data ends 2026-07-14, so 26 of the previous 208 scored rows were observations that were never generated. The horizon is now 2026-01 through 2026-07 (182 points)
 - Phase 5 test suite no longer reimplements the forecasting logic. `test_phase5a.py` and `test_phase5b.py` import the shipped modules, so a stale copy of the logic can no longer pass while the real implementation is broken
 - Phase 5 metrics recomputed from the corrected implementation. Seasonal naive MAE 2.7933→2.3791 and RMSE 4.2171→3.4949; 3-month MA MAE 3.1886→2.2930 and RMSE 4.7722→3.0714; 6-month MA MAE 3.2042→2.3278 and RMSE 4.8113→3.0784. The previously documented values are superseded and no longer valid
+- The seasonal-naive figures move only because the horizon shrank from 208 to 182 points: the seasonal implementation itself was not changed in this release, and reproduces 2.3791/3.4949 on the 182-point horizon either way. Most of the trailing-window improvement is likewise attributable to dropping the fabricated 2026-08 month rather than to the window fix, so the arrow notation above should not be read as the effect of the window change alone
 
 ## [1.1.0] - 2026-09-19
 

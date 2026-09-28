@@ -340,6 +340,83 @@ class TestPhase5ABoundaries(unittest.TestCase):
         self.assertNotIn("2026-08", {r["month"] for r in rows})
 
 
+class TestSeriesRangeGuard(unittest.TestCase):
+    """
+    An out-of-window borrow record must not create a scored series.
+
+    ``resolve_grid_bounds`` bounds the month axis of the grid, but
+    densification derives its series keys from every row it is given. Before the
+    series-range guard, a category seen only outside the window was zero-filled
+    across the grid and then scored as a real all-zero series, inflating both
+    the series count and the number of forecast points.
+    """
+
+    # Fiction inside the window; Poetry exists only in 2022-06, which is earlier
+    # than the configured DATE_START of 2023-01-01.
+    RAW = [
+        {"borrow_date": date(2023, 1, 5), "item_type": "BOOK", "category": "Fiction"},
+        {"borrow_date": date(2025, 12, 5), "item_type": "BOOK", "category": "Fiction"},
+        {"borrow_date": date(2026, 7, 14), "item_type": "BOOK", "category": "Fiction"},
+        {"borrow_date": date(2022, 6, 5), "item_type": "BOOK", "category": "Poetry"},
+    ]
+
+    def scored(self, records):
+        first, last, _ = p5a.resolve_grid_bounds(records)
+        grid = f.densify_monthly_grid(f.aggregate_monthly_demand(records), first, last)
+        _train, test, origin = p5a.split_train_test(grid)
+        return f.forecast_all(grid, test, origin, f.STATIC_HOLDOUT, "seasonal_naive"), grid
+
+    def test_the_failure_mode_is_real_without_the_guard(self):
+        """Pins why the guard is needed: unfiltered, the stray series is scored."""
+        rows, grid = self.scored(self.RAW)
+        self.assertIn("Poetry", {r["category"] for r in grid})
+        self.assertIn("Poetry", {r["category"] for r in rows})
+
+    def test_stray_series_is_not_scored_with_the_guard(self):
+        first, last, _ = p5a.resolve_grid_bounds(self.RAW)
+        kept = f.filter_records_to_range(self.RAW, first, last)
+        self.assertEqual([r["category"] for r in kept], ["Fiction"] * 3)
+        rows, grid = self.scored(kept)
+        self.assertNotIn("Poetry", {r["category"] for r in grid})
+        self.assertNotIn("Poetry", {r["category"] for r in rows})
+        self.assertEqual({r["category"] for r in rows}, {"Fiction"})
+
+    def test_in_range_series_are_unchanged_by_the_guard(self):
+        first, last, _ = p5a.resolve_grid_bounds(self.RAW)
+        kept = f.filter_records_to_range(self.RAW, first, last)
+        unfiltered_rows, _ = self.scored(self.RAW)
+        filtered_rows, _ = self.scored(kept)
+        fiction_before = [r for r in unfiltered_rows if r["category"] == "Fiction"]
+        fiction_after = [r for r in filtered_rows if r["category"] == "Fiction"]
+        self.assertEqual(fiction_before, fiction_after)
+        self.assertEqual(len(fiction_after), 7)
+
+    def test_records_after_the_effective_end_are_also_dropped(self):
+        raw = self.RAW + [
+            {"borrow_date": date(2026, 9, 1), "item_type": "BOOK", "category": "Late"},
+        ]
+        first, last, _ = p5a.resolve_grid_bounds(raw)
+        kept = f.filter_records_to_range(raw, first, last)
+        self.assertNotIn("Late", {r["category"] for r in kept})
+
+    def test_the_guard_never_creates_observations(self):
+        """Clipping only removes rows; it cannot densify a month into existence."""
+        raw = [
+            {"borrow_date": date(2023, 1, 5), "item_type": "BOOK", "category": "Fiction"},
+            {"borrow_date": date(2025, 12, 5), "item_type": "BOOK", "category": "Fiction"},
+        ]
+        first, last, truncated = p5a.resolve_grid_bounds(raw)
+        kept = f.filter_records_to_range(raw, first, last)
+        self.assertEqual(len(kept), len(raw))
+        grid = f.densify_monthly_grid(f.aggregate_monthly_demand(kept), first, last)
+        months = {r["month"] for r in grid}
+        # The last observed month is a real observation, so it stays; nothing
+        # beyond it may be densified into existence.
+        self.assertIn(last, months)
+        self.assertEqual(max(months), last)
+        self.assertEqual(min(months), first)
+
+
 class TestCalendarRegime(unittest.TestCase):
     """Synthetic regime labels must mirror seed_generator.semester_factor()."""
 

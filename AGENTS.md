@@ -130,13 +130,14 @@ inside tests. The shared module is import-safe, so the tests need neither MySQL
 nor any third-party package:
 
 ```bash
-python3 -m unittest discover -s scripts/dev-seed -p "test_phase5*.py"   # 105 tests
+python3 -m unittest discover -s scripts/dev-seed -p "test_phase5*.py"   # 120 tests
 ```
 
-**105 tests** across `test_phase5a.py` (month arithmetic, record classification,
-aggregation, grid densification, seasonal lookup, metrics) and
+**120 tests** across `test_phase5a.py` (month arithmetic, record classification,
+aggregation, grid densification, series-range guard, seasonal lookup, metrics) and
 `test_phase5b.py` (moving-average window, static-holdout vs rolling-origin
-anchoring, fallback behaviour, UNCATEGORIZED series, leakage, report contents).
+anchoring, horizon limits, fallback behaviour, UNCATEGORIZED series, leakage,
+report contents).
 
 The two entry points need a populated database (`LMS_DB_NAME` defaults to
 `libris_ml_dev`, which is **not** the default of `seed_generator.py`
