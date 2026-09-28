@@ -2,32 +2,678 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign in — Libris</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>Libris — Library Management Workspace</title><link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script>(function(){var t=localStorage.getItem('theme');if(t==='verdigris')document.documentElement.setAttribute('data-theme','verdigris')})();</script>
+  <style>html{visibility:hidden;opacity:0;}</style>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css">
+  <script>document.documentElement.style.visibility='visible';document.documentElement.style.opacity='1';</script>
 </head>
 <body>
-  <div id="topbar-theme" class="login-theme-mount"></div>
-  <main class="login-layout" id="login-view">
-    <aside class="login-branding" aria-label="About Libris">
-      <div class="brand-mark"><div class="brand-mark-icon"><svg viewBox="0 0 48 48" fill="none"><rect x="3" y="3" width="42" height="42" rx="13" fill="#57d1b1"/><path d="M12 13h11a6 6 0 0 1 6 6v17H18a6 6 0 0 1-6-6V13Z" fill="#082823"/><path d="M29 19h7v17h-7" fill="#0d6659"/></svg></div><div class="brand-text"><span class="brand-name">LIBRIS</span><span class="brand-sub">Library workspace</span></div></div>
-      <div><h2 class="brand-headline">A clearer way to care for your <em>collection.</em></h2><p class="brand-desc">One workspace for the catalog, circulation, members, and the details that keep a library moving.</p></div>
-      <p class="brand-trust"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>Secure access for your library community</p>
-    </aside>
-    <section class="login-panel" aria-label="Sign in">
-      <div class="login-card" id="loginCard">
-        <div class="card-logo"><svg viewBox="0 0 48 48" fill="none"><rect x="3" y="3" width="42" height="42" rx="13" fill="#57d1b1"/><path d="M12 13h11a6 6 0 0 1 6 6v17H18a6 6 0 0 1-6-6V13Z" fill="#082823"/><path d="M29 19h7v17h-7" fill="#0d6659"/></svg><h1 class="card-title">Welcome back</h1><p class="card-sub">Sign in with your Libris account.</p></div>
-        <p id="login-error" class="form-error login-error" role="alert" hidden></p>
-        <form id="login-form" novalidate>
-          <label class="login-field" for="login-username">Username or student ID<div class="login-input-wrap"><svg class="login-input-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><input id="login-username" name="username" type="text" required autocomplete="username" placeholder="Enter your username"></div></label>
-          <label class="login-field" for="login-password">Password<div class="login-input-wrap"><svg class="login-input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="Enter your password"><button type="button" class="login-pw-toggle" aria-label="Show password" aria-pressed="false" data-target="login-password"><svg class="pw-eye-open" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="pw-eye-closed" viewBox="0 0 24 24" hidden><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="m1 1 22 22"/></svg></button></div></label>
-          <button class="login-submit" type="submit" id="submitBtn">Sign in<svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
-        </form>
-        <p class="login-footer-note"><a href="/register.html">Create a student account</a><br>Librarian accounts are managed by an administrator.</p>
+  <div id="topbar-theme" class="landing-theme-mount"></div>
+
+  <!-- Public Landing Navigation -->
+  <nav class="landing-nav">
+    <div class="landing-nav-inner">
+      <a class="landing-brand" href="/">
+        <img src="/assets/library-mark.svg" alt="Libris" width="36" height="36">
+        <span class="landing-brand-name">Libris</span>
+      </a>
+      <div class="landing-nav-links">
+        <a href="#workspace" class="landing-nav-link" data-section="workspace">Product</a>
+        <a href="#features" class="landing-nav-link" data-section="features">Features</a>
+        <a href="#how-it-works" class="landing-nav-link" data-section="how-it-works">How it works</a>
+        <a href="#technology" class="landing-nav-link" data-section="technology">Technology</a>
       </div>
-    </section>
+      <div class="landing-nav-actions">
+        <div id="nav-theme" class="landing-theme-mount"></div>
+        <button class="btn-ghost sm" id="openLoginModal">Sign in</button>
+        <button class="btn-primary sm" id="openRegisterModal">Create account</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <main class="landing-hero">
+    <div class="landing-hero-inner">
+      <div class="landing-hero-content reveal">
+        <h1 class="landing-title">A modern workspace<br>for managing your library.</h1>
+        <p class="landing-subtitle reveal reveal-delay-1">Catalog, circulation, members, analytics, and reports — all in one secure, organized platform.</p>
+        <div class="landing-cta reveal reveal-delay-2">
+          <button class="btn-primary" id="heroLogin">Get started</button>
+          <button class="btn-ghost" id="heroPreview">See workspace</button>
+        </div>
+      </div>
+      <div class="landing-hero-visual reveal reveal-delay-1" id="workspace">
+        <div class="product-preview-card">
+          <div class="preview-header">
+            <div class="preview-badge">Product preview</div>
+            <div class="preview-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <div class="preview-workspace">
+            <div class="workspace-sidebar">
+              <div class="workspace-logo">
+                <svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5Z"/><path d="M8 2v18"/></svg>
+              </div>
+              <div class="workspace-nav">
+                <div class="workspace-nav-item active">Overview</div>
+                <div class="workspace-nav-item">Books</div>
+                <div class="workspace-nav-item">Circulation</div>
+                <div class="workspace-nav-item">Members</div>
+                <div class="workspace-nav-item">Reports</div>
+              </div>
+            </div>
+            <div class="workspace-main">
+              <div class="workspace-topbar">
+                <div class="workspace-title">Library Dashboard</div>
+                <div class="workspace-user">
+                  <div class="workspace-avatar">L</div>
+                </div>
+              </div>
+              <div class="workspace-metrics">
+                <div class="workspace-metric">
+                  <div class="metric-value">12,847</div>
+                  <div class="metric-label">Titles</div>
+                </div>
+                <div class="workspace-metric">
+                  <div class="metric-value">4,291</div>
+                  <div class="metric-label">Active Loans</div>
+                </div>
+                <div class="workspace-metric">
+                  <div class="metric-value">2,156</div>
+                  <div class="metric-label">Members</div>
+                </div>
+                <div class="workspace-metric">
+                  <div class="metric-value">23</div>
+                  <div class="metric-label">Overdue</div>
+                </div>
+              </div>
+              <div class="workspace-chart">
+                <div class="chart-bar" style="--target-width: 75%"></div>
+                <div class="chart-bar" style="--target-width: 60%"></div>
+                <div class="chart-bar" style="--target-width: 85%"></div>
+                <div class="chart-bar" style="--target-width: 45%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-cue reveal reveal-delay-3">
+      <svg viewBox="0 0 24 24" width="24" height="24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+    </div>
   </main>
-  <script type="module" src="/js/login.js"></script>
+
+  <!-- Features Section -->
+  <section class="landing-features" id="features">
+    <div class="landing-section-inner">
+      <div class="landing-section-header reveal">
+        <h2 class="landing-section-title">Everything you need to run a library</h2>
+        <p class="landing-section-desc">Powerful tools for catalog management, circulation tracking, member services, and data-driven insights.</p>
+      </div>
+      <div class="features-grid stagger-reveal">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5Z"/><path d="M8 2v18"/></svg>
+          </div>
+          <h3 class="feature-title">Catalog Management</h3>
+          <p class="feature-desc">Organize books, magazines, and newspapers with detailed metadata, categories, and availability tracking.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M3 6h13a3 3 0 0 1 3 3v10H6a3 3 0 0 1-3-3V6Z"/><path d="M16 6V4a1 1 0 0 0-1-1H4"/></svg>
+          </div>
+          <h3 class="feature-title">Circulation Control</h3>
+          <p class="feature-desc">Track borrowing, returns, due dates, and overdue items with automated notifications and reporting.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+          </div>
+          <h3 class="feature-title">Member Services</h3>
+          <p class="feature-desc">Manage student and librarian accounts, track membership status, and provide personalized library services.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
+          </div>
+          <h3 class="feature-title">Analytics & Reports</h3>
+          <p class="feature-desc">Gain insights into collection usage, circulation trends, member activity, and library performance metrics.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- System at a Glance -->
+  <section class="landing-stats">
+    <div class="landing-section-inner">
+      <div class="stats-grid">
+        <div class="stat-item reveal">
+          <div class="stat-number">03</div>
+          <div class="stat-label">Item Types</div>
+          <div class="stat-desc">Books · Magazines · Newspapers</div>
+        </div>
+        <div class="stat-item reveal reveal-delay-1">
+          <div class="stat-number">03</div>
+          <div class="stat-label">User Roles</div>
+          <div class="stat-desc">Admin · Librarian · Student</div>
+        </div>
+        <div class="stat-item reveal reveal-delay-2">
+          <div class="stat-number">05</div>
+          <div class="stat-label">Workflow Steps</div>
+          <div class="stat-desc">Catalog · Members · Circulation · Track · Reports</div>
+        </div>
+        <div class="stat-item reveal reveal-delay-3">
+          <div class="stat-number">01</div>
+          <div class="stat-label">Integrated Workspace</div>
+          <div class="stat-desc">REST API · Session Auth · CSRF</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="landing-how-it-works" id="how-it-works">
+    <div class="landing-section-inner">
+      <div class="landing-section-header reveal">
+        <h2 class="landing-section-title">How Libris works</h2>
+        <p class="landing-section-desc">A straightforward workflow designed for library efficiency and member satisfaction.</p>
+      </div>
+      <div class="workflow-timeline stagger-reveal">
+        <div class="workflow-node" data-step="1">
+          <div class="workflow-marker">
+            <span class="marker-number">01</span>
+            <div class="marker-icon">
+              <svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5Z"/><path d="M8 2v18"/></svg>
+            </div>
+          </div>
+          <div class="workflow-content">
+            <h3 class="workflow-title">Manage your catalog</h3>
+            <p class="workflow-desc">Add books, magazines, and newspapers with ISBN validation, categories, and availability tracking. Keep your collection organized and up to date.</p>
+            <div class="workflow-illustration">
+              <div class="ill-catalog-grid">
+                <div class="ill-catalog-item">
+                  <span class="ill-catalog-title">The Great Gatsby</span>
+                  <span class="ill-catalog-meta">Fiction</span>
+                </div>
+                <div class="ill-catalog-item">
+                  <span class="ill-catalog-title">Clean Code</span>
+                  <span class="ill-catalog-meta">Tech</span>
+                </div>
+                <div class="ill-catalog-item">
+                  <span class="ill-catalog-title">NG · Mar</span>
+                  <span class="ill-catalog-meta">Mag</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="workflow-node" data-step="2">
+          <div class="workflow-marker">
+            <span class="marker-number">02</span>
+            <div class="marker-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+            </div>
+          </div>
+          <div class="workflow-content">
+            <h3 class="workflow-title">Manage members</h3>
+            <p class="workflow-desc">Create student and librarian accounts with role-based permissions. Track membership status and provide personalized library services.</p>
+            <div class="workflow-illustration">
+              <div class="ill-member-grid">
+                <div class="ill-member-card">
+                  <div class="ill-member-avatar">JS</div>
+                  <div class="ill-member-info">
+                    <div class="ill-member-name">John Smith</div>
+                    <div class="ill-member-role-small">Student</div>
+                  </div>
+                </div>
+                <div class="ill-member-card">
+                  <div class="ill-member-avatar">AL</div>
+                  <div class="ill-member-info">
+                    <div class="ill-member-name">Alice Lee</div>
+                    <div class="ill-member-role-small">Librarian</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="workflow-node" data-step="3">
+          <div class="workflow-marker">
+            <span class="marker-number">03</span>
+            <div class="marker-icon">
+              <svg viewBox="0 0 24 24"><path d="M3 6h13a3 3 0 0 1 3 3v10H6a3 3 0 0 1-3-3V6Z"/><path d="M16 6V4a1 1 0 0 0-1-1H4"/></svg>
+            </div>
+          </div>
+          <div class="workflow-content">
+            <h3 class="workflow-title">Issue and return items</h3>
+            <p class="workflow-desc">Process checkouts with automatic due date assignment. Track returns and maintain complete circulation history for each item.</p>
+            <div class="workflow-illustration">
+              <div class="ill-loan-grid">
+                <div class="ill-loan-card">
+                  <div class="ill-loan-item">The Great Gatsby</div>
+                  <div class="ill-loan-due">Due: Mar 15, 2026</div>
+                  <div class="ill-loan-member">JS</div>
+                </div>
+                <div class="ill-loan-card overdue">
+                  <div class="ill-loan-item">Clean Code</div>
+                  <div class="ill-loan-due overdue">Due: Mar 10, 2026</div>
+                  <div class="ill-loan-member">AL</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="workflow-node" data-step="4">
+          <div class="workflow-marker">
+            <span class="marker-number">04</span>
+            <div class="marker-icon">
+              <svg viewBox="0 0 24 24"><path d="M4 20V10M11 20V4M18 20v-7"/></svg>
+            </div>
+          </div>
+          <div class="workflow-content">
+            <h3 class="workflow-title">Track circulation</h3>
+            <p class="workflow-desc">Monitor active loans, overdue items, and return status. Get real-time insights into library usage and member activity.</p>
+            <div class="workflow-illustration">
+              <div class="ill-chart">
+                <div class="ill-bar" style="height: 60%"></div>
+                <div class="ill-bar" style="height: 80%"></div>
+                <div class="ill-bar" style="height: 40%"></div>
+                <div class="ill-bar" style="height: 70%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="workflow-node" data-step="5">
+          <div class="workflow-marker">
+            <span class="marker-number">05</span>
+            <div class="marker-icon">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8v-2h8v2zm-8 3h8v-2H8v2zm0 4h8v-2H8v2z"/></svg>
+            </div>
+          </div>
+          <div class="workflow-content">
+            <h3 class="workflow-title">Review reports</h3>
+            <p class="workflow-desc">Export circulation, inventory, and overdue reports as CSV files. Analyze trends and make data-driven decisions for your library.</p>
+            <div class="workflow-illustration">
+              <div class="ill-csv">
+                <div class="ill-line"></div>
+                <div class="ill-line"></div>
+                <div class="ill-line"></div>
+                <div class="ill-download">↓ Export CSV</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Security Section -->
+  <section class="landing-security">
+    <div class="landing-section-inner">
+      <div class="landing-section-header reveal">
+        <h2 class="landing-section-title">Secure access for your library community</h2>
+        <p class="landing-section-desc">Role-based access, authentication, and data protection built into every layer of the platform.</p>
+      </div>
+      <div class="security-visualization reveal">
+        <div class="security-top">
+          <div class="security-node-top">
+            <div class="node-icon-extended">
+              <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+            </div>
+            <div class="node-label-extended">Authentication</div>
+            <div class="node-desc-extended">Role-based access for students, librarians, and administrators</div>
+          </div>
+        </div>
+        <div class="security-connector-down"></div>
+        <div class="security-center">
+          <div class="security-shield-large">
+            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+            <div class="shield-label">Security System</div>
+          </div>
+        </div>
+        <div class="security-connector-split">
+          <div class="connector-left"></div>
+          <div class="connector-right"></div>
+        </div>
+        <div class="security-bottom-nodes">
+          <div class="security-node-extended">
+            <div class="node-icon-extended">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="node-label-extended">Member Management</div>
+            <div class="node-desc-extended">Organized accounts with clear role permissions</div>
+          </div>
+          <div class="security-node-extended">
+            <div class="node-icon-extended">
+              <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div class="node-label-extended">Data Protection</div>
+            <div class="node-desc-extended">CSRF protection, secure sessions, API access control</div>
+          </div>
+        </div>
+        <div class="security-connector-merge"></div>
+        <div class="security-bottom">
+          <div class="protected-api-extended">
+            <div class="api-label-extended">Protected API</div>
+            <div class="api-desc-extended">All endpoints secured with Spring Security</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technology Section -->
+  <section class="landing-technology" id="technology">
+    <div class="landing-section-inner">
+      <div class="landing-section-header reveal">
+        <h2 class="landing-section-title">Built with modern technology</h2>
+        <p class="landing-section-desc">Libris is engineered with proven, production-ready technologies for reliability and performance.</p>
+      </div>
+      <div class="architecture-diagram reveal">
+        <div class="arch-layer arch-top">
+          <div class="arch-node-large">Libris</div>
+        </div>
+        <div class="arch-connector"></div>
+        <div class="arch-layer">
+          <div class="arch-node-rect">
+            <div class="arch-node-title">Web Interface</div>
+            <div class="arch-node-desc">HTML · CSS · Vanilla ES Modules</div>
+          </div>
+        </div>
+        <div class="arch-connector"></div>
+        <div class="arch-layer">
+          <div class="arch-node-rect">
+            <div class="arch-node-title">Spring Boot 3.5 API</div>
+            <div class="arch-node-desc">REST · Spring Security</div>
+          </div>
+        </div>
+        <div class="arch-connector"></div>
+        <div class="arch-layer arch-branches">
+          <div class="arch-node-small">Security</div>
+          <div class="arch-node-small">Services</div>
+          <div class="arch-node-small">Reporting</div>
+        </div>
+        <div class="arch-connector"></div>
+        <div class="arch-layer">
+          <div class="arch-node-rect">
+            <div class="arch-node-title">MySQL 8</div>
+            <div class="arch-node-desc">Persistence Layer</div>
+          </div>
+        </div>
+        <div class="arch-connector"></div>
+        <div class="arch-layer arch-bottom">
+          <div class="arch-node-small">Flyway</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Roadmap Section -->
+  <section class="landing-roadmap">
+    <div class="landing-section-inner">
+      <div class="landing-section-header reveal">
+        <h2 class="landing-section-title">Future roadmap</h2>
+        <p class="landing-section-desc">Planned enhancements to expand Libris capabilities.</p>
+      </div>
+      <div class="roadmap-timeline reveal">
+        <div class="timeline-item current">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-status">Current</div>
+            <h3 class="timeline-title">Libris v1.1.0</h3>
+            <p class="timeline-desc">Production-ready library management with full CRUD, circulation, and reporting.</p>
+          </div>
+        </div>
+        <div class="timeline-item planned">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-status">Planned</div>
+            <h3 class="timeline-title">Email notifications</h3>
+            <p class="timeline-desc">Automated due date reminders and overdue notifications for members.</p>
+          </div>
+        </div>
+        <div class="timeline-item planned">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-status">Planned</div>
+            <h3 class="timeline-title">Advanced analytics</h3>
+            <p class="timeline-desc">Enhanced dashboards with usage trends and predictive insights.</p>
+          </div>
+        </div>
+        <div class="timeline-item planned">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-status">Planned</div>
+            <h3 class="timeline-title">Mobile application</h3>
+            <p class="timeline-desc">Native mobile applications for iOS and Android.</p>
+          </div>
+        </div>
+        <div class="timeline-item exploring">
+          <div class="timeline-marker"></div>
+          <div class="timeline-content">
+            <div class="timeline-status">Exploring</div>
+            <h3 class="timeline-title">ML integration</h3>
+            <p class="timeline-desc">Overdue risk prediction and collection optimization (research phase).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Credits Section -->
+  <section class="landing-credits">
+    <div class="landing-section-inner">
+      <div class="landing-section-header reveal">
+        <h2 class="landing-section-title">Built by</h2>
+        <p class="landing-section-desc">Designed, engineered, and maintained as an open-source library management platform.</p>
+      </div>
+      <div class="credits-presentation reveal">
+        <div class="project-identity">
+          <div class="project-mark">
+            <div class="project-mark-logo">
+              <svg viewBox="0 0 24 24"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5V4.5Z"/><path d="M8 2v18"/></svg>
+            </div>
+            <div class="project-mark-text">
+              <div class="project-name">LIBRIS</div>
+              <div class="project-tagline">Library Management Workspace</div>
+              <div class="project-meta-row">
+                <span class="project-meta-item">Open Source</span>
+                <span class="project-meta-item">MIT License</span>
+                <span class="project-meta-item">2026</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="creator-section">
+          <div class="creator-card">
+            <div class="creator-header">
+              <div class="creator-avatar">PK</div>
+              <div class="creator-info">
+                <h3 class="creator-name">Pratham Kashyap</h3>
+                <p class="creator-role">Creator & Full-stack Developer</p>
+              </div>
+            </div>
+            <div class="creator-skills">
+              <span class="skill-tag">Architecture</span>
+              <span class="skill-tag">Backend</span>
+              <span class="skill-tag">Frontend</span>
+              <span class="skill-tag">Security</span>
+              <span class="skill-tag">UX</span>
+            </div>
+            <div class="creator-actions">
+              <a href="https://github.com/prathamkashyap/libris" target="_blank" rel="noopener" class="creator-link">
+                <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                GitHub
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="landing-cta-section">
+    <div class="landing-section-inner">
+      <div class="cta-content reveal">
+        <h2 class="cta-title">Ready to modernize your library?</h2>
+        <p class="cta-desc">Start managing your catalog, circulation, and members with a secure, organized platform.</p>
+        <div class="cta-buttons">
+          <button class="btn-primary" id="ctaLogin">Get started now</button>
+          <button class="btn-ghost" id="ctaPreview">How it works</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="landing-footer">
+    <div class="landing-section-inner">
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h4 class="footer-heading">Product</h4>
+          <ul class="footer-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#workspace">Workspace</a></li>
+            <li><a href="#how-it-works">How it works</a></li>
+            <li><a href="#technology">Technology</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4 class="footer-heading">Resources</h4>
+          <ul class="footer-links">
+            <li><a href="/docs/API.md">API Documentation</a></li>
+            <li><a href="/docs/SECURITY.md">Security</a></li>
+            <li><a href="/docs/DEPLOYMENT.md">Deployment Guide</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4 class="footer-heading">Project</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/prathamkashyap/libris" target="_blank" rel="noopener">GitHub</a></li>
+            <li><a href="https://github.com/prathamkashyap/libris/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></li>
+            <li><a href="/docs/IMPLEMENTATION_PLAN.md">Implementation Plan</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4 class="footer-heading">Built by</h4>
+          <p class="footer-credits">Pratham Kashyap</p>
+          <p class="footer-copy">© 2026 Libris · Library Management System</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Login Modal -->
+  <div class="modal-backdrop" id="loginModalBackdrop" hidden>
+    <div class="modal" id="loginModal" role="dialog" aria-labelledby="loginModalTitle" aria-modal="true">
+      <div class="modal-header">
+        <h2 id="loginModalTitle">Sign in to Libris</h2>
+        <button class="modal-close" id="closeLoginModal" aria-label="Close">
+          <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="login-error" class="form-error" role="alert" hidden></p>
+        <form id="login-form" novalidate>
+          <div class="form-group">
+            <label for="login-username">Username or student ID</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input id="login-username" name="username" type="text" required autocomplete="username" placeholder="Enter your username">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input id="login-password" name="password" type="password" required autocomplete="current-password" placeholder="Enter your password">
+              <button type="button" class="pw-toggle" aria-label="Show password" aria-pressed="false" data-target="login-password">
+                <svg class="pw-eye-open" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="pw-eye-closed" viewBox="0 0 24 24" hidden><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="m1 1 22 22"/></svg>
+              </button>
+            </div>
+          </div>
+          <button class="btn-primary full" type="submit" id="submitBtn">Sign in</button>
+        </form>
+        <p class="modal-footer-note">
+          <a href="#" id="openRegisterFromLogin">Create a student account</a>
+          <br><span class="muted">Librarian accounts are managed by an administrator.</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Registration Modal -->
+  <div class="modal-backdrop" id="registerModalBackdrop" hidden>
+    <div class="modal" id="registerModal" role="dialog" aria-labelledby="registerModalTitle" aria-modal="true">
+      <div class="modal-header">
+        <h2 id="registerModalTitle">Create student account</h2>
+        <button class="modal-close" id="closeRegisterModal" aria-label="Close">
+          <svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="register-error" class="form-error" role="alert" hidden></p>
+        <form id="registerForm" novalidate>
+          <div class="form-group">
+            <label for="reg-name">Full name</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input id="reg-name" name="name" type="text" required autocomplete="name" placeholder="Enter your full name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/></svg>
+              <input id="reg-email" name="email" type="email" required autocomplete="email" placeholder="Enter your email address">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-phone">Phone number</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <input id="reg-phone" name="phone" type="tel" required autocomplete="tel" placeholder="Enter your phone number">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-username">Username</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input id="reg-username" name="username" type="text" required autocomplete="username" placeholder="Choose a username">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input id="reg-password" name="password" type="password" required autocomplete="new-password" placeholder="Create a strong password">
+              <button type="button" class="pw-toggle" aria-label="Show password" aria-pressed="false" data-target="reg-password">
+                <svg class="pw-eye-open" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="pw-eye-closed" viewBox="0 0 24 24" hidden><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="m1 1 22 22"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-confirm">Confirm password</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input id="reg-confirm" name="confirmPassword" type="password" required autocomplete="new-password" placeholder="Re-enter your password">
+            </div>
+          </div>
+          <button class="btn-primary full" type="submit">Create account</button>
+        </form>
+        <p class="modal-footer-note">
+          <a href="#" id="openLoginFromRegister">Already have an account? Sign in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/landing.js"></script>
 </body>
 </html>
