@@ -12,7 +12,7 @@
 | Maven artifactId | `libris` |
 | Spring application name | `libris` |
 | Branch | `main` |
-| Live deployment | Railway (Docker + MySQL) at `https://libris-lms.up.railway.app` |
+| Live deployment | None verified. Railway and Render are retired and their config files were removed. OCI deployment configuration is prepared, but no live OCI instance has been provisioned or verified. |
 
 ---
 
