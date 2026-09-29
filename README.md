@@ -57,6 +57,21 @@ flowchart LR
 
 ---
 
+## 🖼️ Interface
+
+| Verdigris Light | Ember Dark |
+|---|---|
+| ![Books catalogue in the light theme](screenshots/desktop/books-light.png) | ![Books catalogue in the dark theme](screenshots/desktop/books-dark.png) |
+
+| Circulation | Mobile |
+|---|---|
+| ![Three-step "Issue an item" wizard over the borrow records page](screenshots/desktop/issue-dialog.png) | ![Students directory on a mobile viewport](screenshots/mobile/students-mobile-final.png) |
+
+Dual-theme shell, command palette and a 3-step circulation wizard, built from
+vanilla ES modules. Full set in [`screenshots/`](screenshots).
+
+---
+
 ## 🚀 Quick Start
 
 ### Option A — Docker Compose (Recommended)
@@ -107,26 +122,28 @@ build, TLS, health checks, backups and troubleshooting.
 
 ### Test Coverage
 
-- **173 executed tests** across 18 test classes
-- **178 `@Test` methods** declared
+- **175 executed tests** across 17 test classes
+- **175 `@Test` methods** declared — no skips
 - **H2 in-memory** — no MySQL or extra env vars needed
-- **JaCoCo** enforces ≥ 70% line coverage
+- **JaCoCo** enforces ≥ 70% line coverage (90.3% on the last verified run)
 - **Spotless** enforces Google Java Format
 
 ### Test Categories
 
 | Category | Tests | Coverage |
 |----------|-------|----------|
-| Integration (MockMvc) | 27 | Login, CRUD, borrow/return, validation, role checks |
-| Concurrency | 7 | Pessimistic locking, race conditions, cache eviction |
-| Service Unit | 90 | Business logic, audit events, pagination |
+| Integration (MockMvc) | 25 | Login, CRUD, borrow/return, validation, role checks |
+| Service Unit | 89 | Business logic, audit events, pagination |
+| Security & Hardening | 37 | Access control, audit events, business-rule guards |
+| Concurrency | 9 | Pessimistic locking, race conditions, cache eviction |
 | Query Optimization | 12 | SQL-level overdue semantics, keyset pagination |
 | Repository | 2 | Constraints, Flyway migration verification |
 | Architecture | 1 | Layered architecture validation |
+| **Total** | **175** | 17 test classes |
 
 ---
 
-## � API Documentation
+## 📚 API Documentation
 
 | Endpoint | Description |
 |----------|-------------|
@@ -195,7 +212,7 @@ build, TLS, health checks, backups and troubleshooting.
 - ✅ Overdue dashboard optimization
 
 ### Testing
-- ✅ 173 executed tests across 18 test classes
+- ✅ 175 executed tests across 17 test classes
 - ✅ Concurrency tests for race conditions
 - ✅ Service-layer unit tests for all major services
 - ✅ Query optimization tests

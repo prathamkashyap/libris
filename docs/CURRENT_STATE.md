@@ -18,24 +18,24 @@
 
 ## 2. Test Suite
 
-**173 executed tests** across 18 test classes (178 `@Test` methods declared):
+**175 executed tests** across 17 test classes (175 `@Test` methods declared, none skipped):
 
 | Test File | Type | Methods | Coverage |
 |-----------|------|---------|----------|
-| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 14 | Login, CRUD, borrow/return, ISBN conflict, 401/403, self-registration, registration validation, register CSRF, profile, Swagger public access, book category, `/actuator/health`, BorrowRecord listing, status filtering, search |
+| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 16 | Login, CRUD, borrow/return, ISBN conflict, 401/403, self-registration, registration validation, register CSRF, profile, Swagger public access, book category, `/actuator/health`, BorrowRecord listing, status filtering, search |
 | `CrudIntegrationTest` | Integration (MockMvc) | 8 | Magazine/Newspaper CRUD, Student/Librarian update+delete, Dashboard counts, Audit log, duplicate username, duplicate email |
 | `HardeningTest` | MockMvc + Unit | 13 | Student deletion with borrow history (409), student deletion without history (success), OverdueCalculator effectiveDueDate/isOverdue/daysOverdue unit tests |
 | `BrowserCsrfFlowIntegrationTest` | Integration (real CSRF flow) | 1 | CSRF bootstrap, login with CSRF header, session reuse, authenticated `/me`, logout, post-logout rejection |
 | `ArchitectureTest` | ArchUnit | 1 | Controllers must not depend on repositories |
 | `BookRepositoryTest` | Repository | 1 | Audit timestamp population, ISBN uniqueness constraint |
-| `BorrowConcurrencyTest` | Integration (SpringBootTest) | 7 | Concurrent borrow/return race conditions, lock contention, cache eviction |
+| `BorrowConcurrencyTest` | Integration (SpringBootTest) | 9 | Concurrent borrow/return race conditions, lock contention, cache eviction |
 | `BorrowRecordServiceTest` | Unit (Mockito) | 34 | Borrow/return service logic, audit event publishing, pagination, defensive guards |
-| `MagazineServiceTest` | Unit (Mockito) | 6 | Magazine CRUD audit events, borrow-history deletion guard |
-| `NewspaperServiceTest` | Unit (Mockito) | 6 | Newspaper CRUD audit events, borrow-history deletion guard |
+| `MagazineServiceTest` | Unit (Mockito) | 5 | Magazine CRUD audit events, borrow-history deletion guard |
+| `NewspaperServiceTest` | Unit (Mockito) | 5 | Newspaper CRUD audit events, borrow-history deletion guard |
 | `AnalyticsServiceTest` | Unit (Mockito) | 16 | Dashboard analytics, overdue summary, top books/readers pagination |
-| `ReportServiceTest` | Unit (Mockito) | 26 | CSV generation, pagination boundaries, defensive null handling |
-| `AuthServiceTest` | Unit (Mockito) | 2 | Failed login audit event publishing, audit failure handling |
-| `SecurityHardeningTest` | Integration (MockMvc) | 5 | Failed login audit persistence, Swagger UI restriction, catch-all 500 handler |
+| `ReportServiceTest` | Unit (Mockito) | 29 | CSV generation, pagination boundaries, defensive null handling |
+| `AuthServiceTest` | Unit (Mockito) | 1 | Failed login audit event publishing, audit failure handling |
+| `SecurityHardeningTest` | Integration (MockMvc) | 23 | Failed login audit persistence, Swagger UI restriction, catch-all 500 handler |
 | `ActiveOverdueQueryTest` | DataJPA | 5 | SQL-level overdue query semantics, boundary conditions |
 | `OverdueReportQueryTest` | DataJPA | 7 | Overdue report pagination, keyset pagination, semantic equivalence |
 | `BorrowRecordsIndexTest` | Integration (Flyway-enabled) | 1 | V5 Flyway migration verification, index existence |
@@ -167,7 +167,7 @@ Note: `TestBCrypt.java` exists as a standalone main class for manual BCrypt veri
 - `OverdueCalculator` utility: `effectiveDueDate()`, `isOverdue()`, `daysOverdue()`
 - `HardeningTest` — 2 integration tests + 11 unit tests for OverdueCalculator
 - `ArchitectureTest` — ArchUnit rule: controllers must not depend on repositories
-- Spotless, JaCoCo, 173 executed tests all passing
+- Spotless, JaCoCo, 175 executed tests all passing
 
 ### Phase 6.1 — Documentation Consistency
 - Verified and corrected README, CURRENT_STATE, SETUP, DEPLOYMENT, AGENTS against source
@@ -187,7 +187,7 @@ Note: `TestBCrypt.java` exists as a standalone main class for manual BCrypt veri
 - Keyset pagination for overdue report generation
 - Service-layer unit tests for BorrowRecordService, AnalyticsService, ReportService
 - Frontend overdue status aligned with backend due-date semantics (removed hardcoded 14-day calculation)
-- 173 executed tests across 18 test classes; all passing
+- 175 executed tests across 17 test classes; all passing
 
 ---
 
