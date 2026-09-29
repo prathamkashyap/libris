@@ -73,7 +73,7 @@ Two options. Both produce the same artifact; pick one.
 ```bash
 git clone https://github.com/prathamkashyap/libris.git
 cd libris
-git checkout oci-deployment-prep       # or whatever branch you are deploying
+git checkout main
 docker compose build
 ```
 
@@ -81,6 +81,21 @@ docker compose build
 with the Maven wrapper inside the build and ships only a JRE runtime layer with
 a non-root `app` user. Expect 5–10 minutes on the first build (dependency
 download) and ~1 minute on later builds.
+
+### Architecture
+
+No `--platform` argument is needed. The `Dockerfile` is architecture-neutral and
+builds for `linux/amd64` and `linux/arm64` on the same machine, so the same
+command produces the right image on an Ampere A1 (ARM64) instance and on an
+x86 instance.
+
+`VM.Standard.A1.Flex` is ARM64, and that path has been verified rather than
+assumed: the image was built and run on both architectures, with the JVM
+reporting `os.arch` of `aarch64` and `amd64` respectively and
+`/actuator/health` returning `{"status":"UP"}` in both. A CI job
+(`docker-build` in `.github/workflows/ci.yml`) rebuilds the image for both
+architectures on every push to `main` to keep that true. See
+[TESTING.md § CI Integration](TESTING.md#ci-integration).
 
 ### B. Build elsewhere, push to OCI Container Registry
 

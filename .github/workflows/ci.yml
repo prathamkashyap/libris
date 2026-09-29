@@ -44,3 +44,44 @@ jobs:
       # neither a database nor any third-party package.
       - name: Run Phase 5 demand forecasting tests
         run: python -m unittest discover -s scripts/dev-seed -p "test_phase5*.py"
+
+  docker-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The production target is an Oracle Ampere A1 (ARM64), so the image has
+      # to keep building for linux/arm64. QEMU supplies the emulator the
+      # runner needs to execute the ARM64 build stage on this x86_64 host.
+      # Only arm64 is registered: linux/amd64 builds natively here.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      # The default `docker` driver rejects multi-platform builds outright
+      # ("Multi-platform build is not supported for the docker driver"), so a
+      # buildx builder is required rather than optional.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Builds the root Dockerfile for both production architectures. This is a
+      # regression gate, not a release path: `push: false` and the cacheonly
+      # exporter mean no image is published anywhere, and nothing is deployed.
+      # It catches a broken Dockerfile, a base-image tag that stops resolving
+      # for an architecture, and any future dependency that pulls in a
+      # platform-specific native library.
+      - name: Build for linux/amd64 and linux/arm64
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: false
+          outputs: type=cacheonly
+          # The ARM64 Maven stage runs under emulation, which is the slowest
+          # part of this job. The Actions cache keeps the dependency and
+          # build layers warm so the cost is paid on the first run only.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
