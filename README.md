@@ -68,7 +68,9 @@ flowchart LR
 | ![Three-step "Issue an item" wizard over the borrow records page](screenshots/desktop/issue-dialog.png) | ![Students directory on a mobile viewport](screenshots/mobile/students-mobile-final.png) |
 
 Dual-theme shell, command palette and a 3-step circulation wizard, built from
-vanilla ES modules. Full set in [`screenshots/`](screenshots).
+vanilla ES modules. Current captures live in [`screenshots/desktop/`](screenshots/desktop)
+and [`screenshots/mobile/`](screenshots/mobile); the pre-redesign interface is retained
+separately as historical evidence in [`screenshots/legacy/`](screenshots/legacy).
 
 ---
 

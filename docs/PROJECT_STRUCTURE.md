@@ -44,8 +44,9 @@ Library Management System/
 │   ├── PROJECT_STRUCTURE.md           This file
 │   └── ...
 └── screenshots/
-    ├── desktop/                       Desktop review evidence
-    └── mobile/                        Mobile review evidence
+    ├── desktop/                       Current interface evidence
+    ├── mobile/                        Current interface evidence
+    └── legacy/                        Pre-redesign historical evidence
 ```
 
 ---

@@ -127,7 +127,7 @@ The Library Management System repository is in a healthy, stable state following
 - **Code quality:** High (Spotless formatted, standard patterns, cleanly modularized).
 - **Documentation:** Exceptional.
 - **Deployment:** Docker Compose ready (`.env` template provided).
-- **Screenshots/demo:** Fully documented desktop and mobile screenshots in `screenshots/`.
+- **Screenshots/demo:** Current interface evidence in `screenshots/desktop/` and `screenshots/mobile/`; pre-redesign captures retained as historical evidence in `screenshots/legacy/`.
 - **README:** Engaging, clean, and comprehensive.
 - **CI:** GitHub Actions pipeline established (spotless + verify).
 - **Releases:** Awaiting v1.1.0 formal tagging.
