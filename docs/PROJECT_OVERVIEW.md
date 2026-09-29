@@ -467,25 +467,25 @@ The v1.0.0 release preparation record reports a successful suite with **6 tests*
 
 | Area | Evidence |
 | --- | --- |
-| Authentication | ![Desktop authentication](../screenshots/desktop/authentication.png) |
-| Dashboard | ![Desktop dashboard](../screenshots/desktop/dashboard.png) |
-| Books | ![Desktop books](../screenshots/desktop/books.png) |
-| Add/book saved | ![Add book](../screenshots/desktop/add_book.png) ![Book added](../screenshots/desktop/book_added.png) |
-| Students | ![Students](../screenshots/desktop/students.png) ![Add student](../screenshots/desktop/add_student.png) |
-| Librarians | ![Librarians](../screenshots/desktop/librarians.png) ![Add librarian](../screenshots/desktop/add_librarian.png) |
-| Borrow records | ![Borrow records](../screenshots/desktop/borrow_records.png) ![Record a borrow](../screenshots/desktop/record_a_borrow.png) ![Saved borrow record](../screenshots/desktop/saved_borrow_record.png) |
-| Profile and logout | ![Profile](../screenshots/desktop/profile.png) ![Logout](../screenshots/desktop/logout.png) |
-| Validation/conflict evidence | ![Duplicate username](../screenshots/desktop/duplicate_username.png) ![Invalid details](../screenshots/desktop/invalid_details.png) |
+| Authentication | ![Desktop authentication](../screenshots/legacy/authentication.png) |
+| Dashboard | ![Desktop dashboard](../screenshots/legacy/dashboard.png) |
+| Books | ![Desktop books](../screenshots/legacy/books.png) |
+| Add/book saved | ![Add book](../screenshots/legacy/add_book.png) ![Book added](../screenshots/legacy/book_added.png) |
+| Students | ![Students](../screenshots/legacy/students.png) ![Add student](../screenshots/legacy/add_student.png) |
+| Librarians | ![Librarians](../screenshots/legacy/librarians.png) ![Add librarian](../screenshots/legacy/add_librarian.png) |
+| Borrow records | ![Borrow records](../screenshots/legacy/borrow_records.png) ![Record a borrow](../screenshots/legacy/record_a_borrow.png) ![Saved borrow record](../screenshots/legacy/saved_borrow_record.png) |
+| Profile and logout | ![Profile](../screenshots/legacy/profile.png) ![Logout](../screenshots/legacy/logout.png) |
+| Validation/conflict evidence | ![Duplicate username](../screenshots/legacy/duplicate_username.png) ![Invalid details](../screenshots/legacy/invalid_details.png) |
 
 ## 9.2 Mobile Evidence
 
 | Area | Evidence |
 | --- | --- |
-| Authentication/navigation | ![Mobile authentication](../screenshots/mobile/mobile_authentication.png) |
-| Dashboard | ![Mobile dashboard](../screenshots/mobile/mobile_dashboard.png) |
-| Duplicate ISBN state | ![Mobile duplicate ISBN](../screenshots/mobile/mobile_duplicate_isbn.png) |
-| Validation states | ![Mobile validation](../screenshots/mobile/mobile_validation_failed.png) ![Mobile failed request](../screenshots/mobile/mobile_failed_request.png) |
-| Borrow/return | ![Mobile borrow returned](../screenshots/mobile/mobile_borrow_returned.png) |
+| Authentication/navigation | ![Mobile authentication](../screenshots/legacy/mobile_authentication.png) |
+| Dashboard | ![Mobile dashboard](../screenshots/legacy/mobile_dashboard.png) |
+| Duplicate ISBN state | ![Mobile duplicate ISBN](../screenshots/legacy/mobile_duplicate_isbn.png) |
+| Validation states | ![Mobile validation](../screenshots/legacy/mobile_validation_failed.png) ![Mobile failed request](../screenshots/legacy/mobile_failed_request.png) |
+| Borrow/return | ![Mobile borrow returned](../screenshots/legacy/mobile_borrow_returned.png) |
 
 > [!WARNING]
 > The release checklist still requests regenerated desktop evidence for the final duplicate-ISBN, invalid-email, and return-book states. This report does not misrepresent those missing final captures as completed.
