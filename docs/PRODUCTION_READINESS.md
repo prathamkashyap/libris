@@ -44,7 +44,7 @@ The system is highly polished, secure by default, and ready for a v1.1.x release
 2. ✅ Added structured JSON logging via logstash-logback-encoder.
 3. ✅ Pessimistic locking for concurrency hardening.
 4. ✅ Overdue query optimization with SQL-level predicates.
-5. ✅ Enhanced test coverage (173 executed tests across 18 classes).
+5. ✅ Enhanced test coverage (175 executed tests across 17 classes).
 
 ### Recommended Post-v1.1 Improvements
 1. Implement a formal Content Security Policy (CSP).

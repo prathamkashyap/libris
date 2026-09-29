@@ -1,6 +1,6 @@
 # Testing 🧪
 
-> **JUnit 5** • **Spring Boot Test** • **MockMvc** • **H2** • **173 tests**
+> **JUnit 5** • **Spring Boot Test** • **MockMvc** • **H2** • **175 tests**
 
 **Framework:** JUnit 5 + Spring Boot Test + MockMvc
 **Database:** H2 in MySQL compatibility mode (`MODE=MySQL;DATABASE_TO_LOWER=TRUE`)
@@ -253,23 +253,24 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for system context and [API.md](API.md) f
 
 | Test Class | Type | Methods | Total |
 |------------|------|---------|-------|
-| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 14 | |
+| `LibraryManagementIntegrationTest` | Integration (MockMvc) | 16 | |
 | `CrudIntegrationTest` | Integration (MockMvc) | 8 | |
-| `SecurityHardeningTest` | Integration (MockMvc) | 5 | |
+| `SecurityHardeningTest` | Integration (MockMvc) | 23 | |
+| `HardeningTest` | Integration (MockMvc) + unit | 13 | |
 | `BrowserCsrfFlowIntegrationTest` | Integration (CSRF flow) | 1 | |
 | `BookRepositoryTest` | Repository | 1 | |
 | `BorrowRecordsIndexTest` | Flyway Integration | 1 | |
-| `BorrowConcurrencyTest` | Concurrency (SpringBootTest) | 7 | |
+| `BorrowConcurrencyTest` | Concurrency (SpringBootTest) | 9 | |
 | `BorrowRecordServiceTest` | Unit (Mockito) | 34 | |
-| `MagazineServiceTest` | Unit (Mockito) | 6 | |
-| `NewspaperServiceTest` | Unit (Mockito) | 6 | |
+| `MagazineServiceTest` | Unit (Mockito) | 5 | |
+| `NewspaperServiceTest` | Unit (Mockito) | 5 | |
 | `AnalyticsServiceTest` | Unit (Mockito) | 16 | |
-| `ReportServiceTest` | Unit (Mockito) | 26 | |
-| `AuthServiceTest` | Unit (Mockito) | 2 | |
+| `ReportServiceTest` | Unit (Mockito) | 29 | |
+| `AuthServiceTest` | Unit (Mockito) | 1 | |
 | `ActiveOverdueQueryTest` | DataJPA | 5 | |
 | `OverdueReportQueryTest` | DataJPA | 7 | |
 | `ArchitectureTest` | ArchUnit | 1 | |
-| **Total** | | | **173 executed, 178 declared** |
+| **Total** | | | **175 executed, 175 declared** |
 
 ---
 

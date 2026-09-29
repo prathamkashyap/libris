@@ -148,16 +148,27 @@ Browser → Fetch API → REST Controllers (/api/**) → @Transactional Services
 ## Test layout
 
 H2 + `create-drop` + Flyway disabled — tests run fully in isolation, no MySQL.
-**35 tests** across 6 test classes, all passing.
+**175 tests** across 17 test classes, all passing.
 
 | Class | Scope | Tests | Purpose |
 |-------|-------|-------|---------|
-| `LibraryManagementIntegrationTest` | MockMvc | 11 | login, CRUD, borrow/return, ISBN conflict, 401/403, logout, Swagger public access, book category, `/actuator/health` |
+| `LibraryManagementIntegrationTest` | MockMvc | 16 | login, CRUD, borrow/return, ISBN conflict, 401/403, logout, Swagger public access, book category, `/actuator/health` |
 | `CrudIntegrationTest` | MockMvc | 8 | magazine/newspaper CRUD, student/librarian PUT+DELETE, dashboard, audit, duplicate username |
 | `HardeningTest` | MockMvc + Unit | 13 | student deletion with borrow history (409), OverdueCalculator unit tests |
 | `BrowserCsrfFlowIntegrationTest` | MockMvc | 1 | real CSRF cookie/header bootstrap→login→logout flow |
-| `ArchitectureTest` | ArchUnit | 1 | ArchUnit dependency validation |
+| `SecurityHardeningTest` | MockMvc | 23 | failed-login audit persistence, Swagger UI restriction, catch-all 500 handler |
+| `BorrowConcurrencyTest` | SpringBootTest | 9 | concurrent borrow/return races, lock contention, cache eviction |
+| `BorrowRecordServiceTest` | Unit (Mockito) | 34 | borrow/return logic, audit event publishing, pagination |
+| `AnalyticsServiceTest` | Unit (Mockito) | 16 | dashboard analytics, overdue summary, top books/readers pagination |
+| `ReportServiceTest` | Unit (Mockito) | 29 | CSV generation, pagination boundaries, defensive null handling |
+| `MagazineServiceTest` | Unit (Mockito) | 5 | magazine CRUD audit events, borrow-history deletion guard |
+| `NewspaperServiceTest` | Unit (Mockito) | 5 | newspaper CRUD audit events, borrow-history deletion guard |
+| `AuthServiceTest` | Unit (Mockito) | 1 | failed-login audit event publishing, audit failure handling |
+| `ActiveOverdueQueryTest` | DataJPA | 5 | SQL-level overdue semantics, boundary conditions |
+| `OverdueReportQueryTest` | DataJPA | 7 | overdue report pagination, keyset pagination, semantic equivalence |
 | `BookRepositoryTest` | Repository | 1 | audit timestamps + ISBN uniqueness at DB level |
+| `BorrowRecordsIndexTest` | Flyway integration | 1 | V5 Flyway migration + index existence |
+| `ArchitectureTest` | ArchUnit | 1 | ArchUnit dependency validation |
 
 Run one: `./mvnw test -Dtest=LibraryManagementIntegrationTest`.
 
