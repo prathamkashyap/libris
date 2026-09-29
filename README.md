@@ -59,11 +59,17 @@ flowchart LR
 
 ## 🖼️ Interface
 
+![Public landing page](screenshots/desktop/landing.png)
+
+| Dashboard | Circulation |
+|---|---|
+| ![Authenticated workspace dashboard](screenshots/desktop/dashboard.png) | ![Borrow records with overdue and active states](screenshots/desktop/borrow-records.png) |
+
 | Verdigris Light | Ember Dark |
 |---|---|
 | ![Books catalogue in the light theme](screenshots/desktop/books-light.png) | ![Books catalogue in the dark theme](screenshots/desktop/books-dark.png) |
 
-| Circulation | Mobile |
+| Circulation wizard | Mobile |
 |---|---|
 | ![Three-step "Issue an item" wizard over the borrow records page](screenshots/desktop/issue-dialog.png) | ![Students directory on a mobile viewport](screenshots/mobile/students-mobile-final.png) |
 
