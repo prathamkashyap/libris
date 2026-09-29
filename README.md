@@ -61,9 +61,9 @@ flowchart LR
 
 ![Public landing page](screenshots/desktop/landing.png)
 
-| Dashboard | Circulation |
-|---|---|
-| ![Authenticated workspace dashboard](screenshots/desktop/dashboard.png) | ![Borrow records with overdue and active states](screenshots/desktop/borrow-records.png) |
+| Dashboard | Students | Circulation |
+|---|---|---|
+| ![Authenticated workspace dashboard](screenshots/desktop/dashboard.png) | ![Students directory with member records](screenshots/desktop/students.png) | ![Borrow records with overdue and active states](screenshots/desktop/borrow-records.png) |
 
 | Verdigris Light | Ember Dark |
 |---|---|
