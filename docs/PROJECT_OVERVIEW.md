@@ -4,6 +4,14 @@
 > **Release:** v1.0.0 · **Implementation:** Spring Boot 3.5, Java 21, MySQL, vanilla HTML/CSS/JavaScript · **Documentation type:** Academic project report and engineering delivery record.
 > **Source of truth as of:** 30 July 2026
 
+> [!NOTE]
+> **This is a historical v1.0.0 academic record, not a current-state reference.**
+> It describes the project as delivered for v1.0.0 on 30 July 2026 and has not been
+> rewritten since. For the present state — current test counts, deployment status and
+> Phase 5 results — see [CURRENT_STATE.md](CURRENT_STATE.md). The interface captured in
+> §9 predates the current Libris design; current screenshots are in the
+> [README](../README.md).
+
 <p align="center">
   <img src="../backend/src/main/resources/static/assets/library-mark.svg" width="88" alt="Library Management System logo">
 </p>
@@ -448,7 +456,12 @@ The v1.0.0 release preparation record reports a successful suite with **6 tests*
 # 9. Test Evidence and Screenshots
 
 > [!TIP]
-> These images are retained as review evidence. They demonstrate the evolving user interface, validation states, and mobile layout; automated tests remain the authoritative executable verification for API behavior.
+> These images are retained as **historical review evidence from the v1.0.0 interface**.
+> They demonstrate the user interface, validation states, and mobile layout as they appeared
+> at that release; the interface was redesigned after this report was written, so these are
+> **not** the current Libris screens. Current screenshots are in the [README](../README.md)
+> and [`screenshots/`](../screenshots/). Automated tests remain the authoritative executable
+> verification for API behavior.
 
 ## 9.1 Desktop Evidence
 
@@ -556,6 +569,7 @@ flowchart LR
 
 ## Related Documentation
 
+- [Current state (authoritative)](CURRENT_STATE.md)
 - [Architecture and ADR record](ARCHITECTURE.md)
 - [API contract](API.md)
 - [Requirements traceability](REQUIREMENTS.md)
