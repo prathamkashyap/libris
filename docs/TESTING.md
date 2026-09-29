@@ -376,13 +376,41 @@ Representative cases:
 
 ## CI Integration
 
-GitHub Actions runs `mvn clean verify` on push to `main`. This compiles the project, runs all tests, and fails the build on any test failure.
+GitHub Actions runs three independent jobs on every push to `main` and every
+pull request. None of them depends on another, and none publishes an artefact.
+
+| Job | Scope | What it gates |
+|---|---|---|
+| `build` | `ubuntu-latest` | `mvn spotless:check` then `mvn clean verify` — compiles the project, runs all tests, enforces formatting and the 70% JaCoCo line-coverage gate |
+| `phase5` | `ubuntu-latest` | `python -m unittest discover -s scripts/dev-seed -p "test_phase5*.py"` — the 120 stdlib-only Phase 5 demand-forecasting tests |
+| `docker-build` | `ubuntu-latest` | Builds the root `Dockerfile` for **`linux/amd64` and `linux/arm64`**. Build-only: `push: false` with the `cacheonly` exporter, so no image is published and nothing is deployed |
 
 ```yaml
 # .github/workflows/ci.yml
 - name: Build and test
   run: mvn clean verify
+  working-directory: backend
 ```
+
+### Why the Docker job builds two architectures
+
+The production target is an Oracle Ampere A1 (ARM64) instance, so a
+linux/arm64 build is a correctness requirement rather than a nice-to-have. The
+image was confirmed to build and run on both architectures before this job
+existed: the JVM reports `os.arch = aarch64` and `amd64` respectively, and
+`/actuator/health` returns `{"status":"UP"}` in both.
+
+CI exists to stop that from silently regressing. The job catches a broken
+`Dockerfile` change, a base-image tag that stops resolving for one
+architecture, and any future dependency that introduces a platform-specific
+native library or JNI binding. It does **not** re-run the test suite — that is
+the `build` job's responsibility — and it does not run the image under QEMU.
+
+The `Dockerfile` itself is deliberately architecture-neutral: it pins no
+`platform`, and both base images (`eclipse-temurin:21-jdk-alpine`,
+`eclipse-temurin:21-jre-alpine`) publish `linux/amd64` and `linux/arm64/v8`
+manifests. Do not add a `FROM --platform=` pin or an architecture-conditional
+instruction, as either would break this job for the other architecture.
 
 ---
 

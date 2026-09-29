@@ -19,8 +19,28 @@ delegates to `backend/mvnw`, so both forms work:
 ./mvnw package -DskipTests   # build runnable jar
 ```
 
-CI (`.github/workflows/ci.yml`) runs `mvn spotless:check` then
-`mvn clean verify` with `working-directory: backend`.
+CI (`.github/workflows/ci.yml`) runs three independent jobs:
+
+| Job | Scope | Gating check |
+|-----|-------|--------------|
+| `build` | `ubuntu-latest` | `mvn spotless:check` then `mvn clean verify`, with `working-directory: backend` |
+| `phase5` | `ubuntu-latest` | `python -m unittest discover -s scripts/dev-seed -p "test_phase5*.py"` |
+| `docker-build` | `ubuntu-latest` | Builds the root `Dockerfile` for `linux/amd64` **and** `linux/arm64` via QEMU + buildx, with `push: false` and the `cacheonly` exporter — nothing is published |
+
+The `docker-build` job exists because the production target is an Oracle Ampere
+A1 (ARM64) instance. `linux/arm64` is a correctness requirement, not an extra.
+The image was empirically confirmed to build *and* run on both architectures
+(JVM reports `os.arch` of `aarch64` and `amd64`; `/actuator/health` returns
+`{"status":"UP"}` in both), and this job keeps that true.
+
+**Consequence for Dockerfile changes:** the `Dockerfile` is architecture-neutral
+and must stay that way — no `FROM --platform=` pin, no architecture-conditional
+`RUN`, and no base image that lacks a `linux/arm64/v8` manifest. A change that
+breaks one architecture fails CI even if it is correct for the other. Note the
+app is pure Java with no JNI/native dependencies (no Netty/tcnative,
+`mysql-connector-j` and H2 2.x are pure Java), which is what makes the
+architecture-neutral build safe; introducing a native dependency needs the
+`docker-build` job to be run locally before merge.
 
 ## Required environment variables
 
