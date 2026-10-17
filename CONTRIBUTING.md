@@ -36,6 +36,13 @@ By participating in this project, you are expected to uphold our Code of Conduct
 - Limit the first line to 72 characters or less
 - Reference issues and pull requests liberally after the first line
 
+#### Automated Tool Attribution
+
+- Commit messages must not include automated co-author trailers or tool-generated attribution lines. Do not add agent, bot, AI assistant, or automated-integration identities in `Co-Authored-By` trailers, or generated footers such as `Generated with [ToolName]`.
+- Keep author and committer metadata accurate. This policy does not prohibit legitimate human co-author attribution or authorize changing authorship metadata.
+- Preserve meaningful implementation details, test results, issue references, and human attribution.
+- Before committing, inspect the full message, including its body and trailers, for automated tool attribution.
+
 ### Java Code Style
 
 We use Google Java Format. Run `./mvnw spotless:apply` before committing to ensure your code matches the project style.
