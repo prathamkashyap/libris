@@ -7,19 +7,39 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-17
+
 ### Added
 
-- Registration UI feedback for backend field validation errors.
-- Canonical Libris SVG/PNG branding references.
-- Explicit authenticated catalog seed tooling with preview/apply/rollback flows,
-  external manifest handling, and rollback authorization checks.
-- Documentation updates aligning current guides with source and qualifying
-  deployment evidence.
+- Field-specific registration validation feedback: backend field errors are
+  shown beside the affected inputs and stale errors clear as the form is edited.
+- Canonical Libris SVG/PNG branding unified across the interface, replacing the
+  earlier per-page marks.
+- Optional authenticated catalog-seeding CLI (`scripts/catalog-seed/`) with
+  preview/apply/rollback flows, an external manifest, preflight checks, safer
+  handling of uncertain write outcomes, and role validation for rollback.
+- CI job that runs the registration JavaScript and catalog importer Node test
+  suites on Node 20, alongside the existing Maven, Phase 5 Python, and Docker
+  architecture checks.
+- A documented policy against automated-agent attribution trailers in commit
+  messages.
 
 ### Changed
 
-- Current setup, security, database, testing, and deployment guidance is
-  separated from dated historical reports.
+- Setup, API, architecture, frontend, testing, security, and deployment guides
+  updated; dated reports are now marked as historical and deployment claims are
+  qualified as operator-reported evidence rather than current state.
+- Environment-file exclusion rules widened (`.env.*` ignored while keeping
+  `*.example`) and the Docker build context narrowed to exclude screenshots,
+  scripts, and backups.
+
+### Fixed
+
+- Removed the obsolete public `/favicon.svg` permission entry; the asset was
+  deleted during the branding migration and `/assets/**` already serves the
+  canonical mark.
+- Repaired images in the HTML project report that pointed at paths that no
+  longer exist.
 
 
 > **All notable changes** to this project are documented here.
