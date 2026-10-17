@@ -1,3 +1,5 @@
+> Historical snapshot — preserves findings or plans from the date it was written. It is not current setup, deployment, security, or test guidance. See the current guides linked from [README.md](../README.md) where the relative path permits.
+
 # `main.js` Migration Summary
 
 As part of the Frontend Architecture Completion (Phase D0), the legacy `main.js` file (which was a 304-line monolithic script) was completely removed. Below is a detailed mapping of its previous responsibilities to confirm that no functionality was silently dropped.

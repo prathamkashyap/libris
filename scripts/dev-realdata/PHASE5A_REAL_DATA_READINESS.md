@@ -1,3 +1,5 @@
+> Historical snapshot — preserves findings or plans from the date it was written. It is not current setup, deployment, security, or test guidance. See the current guides linked from [README.md](../../README.md) where the relative path permits.
+
 # Phase 5A — Real-Data Readiness Audit (Source-Verified)
 
 | Field | Value |

@@ -1,7 +1,9 @@
+> Historical snapshot — preserves findings or plans from the date it was written. It is not current setup, deployment, security, or test guidance. See the current guides linked from [README.md](../README.md) where the relative path permits.
+
 # AI Handoff — Library Management System
 
 ## Quick Start for Next AI
-- Project location: /Users/prathamkashyap/Documents/Coding.nosync/projects/Library Management System
+- Project location: <local checkout> Management System
 - Branch: feature/v1.1-analytics-reports-docker
 - Latest commit: 481db22 (refactor(theme): replace Bloom with Ivory)
 - Total commits: 39

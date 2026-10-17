@@ -1,3 +1,5 @@
+> Historical snapshot — preserves findings or plans from the date it was written. It is not current setup, deployment, security, or test guidance. See the current guides linked from [README.md](../../README.md) where the relative path permits.
+
 # Libris ML Population Definition
 
 > **Validation status:** This document was produced during an earlier Phase 5 development pass and has not been independently validated against the current repository implementation. It is informational only and is not an authoritative production-data specification. See `PHASE5A_REAL_DATA_READINESS.md` for the source-verified audit.

@@ -1,10 +1,32 @@
 # Changelog 📝
 
-> **All notable changes** to this project are documented here.
+> Entries describe repository history, not deployment state. A documentation
+> entry does not claim that a production deployment occurred.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
+
+### Added
+
+- Registration UI feedback for backend field validation errors.
+- Canonical Libris SVG/PNG branding references.
+- Explicit authenticated catalog seed tooling with preview/apply/rollback flows,
+  external manifest handling, and rollback authorization checks.
+- Documentation updates aligning current guides with source and qualifying
+  deployment evidence.
+
+### Changed
+
+- Current setup, security, database, testing, and deployment guidance is
+  separated from dated historical reports.
+
+
+> **All notable changes** to this project are documented here.
+
+Format follows [Keep a Changelog](https://keepachangelog.com/). Historical sections retain the wording and status recorded at the time; they do not establish current behavior or production deployment. Current source changes awaiting publication are listed separately under the new Unreleased section.
+
+## Historical development notes (prior unreleased snapshot)
 
 ### Added
 
@@ -53,7 +75,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 - Frontend overdue status aligned with backend due-date semantics (removed hardcoded 14-day calculation)
 - Frontend overdue description changed from "past 14 days" to "past due date"
-- AdminSeeder now rejects the default password `ChangeMe123!` and requires a strong password
+- AdminSeeder now rejects the default password `[redacted legacy default]` and requires a strong password
 - Main application.properties no longer provides a default admin password
 - Overdue dashboard and report queries now use SQL-level predicates instead of Java filtering
 - BorrowRecord pagination uses EntityGraph to prevent N+1 queries

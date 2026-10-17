@@ -1,3 +1,5 @@
+> Historical snapshot — preserves findings or plans from the date it was written. It is not current setup, deployment, security, or test guidance. See the current guides linked from [README.md](../README.md) where the relative path permits.
+
 # Implementation Plan — Library Management System
 
 This document tracks the staged review and implementation plan for the Library Management System. Each phase ends with a green build, all tests passing, docs updated if behavior changed, and a commit before continuing.

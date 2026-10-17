@@ -19,18 +19,31 @@ can change with application revisions.
 Registration is public but only creates student accounts. Login and other
 state-changing requests use the same-origin session and CSRF flow.
 
-## Protected route families
+## Resource routes
 
-Controllers provide routes for books, magazines, newspapers, students,
-librarians, borrow records, profiles, dashboards, analytics, audit records,
-and reports. Definitions are in
-`backend/src/main/java/com/example/lms/controller/`; `SecurityConfig` defines
-authorization by URL pattern. Do not infer permissions from this list alone.
+All routes below are under `/api`. Access is controlled by URL-pattern rules
+in `SecurityConfig`; this table is a route index, not a permission grant.
 
-Borrow-record routes include listing, the current student's records, creation,
-and return. Dashboard and analytics controllers expose separate staff/student
-views. Some list routes accept search or pagination parameters; consult the
-corresponding controller and DTO for exact parameter names and response shape.
+| Route | Operations exposed by controller |
+|---|---|
+| `/books` | List/search, get by ID, create, update, delete |
+| `/magazines` | List/search, get by ID, create, update, delete |
+| `/newspapers` | List/search, get by ID, create, update, delete |
+| `/students` | List/search, get by ID, create, update, delete |
+| `/librarians` | List/search, get by ID, create, update, delete |
+| `/borrow-records` | List, create borrow record, return by ID |
+| `/borrow-records/my` | List current student's records |
+| `/profile` | Read current user's profile |
+| `/dashboard` | General dashboard summary |
+| `/student/dashboard` | Student dashboard |
+| `/librarian/dashboard` | Librarian dashboard |
+| `/analytics/dashboard`, `/trends`, `/top-books`, `/top-readers`, `/overdue` | Analytics summaries |
+| `/audit`, `/audit/{id}` | List audit records and read one by ID |
+| `/reports/inventory`, `/borrowing`, `/overdue`, `/students` | CSV report routes |
+
+List routes may accept search or pagination parameters. Exact parameter names,
+default page sizes, validation constraints, and response wrappers are defined
+by each controller, DTO, and service; inspect those before building a client.
 
 ## Errors and validation
 

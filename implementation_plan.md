@@ -1,3 +1,5 @@
+> Historical snapshot — preserves findings or plans from the date it was written. It is not current setup, deployment, security, or test guidance. See [README.md](README.md) and current guides under `docs/`.
+
 # Library Management System — Frontend Design Audit
 
 > **Audited by:** Lead Product Designer / Senior Frontend Engineer / UI/UX Architect

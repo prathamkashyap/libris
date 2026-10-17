@@ -1,5 +1,11 @@
 # Engineering Decisions
 
+> Decision-history note: this document preserves the rationale recorded when
+> choices were made. For current behavior, see the implementation and the
+> current guides linked from [README.md](../README.md). Some entries describe
+> initial scope or assumptions that have since changed; they are not a current
+> feature or status inventory.
+
 This document records every significant engineering decision made during the development of the Library Management System. Each entry captures the decision, the context in which it was made, alternatives considered, rationale, trade-offs, and any relevant date or commit information.
 
 ---

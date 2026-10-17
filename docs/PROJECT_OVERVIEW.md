@@ -1,3 +1,5 @@
+> Historical snapshot — preserves findings or plans from the date it was written. It is not current setup, deployment, security, or test guidance. See the current guides linked from [README.md](../README.md) where the relative path permits.
+
 # 📚 Library Management System — Project Development Report
 
 > [!IMPORTANT]
@@ -362,7 +364,7 @@ erDiagram
 
 ```json
 POST /api/auth/login
-{"username":"admin","password":"ChangeMe123!"}
+{"username":"admin","password":"<redacted local test value>"}
 
 200 OK
 {"accountId":1,"username":"admin","role":"ADMIN","displayName":"admin"}
