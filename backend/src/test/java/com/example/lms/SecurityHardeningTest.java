@@ -434,4 +434,16 @@ class SecurityHardeningTest {
         .andExpect(jsonPath("$.fieldErrors").isArray())
         .andExpect(jsonPath("$.fieldErrors").isEmpty());
   }
+
+  @Test
+  void missingPublicStaticResourceReturnsStandardNotFoundApiErrorResponse() throws Exception {
+    mvc.perform(get("/assets/missing-resource.svg").accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.code").value("NOT_FOUND"))
+        .andExpect(jsonPath("$.message").value("The requested resource was not found."))
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.path").value("/assets/missing-resource.svg"))
+        .andExpect(jsonPath("$.fieldErrors").isArray())
+        .andExpect(jsonPath("$.fieldErrors").isEmpty());
+  }
 }
