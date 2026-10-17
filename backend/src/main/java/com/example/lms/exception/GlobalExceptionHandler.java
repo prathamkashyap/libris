@@ -21,6 +21,14 @@ public class GlobalExceptionHandler {
     return error(404, "NOT_FOUND", e.getMessage(), r, List.of());
   }
 
+  @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  ApiErrorResponse noResourceFound(
+      org.springframework.web.servlet.resource.NoResourceFoundException e, HttpServletRequest r) {
+    log.warn("Static resource not found: uri={}", r.getRequestURI());
+    return error(404, "NOT_FOUND", "The requested resource was not found.", r, List.of());
+  }
+
   @ExceptionHandler(ConflictException.class)
   @ResponseStatus(HttpStatus.CONFLICT)
   ApiErrorResponse conflict(ConflictException e, HttpServletRequest r) {
