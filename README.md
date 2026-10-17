@@ -44,7 +44,7 @@ python3 -m unittest discover -s scripts/dev-seed -p 'test_phase5*.py'
 node --test scripts/catalog-seed/*.test.mjs
 ```
 
-The Maven, Python, and catalog-tooling suites are separate. Passing one does not imply the others passed. CI runs Maven formatting/verification, Phase 5 Python tests, and build-only Docker checks for `linux/amd64` and `linux/arm64`; CI does not publish or deploy an image.
+The Maven, Python, and catalog-tooling suites are separate. Passing one does not imply the others passed. CI runs Maven formatting/verification, the registration JavaScript and catalog importer tests on Node 20, Phase 5 Python tests, and build-only Docker checks for `linux/amd64` and `linux/arm64`; CI does not publish or deploy an image.
 
 ## Repository guide
 
