@@ -133,11 +133,10 @@ css (and static)/
 ### 2.4 Assets
 
 ```
-├── favicon.svg
 ├── assets/
-│   ├── icons/                 (empty)
-│   ├── images/                (empty)
-│   └── library-mark.svg
+│   └── brand/
+│       ├── libris-mark.svg    Canonical scalable brand mark and favicon
+│       └── libris-mark.png    Raster brand mark
 ```
 
 ---

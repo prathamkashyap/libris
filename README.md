@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="backend/src/main/resources/static/assets/library-mark.svg" alt="Libris Logo" width="120" />
+  <img src="backend/src/main/resources/static/assets/brand/libris-mark.svg" alt="Libris Logo" width="120" />
 
   # 📚 Libris — Library Management System
 

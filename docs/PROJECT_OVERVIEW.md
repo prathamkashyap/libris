@@ -13,7 +13,7 @@
 > [README](../README.md).
 
 <p align="center">
-  <img src="../backend/src/main/resources/static/assets/library-mark.svg" width="88" alt="Library Management System logo">
+  <img src="../backend/src/main/resources/static/assets/brand/libris-mark.svg" width="88" alt="Library Management System logo">
 </p>
 
 <p align="center"><strong>A complete lifecycle account of the design, implementation, verification, hardening, and release preparation of the Library Management System.</strong></p>
@@ -189,7 +189,7 @@ timeline
 | Validation feedback | Invalid email surfaced only as a generic validation summary | Backend field errors were available but the modal did not render them | Added explicit email messages and mapped `fieldErrors` to form fields | Invalid-email test and modal feedback |
 | Authorization response shape | Default framework failures were inconsistent with API errors | Default Security responses do not use the application error DTO | Added REST authentication-entry-point and access-denied handlers | MockMvc 401/403 assertions |
 | Responsive layout | Full desktop navigation/table layout cannot fit narrow screens | Fixed-width desktop assumptions | Added responsive breakpoint CSS, collapsible navigation, and stacked dashboard cards | Mobile screenshot evidence |
-| Branding regression | Current mark had degraded to a hollow rectangle | Original visual asset was not reusable in production files | Reintroduced an indigo/teal gradient open-book SVG for nav, login, and favicon | `library-mark.svg` |
+| Branding regression | Current mark had degraded to a hollow rectangle | Original visual asset was not reusable in production files | Reintroduced an indigo/teal gradient open-book SVG for nav, login, and favicon | Historical v1.0.0 branding record |
 
 > [!WARNING]
 > The CSRF incident is an example of why a security test using only Spring Security’s `.with(csrf())` helper is insufficient for an SPA. The dedicated browser-flow test exchanges the actual cookie/header pair used by the client.

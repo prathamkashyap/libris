@@ -55,7 +55,6 @@ backend/src/main/resources/static/
 ├── profile.html                  Current user profile
 ├── register.html                 Self-registration (stub, unimplemented)
 ├── styles.css                    Main stylesheet (1,775 lines, 74 KB)
-├── favicon.svg                   App icon
 ├── css/
 │   └── styles.css                Design tokens alternative (548 lines, 29 KB) ← DEAD FILE
 ├── js/
@@ -94,7 +93,9 @@ backend/src/main/resources/static/
 ├── components/
 │   └── modal.js                  Reusable modal dialog (81 lines)
 ├── assets/
-│   ├── library-mark.svg          Logo SVG
+│   ├── brand/
+│   │   ├── libris-mark.svg       Canonical scalable brand mark and favicon
+│   │   └── libris-mark.png       Raster brand mark
 │   ├── icons/                    (empty)
 │   └── images/                   (empty)
 └── old_styles/                   Legacy files (dead code)
