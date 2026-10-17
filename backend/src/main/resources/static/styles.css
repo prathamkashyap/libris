@@ -2193,14 +2193,12 @@ tbody tr:hover {
   height: 40px;
   display: grid;
   place-items: center;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: #ffffff;
 }
 
-.workspace-logo svg {
-  width: 20px;
-  height: 20px;
+.workspace-logo img {
+  display: block;
+  width: 40px;
+  height: 40px;
 }
 
 .workspace-nav {
@@ -3679,12 +3677,13 @@ tbody tr:hover {
 .project-mark-logo {
   width: 80px;
   height: 80px;
-  color: var(--accent);
 }
 
-.project-mark-logo svg {
+.project-mark-logo img {
+  display: block;
   width: 100%;
   height: 100%;
+  object-fit: contain;
 }
 
 .project-mark-text {
