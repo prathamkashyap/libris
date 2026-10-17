@@ -101,7 +101,6 @@ public class SecurityConfig {
                       "/js/**",
                       "/components/**",
                       "/assets/**",
-                      "/favicon.svg",
                       "/actuator/**",
                       "/api/auth/login",
                       "/api/auth/csrf",
