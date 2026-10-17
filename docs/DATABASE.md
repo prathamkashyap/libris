@@ -1,317 +1,46 @@
-# Database 🗄️
+# Database
 
-> **MySQL 8** (production) • **H2** (tests/dev) • **Flyway** migrations
+Production and Docker use MySQL. Local `h2` development and most tests use an
+isolated in-memory H2 database; a migration-focused test enables Flyway on H2.
+The production profile sets Hibernate schema generation to `none` and uses
+Flyway.
 
-**Engine:** MySQL 8 (production) / H2 in MySQL-compatibility mode (tests)
-**Schema management:** Flyway versioned migrations (production) / `ddl-auto=create-drop` (tests)
-**Migrations:** V1 (baseline), V2 (student email unique), V3 (borrow record due_date), V4 (book category), V5 (borrow_records indexes)
+## Schema evolution
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for entity design rationale and [API.md](API.md) for endpoint reference.
+Current checked-in migrations:
 
----
+| Migration | Change |
+|---|---|
+| V1 | Baseline schema |
+| V2 | Unique student profile email constraint |
+| V3 | Borrow-record due date |
+| V4 | Book category |
+| V5 | Borrow-record return-date and due-date indexes |
 
-## Entity Relationship Diagram
+Do not edit an already-applied migration. Add a new versioned SQL migration
+for schema changes and review MySQL compatibility before deployment.
 
-```mermaid
-erDiagram
-    ACCOUNTS {
-        BIGINT id PK
-        VARCHAR username UK
-        VARCHAR password_hash
-        VARCHAR role
-        BOOLEAN enabled
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-    }
-    STUDENT_PROFILES {
-        BIGINT id PK
-        BIGINT account_id FK_UK
-        VARCHAR name
-        VARCHAR email UK
-        VARCHAR phone
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-    }
-    LIBRARIAN_PROFILES {
-        BIGINT id PK
-        BIGINT account_id FK_UK
-        VARCHAR name
-        VARCHAR phone
-        INT age
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-    }
-    BOOKS {
-        BIGINT id PK
-        VARCHAR title
-        VARCHAR author
-        VARCHAR category
-        VARCHAR isbn UK
-        DATE published_date
-        BOOLEAN available
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-    }
-    MAGAZINES {
-        BIGINT id PK
-        VARCHAR title
-        VARCHAR publisher
-        DATE issue_date
-        VARCHAR category
-        VARCHAR featured_article
-        BOOLEAN available
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-    }
-    NEWSPAPERS {
-        BIGINT id PK
-        VARCHAR title
-        VARCHAR publisher
-        DATE publication_date
-        VARCHAR top_headlines
-        BOOLEAN available
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-    }
-    BORROW_RECORDS {
-        BIGINT id PK
-        BIGINT book_id FK
-        BIGINT magazine_id FK
-        BIGINT newspaper_id FK
-        BIGINT student_id FK
-        VARCHAR borrower_name
-        VARCHAR borrower_email
-        VARCHAR borrower_phone
-        DATE borrow_date
-        DATE due_date
-        DATE return_date
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-    }
-    AUDIT_LOGS {
-        BIGINT id PK
-        TIMESTAMP timestamp
-        BIGINT actor_id
-        VARCHAR actor_username
-        VARCHAR actor_role
-        VARCHAR action
-        VARCHAR entity_type
-        BIGINT entity_id
-        VARCHAR description
-        VARCHAR ip_address
-        VARCHAR user_agent
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
-    }
-    ACCOUNTS ||--o| STUDENT_PROFILES : "has student profile"
-    ACCOUNTS ||--o| LIBRARIAN_PROFILES : "has librarian profile"
-    STUDENT_PROFILES ||--o{ BORROW_RECORDS : "borrows"
-    BOOKS ||--o{ BORROW_RECORDS : "appears in"
-    MAGAZINES ||--o{ BORROW_RECORDS : "appears in"
-    NEWSPAPERS ||--o{ BORROW_RECORDS : "appears in"
-```
+## Main entities and constraints
 
----
+The model includes accounts and roles, student and librarian profiles, books,
+magazines, newspapers, borrow records, and audit records. Profiles associate
+with accounts; borrow records associate a student with a book, magazine, or
+newspaper reference as represented by the entity mapping. Migrations and JPA
+mappings are authoritative for exact foreign keys, nullable columns, lengths,
+and indexes.
 
-## Table Definitions
+Books have a Boolean availability field and category; there is no separate
+physical-copy entity. A catalog row count is not a count of real-world copies.
+The starter catalog is illustrative data, not verified stock.
 
-### `accounts`
+## Persistence and safety
 
-Authentication identity. An admin may have no profile.
+The root Compose file declares a named MySQL volume. Ordinary container
+recreation preserves it; `docker compose down -v` removes named volumes and
+is destructive. Keep backups off-host and test a restore procedure before
+relying on them. An application image rollback does not reverse migrations or
+application data changes.
 
-| Column | Type | Constraints | Notes |
-|--------|------|-------------|-------|
-| `id` | `BIGINT` | PK, auto-increment | |
-| `username` | `VARCHAR(50)` | `UNIQUE`, `NOT NULL` | Login identifier |
-| `password_hash` | `VARCHAR(100)` | `NOT NULL` | BCrypt hash |
-| `role` | `VARCHAR(20)` | `NOT NULL` | `ADMIN`, `LIBRARIAN`, or `STUDENT` |
-| `enabled` | `BOOLEAN` | `NOT NULL`, default `true` | Account active state |
-| `created_at` | `TIMESTAMP` | Auto-populated | Via `@CreatedDate` |
-| `updated_at` | `TIMESTAMP` | Auto-populated | Via `@LastModifiedDate` |
-
-### `student_profiles`
-
-Student display and contact data. One-to-one with `accounts`.
-
-| Column | Type | Constraints | Notes |
-|--------|------|-------------|-------|
-| `id` | `BIGINT` | PK, auto-increment | |
-| `account_id` | `BIGINT` | `UNIQUE`, `NOT NULL`, FK → `accounts.id` | One profile per account |
-| `name` | `VARCHAR(100)` | `NOT NULL` | Display name |
-| `email` | `VARCHAR(100)` | `UNIQUE`, `NOT NULL` | Contact email (`uk_student_profiles_email`) |
-| `phone` | `VARCHAR(20)` | `NOT NULL` | Contact phone |
-| `created_at` | `TIMESTAMP` | Auto-populated | |
-| `updated_at` | `TIMESTAMP` | Auto-populated | |
-
-### `librarian_profiles`
-
-Librarian display and contact data. One-to-one with `accounts`.
-
-| Column | Type | Constraints | Notes |
-|--------|------|-------------|-------|
-| `id` | `BIGINT` | PK, auto-increment | |
-| `account_id` | `BIGINT` | `UNIQUE`, `NOT NULL`, FK → `accounts.id` | One profile per account |
-| `name` | `VARCHAR(100)` | `NOT NULL` | Display name |
-| `phone` | `VARCHAR(20)` | `NOT NULL` | Contact phone |
-| `age` | `INT` | `NOT NULL` | Inherited from reference scope |
-| `created_at` | `TIMESTAMP` | Auto-populated | |
-| `updated_at` | `TIMESTAMP` | Auto-populated | |
-
-### `books`
-
-Library catalogue. The `available` flag is a denormalized current-state field.
-
-| Column | Type | Constraints | Notes |
-|--------|------|-------------|-------|
-| `id` | `BIGINT` | PK, auto-increment | |
-| `title` | `VARCHAR(200)` | `NOT NULL` | Book title |
-| `author` | `VARCHAR(200)` | | Book author |
-| `category` | `VARCHAR(100)` | | Book category / genre |
-| `isbn` | `VARCHAR(50)` | `UNIQUE` | ISBN identifier |
-| `published_date` | `DATE` | | Publication date |
-| `available` | `BOOLEAN` | `NOT NULL`, default `true` | `true` = available for borrow |
-| `created_at` | `TIMESTAMP` | Auto-populated | |
-| `updated_at` | `TIMESTAMP` | Auto-populated | |
-
-### `magazines`
-
-Magazine catalogue. The `available` flag is a denormalized current-state field.
-
-| Column | Type | Constraints | Notes |
-|--------|------|-------------|-------|
-| `id` | `BIGINT` | PK, auto-increment | |
-| `title` | `VARCHAR(200)` | `NOT NULL` | Magazine title |
-| `publisher` | `VARCHAR(200)` | | Publisher name |
-| `issue_date` | `DATE` | | Issue date |
-| `category` | `VARCHAR(100)` | | Category (e.g., Science, Tech) |
-| `featured_article` | `VARCHAR(200)` | | Featured article title |
-| `available` | `BOOLEAN` | `NOT NULL`, default `true` | `true` = available for borrow |
-| `created_at` | `TIMESTAMP` | Auto-populated | |
-| `updated_at` | `TIMESTAMP` | Auto-populated | |
-
-### `newspapers`
-
-Newspaper catalogue. The `available` flag is a denormalized current-state field.
-
-| Column | Type | Constraints | Notes |
-|--------|------|-------------|-------|
-| `id` | `BIGINT` | PK, auto-increment | |
-| `title` | `VARCHAR(200)` | `NOT NULL` | Newspaper title |
-| `publisher` | `VARCHAR(200)` | | Publisher name |
-| `publication_date` | `DATE` | | Publication date |
-| `top_headlines` | `VARCHAR(500)` | | Top headlines |
-| `available` | `BOOLEAN` | `NOT NULL`, default `true` | `true` = available for borrow |
-| `created_at` | `TIMESTAMP` | Auto-populated | |
-| `updated_at` | `TIMESTAMP` | Auto-populated | |
-
-### `borrow_records`
-
-Durable loan history. Never deleted — records are preserved for audit.
-
-| Column | Type | Constraints | Notes |
-|--------|------|-------------|-------|
-| `id` | `BIGINT` | PK, auto-increment | |
-| `book_id` | `BIGINT` | nullable, FK → `books.id` | Borrowed book (null if magazine/newspaper) |
-| `magazine_id` | `BIGINT` | nullable, FK → `magazines.id` | Borrowed magazine (null if book/newspaper) |
-| `newspaper_id` | `BIGINT` | nullable, FK → `newspapers.id` | Borrowed newspaper (null if book/magazine) |
-| `student_id` | `BIGINT` | nullable, FK → `student_profiles.id` | Borrowing student |
-| `borrower_name` | `VARCHAR(100)` | `NOT NULL` | Snapshot from student profile |
-| `borrower_email` | `VARCHAR(100)` | `NOT NULL` | Snapshot from student profile |
-| `borrower_phone` | `VARCHAR(20)` | `NOT NULL` | Snapshot from student profile |
-| `borrow_date` | `DATE` | `NOT NULL` | When the item was borrowed |
-| `due_date` | `DATE` | nullable | Expected return date (default 14 days) |
-| `return_date` | `DATE` | nullable | `NULL` = currently borrowed |
-| `created_at` | `TIMESTAMP` | Auto-populated | |
-| `updated_at` | `TIMESTAMP` | Auto-populated | |
-
-### `audit_logs`
-
-Server-side audit trail. Stores denormalized actor and entity references for query performance.
-
-| Column | Type | Constraints | Notes |
-|--------|------|-------------|-------|
-| `id` | `BIGINT` | PK, auto-increment | |
-| `timestamp` | `TIMESTAMP` | `NOT NULL` | When the action occurred |
-| `actor_id` | `BIGINT` | | Account ID of the actor |
-| `actor_username` | `VARCHAR(50)` | | Username of the actor |
-| `actor_role` | `VARCHAR(20)` | | Role of the actor |
-| `action` | `VARCHAR(20)` | `NOT NULL` | CREATE, UPDATE, DELETE, LOGIN, LOGOUT, BORROW, RETURN |
-| `entity_type` | `VARCHAR(30)` | `NOT NULL` | BOOK, STUDENT, LIBRARIAN, MAGAZINE, NEWSPAPER, BORROW_RECORD, ACCOUNT, PROFILE |
-| `entity_id` | `BIGINT` | | ID of the affected entity |
-| `description` | `VARCHAR(500)` | `NOT NULL` | Human-readable description |
-| `ip_address` | `VARCHAR(45)` | | Client IP address |
-| `user_agent` | `VARCHAR(500)` | | Client user agent string |
-| `created_at` | `TIMESTAMP` | Auto-populated | |
-| `updated_at` | `TIMESTAMP` | Auto-populated | |
-
----
-
-## Relationships
-
-| From | To | Cardinality | FK Column | Constraints |
-|------|----|-------------|-----------|-------------|
-| `accounts` | `student_profiles` | 1 : 0..1 | `student_profiles.account_id` | `UNIQUE`, `NOT NULL` |
-| `accounts` | `librarian_profiles` | 1 : 0..1 | `librarian_profiles.account_id` | `UNIQUE`, `NOT NULL` |
-| `books` | `borrow_records` | 1 : 0..* | `borrow_records.book_id` | nullable |
-| `magazines` | `borrow_records` | 1 : 0..* | `borrow_records.magazine_id` | nullable |
-| `newspapers` | `borrow_records` | 1 : 0..* | `borrow_records.newspaper_id` | nullable |
-| `student_profiles` | `borrow_records` | 1 : 0..* | `borrow_records.student_id` | nullable |
-
----
-
-## Constraints and Indexes
-
-| Table | Constraint | Purpose |
-|-------|------------|---------|
-| `accounts` | `username` UNIQUE | Prevent duplicate login identities |
-| `student_profiles` | `account_id` UNIQUE, FK | Enforce one profile per account |
-| `librarian_profiles` | `account_id` UNIQUE, FK | Enforce one profile per account |
-| `books` | `isbn` UNIQUE | Prevent duplicate catalogue entries |
-| `borrow_records` | `book_id` FK | Referential integrity to books |
-| `borrow_records` | `magazine_id` FK | Referential integrity to magazines |
-| `borrow_records` | `newspaper_id` FK | Referential integrity to newspapers |
-| `borrow_records` | `student_id` FK (nullable) | Referential integrity to students |
-
-### Indexes (V5 Migration)
-
-| Index | Table | Columns | Purpose |
-|-------|-------|---------|---------|
-| `idx_borrow_records_return_date` | `borrow_records` | `return_date` | Accelerates active-loan, history, and overdue queries |
-| `idx_borrow_records_due_date` | `borrow_records` | `due_date` | Supports SQL-level overdue optimization |
-
-**Rationale:** `return_date` is filtered in 7 repository methods (active-loan queries, history, overdue counts). `due_date` supports the SQL-level overdue optimization implemented in Phase 6.2. Two single-column indexes are chosen over a composite because `return_date` is queried independently in most access paths. See DECISIONS.md #16 for full rationale.
-
----
-
-## Auditing
-
-All entities extend `AuditableEntity`, which provides:
-
-```java
-@MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
-public abstract class AuditableEntity {
-    @CreatedDate
-    private Instant createdAt;
-
-    @LastModifiedDate
-    private Instant updatedAt;
-}
-```
-
-JPA auditing is enabled by `@EnableJpaAuditing` on `LibraryManagementApplication`.
-
----
-
-## Schema Management
-
-- **Production:** `spring.jpa.hibernate.ddl-auto=none` + Flyway enabled. Schema changes are applied via versioned migrations under `src/main/resources/db/migration/`.
-- **Tests:** `spring.jpa.hibernate.ddl-auto=create-drop` — schema is created on test start and dropped on exit. Flyway is disabled for tests (except `BorrowRecordsIndexTest` which uses Flyway-enabled H2 for migration verification).
-- **Seeding:** `AdminSeeder` (`CommandLineRunner`) creates an `admin` account with `ROLE_ADMIN` if no `admin` username exists. Reads `lms.admin.username` and `lms.admin.password` from configuration. Throws `IllegalStateException` if the password is null or blank.
-
----
-
-## Referential Actions
-
-- **Deleting a book, magazine, or newspaper with borrow history:** `BookService.delete()`, `MagazineService.delete()`, and `NewspaperService.delete()` check for existing borrow records and throw `ConflictException` (409) if found. History is never cascade-deleted.
-- **Deleting a profile:** No explicit `CascadeType` or `orphanRemoval` is configured on the `@OneToOne` relationship in `StudentProfile` or `LibrarianProfile`. Whether the linked `Account` is orphaned on profile deletion depends on Hibernate's FK constraint generation — this is a known gap.
+Production credentials are supplied through protected environment
+configuration. Never print resolved Compose configuration or database
+credentials when troubleshooting.
