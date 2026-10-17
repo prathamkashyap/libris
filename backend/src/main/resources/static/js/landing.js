@@ -1,4 +1,6 @@
 // Libris landing page - handles modal interactions and authentication
+import { clearRegistrationErrors, showRegistrationErrors } from '/js/utils/registration-errors.mjs';
+
 document.addEventListener('DOMContentLoaded', () => {
   // Initialize theme toggle - handle both nav and fixed positions
   const themeToggleRoots = document.querySelectorAll('#nav-theme, #topbar-theme');
@@ -135,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Register form
   const registerForm = document.getElementById('registerForm');
   const registerError = document.getElementById('register-error');
+  registerForm?.addEventListener('input', () => clearRegistrationErrors(registerForm, registerError));
 
   // Functions to open/close modals
   function openLoginModal() {
@@ -299,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      clearRegistrationErrors(registerForm, registerError);
 
       const formData = new FormData(registerForm);
       const registerData = {
@@ -341,11 +345,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (response.ok) {
           window.location.href = '/index.html';
         } else {
-          const error = await response.json();
-          if (registerError) {
-            registerError.textContent = error.message || 'Registration failed. Please try again.';
-            registerError.hidden = false;
-          }
+          const error = await response.json().catch(() => ({}));
+          showRegistrationErrors(
+            registerForm,
+            registerError,
+            error?.fieldErrors,
+            error?.message || 'Registration failed. Please try again.'
+          );
         }
       } catch (error) {
         if (registerError) {

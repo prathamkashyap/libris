@@ -623,46 +623,51 @@
             <label for="reg-name">Full name</label>
             <div class="input-wrap">
               <svg class="input-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <input id="reg-name" name="name" type="text" required autocomplete="name" placeholder="Enter your full name">
+              <input id="reg-name" name="name" type="text" required autocomplete="name" placeholder="Enter your full name" aria-describedby="reg-name-error">
             </div>
+            <small class="registration-field-error" id="reg-name-error" hidden></small>
           </div>
           <div class="form-group">
             <label for="reg-email">Email</label>
             <div class="input-wrap">
               <svg class="input-icon" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 0 0 2.22 0L21 8M5 19h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/></svg>
-              <input id="reg-email" name="email" type="email" required autocomplete="email" placeholder="Enter your email address">
+              <input id="reg-email" name="email" type="email" required autocomplete="email" placeholder="Enter your email address" aria-describedby="reg-email-error">
             </div>
+            <small class="registration-field-error" id="reg-email-error" hidden></small>
           </div>
           <div class="form-group">
             <label for="reg-phone">Phone number</label>
             <div class="input-wrap">
               <svg class="input-icon" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              <input id="reg-phone" name="phone" type="tel" required autocomplete="tel" placeholder="Enter your phone number">
+              <input id="reg-phone" name="phone" type="tel" required autocomplete="tel" placeholder="Enter your phone number" aria-describedby="reg-phone-error">
             </div>
+            <small class="registration-field-error" id="reg-phone-error" hidden></small>
           </div>
           <div class="form-group">
             <label for="reg-username">Username</label>
             <div class="input-wrap">
               <svg class="input-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <input id="reg-username" name="username" type="text" required autocomplete="username" placeholder="Choose a username">
+              <input id="reg-username" name="username" type="text" required autocomplete="username" placeholder="Choose a username" aria-describedby="reg-username-error">
             </div>
+            <small class="registration-field-error" id="reg-username-error" hidden></small>
           </div>
           <div class="form-group">
             <label for="reg-password">Password</label>
             <div class="input-wrap">
               <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <input id="reg-password" name="password" type="password" required autocomplete="new-password" placeholder="Create a strong password">
+              <input id="reg-password" name="password" type="password" required autocomplete="new-password" placeholder="Create a strong password" aria-describedby="reg-password-error">
               <button type="button" class="pw-toggle" aria-label="Show password" aria-pressed="false" data-target="reg-password">
                 <svg class="pw-eye-open" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
                 <svg class="pw-eye-closed" viewBox="0 0 24 24" hidden><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="m1 1 22 22"/></svg>
               </button>
             </div>
+            <small class="registration-field-error" id="reg-password-error" hidden></small>
           </div>
           <div class="form-group">
             <label for="reg-confirm">Confirm password</label>
             <div class="input-wrap">
               <svg class="input-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <input id="reg-confirm" name="confirmPassword" type="password" required autocomplete="new-password" placeholder="Re-enter your password">
+              <input id="reg-confirm" name="confirmPassword" type="password" required autocomplete="new-password" placeholder="Re-enter your password" aria-describedby="register-error">
             </div>
           </div>
           <button class="btn-primary full" type="submit">Create account</button>

@@ -1662,6 +1662,21 @@ tbody tr:hover {
   border-left: 4px solid var(--red);
 }
 
+.registration-field-error {
+  display: block;
+  margin-top: 5px;
+  color: var(--red);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+.registration-field-error[hidden] { display: none; }
+
+#registerForm input[aria-invalid="true"] {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-subtle);
+}
+
 .form-success {
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--accent);
