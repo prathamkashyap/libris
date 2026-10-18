@@ -76,6 +76,7 @@ run_backup() {
   _exit=${1:-0}
   _stdout=${2-$DEFAULT_DUMP}
   _read=${3:-0}
+  _keep=${4-}
   set +e
   PATH="$work/bin:$PATH" \
     LMS_ENV_FILE="$work/.env" \
@@ -85,6 +86,7 @@ run_backup() {
     DOCKER_STDOUT="$_stdout" \
     DOCKER_READ_STDIN="$_read" \
     DATE_COUNTER="$work/date.count" \
+    LIBRIS_BACKUP_KEEP="$_keep" \
     sh "$backup_script" "$work/out" > "$work/stdout" 2> "$work/stderr"
   RC=$?
   set -e
@@ -407,6 +409,63 @@ if [ "$i" -eq 18 ] && [ "$count" -le 14 ]; then
   ok "retention keeps at most 14 dumps (created 18, kept $count)"
 else
   no "retention keeps at most 14 dumps" "created=$i kept=$count"
+fi
+
+# 17. LIBRIS_BACKUP_KEEP is honoured (28 days at a six-hourly cadence).
+rm -rf "$work/out"
+make_date_stub
+cat > "$work/.env" <<'ENVEOF'
+LMS_DB_NAME=librarydb
+ENVEOF
+i=0
+while [ "$i" -lt 8 ]; do
+  run_backup 0 "$DEFAULT_DUMP" 0 5
+  [ "$RC" -eq 0 ] || break
+  i=$((i + 1))
+done
+count=$(ls -1 "$work/out"/libris-*.sql.gz 2>/dev/null | wc -l | tr -d ' ')
+if [ "$i" -eq 8 ] && [ "$count" -eq 5 ]; then
+  ok "LIBRIS_BACKUP_KEEP prunes to the configured count (created 8, kept $count)"
+else
+  no "LIBRIS_BACKUP_KEEP prunes to the configured count" "created=$i kept=$count"
+fi
+
+# 18. A non-numeric retention value is rejected rather than silently defaulted.
+rm -rf "$work/out"
+run_backup 0 "$DEFAULT_DUMP" 0 "not-a-number"
+if [ "$RC" -ne 0 ] && grep -q 'LIBRIS_BACKUP_KEEP' "$work/stderr"; then
+  ok "invalid LIBRIS_BACKUP_KEEP is rejected"
+else
+  no "invalid LIBRIS_BACKUP_KEEP is rejected" "rc=$RC"
+fi
+
+# 19. The manifest describes the artifact, not a hand-written list.
+dump=$(find "$work/out" -name 'libris-*.sql.gz' 2>/dev/null | head -1)
+rm -rf "$work/out"
+cat > "$work/.env" <<'ENVEOF'
+LMS_DB_NAME=librarydb
+ENVEOF
+DOCKER_STDOUT="$DEFAULT_DUMP" run_backup
+dump=$(find "$work/out" -name 'libris-*.sql.gz' 2>/dev/null | head -1)
+if [ -n "$dump" ]; then
+  sh "$repo_dir/scripts/backup-manifest.sh" "$dump" "$work/manifest.json" >/dev/null 2>&1
+  rc=$?
+  if [ "$rc" -eq 0 ] && grep -q '"sha256"' "$work/manifest.json" &&
+    grep -q '"row_counts"' "$work/manifest.json" &&
+    grep -q '"flyway"' "$work/manifest.json"; then
+    ok "manifest records sha256, row counts and Flyway version"
+  else
+    no "manifest records sha256, row counts and Flyway version" "rc=$rc"
+  fi
+  sum_a=$(sha256sum "$dump" | awk '{print $1}')
+  sum_b=$(sed -n 's/.*"sha256": "\([a-f0-9]*\)".*/\1/p' "$work/manifest.json")
+  if [ "$sum_a" = "$sum_b" ]; then
+    ok "manifest sha256 matches the artifact"
+  else
+    no "manifest sha256 matches the artifact" "manifest=$sum_b actual=$sum_a"
+  fi
+else
+  no "manifest records sha256, row counts and Flyway version" "no dump produced"
 fi
 
 echo
