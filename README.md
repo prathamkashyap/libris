@@ -20,7 +20,7 @@
   <p>
     <a href="https://github.com/prathamkashyap/libris/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/prathamkashyap/libris/ci.yml?branch=main&style=flat-square&label=CI" alt="CI status" /></a>
     <a href="https://github.com/prathamkashyap/libris/releases"><img src="https://img.shields.io/github/v/release/prathamkashyap/libris?style=flat-square&color=4338CA" alt="Latest release" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/github/license/prathamkashyap/libris?style=flat-square&color=0D9488" alt="MIT License" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-0D9488?style=flat-square" alt="MIT License" /></a>
     <img src="https://img.shields.io/badge/Java-21-007396?style=flat-square&logo=openjdk&logoColor=white" alt="Java 21" />
     <img src="https://img.shields.io/badge/Spring_Boot-3.5.0-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot 3.5.0 project baseline" />
     <img src="https://img.shields.io/badge/MySQL-8.4-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL 8.4" />
