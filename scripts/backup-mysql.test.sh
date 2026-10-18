@@ -255,6 +255,69 @@ else
   no "secrets are not printed to stdout or stderr" "output leaked a secret"
 fi
 
+# 7. Compose strips an inline comment from an unquoted value. A password with
+#    " # comment" appended must resolve to the password alone, or authentication
+#    fails against the server.
+cat > "$work/.env" <<'ENVEOF'
+LMS_DB_NAME=librarydb
+LMS_DB_BACKUP_USERNAME=synthetic_backup_user
+LMS_DB_BACKUP_PASSWORD=synthetic-secret # trailing comment
+ENVEOF
+run_backup 0 "$DEFAULT_DUMP" 1
+if [ "$RC" -eq 0 ] && grep -q '^password=synthetic-secret$' "$work/stdin.log"; then
+  ok "inline comment is stripped from an unquoted value"
+else
+  no "inline comment is stripped from an unquoted value" \
+    "rc=$RC stdin=$(tr '\n' '|' < "$work/stdin.log")"
+fi
+
+# 8. A '#' not preceded by a space is literal and must survive: real passwords
+#    contain '#'.
+cat > "$work/.env" <<'ENVEOF'
+LMS_DB_NAME=librarydb
+LMS_DB_BACKUP_USERNAME=synthetic_backup_user
+LMS_DB_BACKUP_PASSWORD=synthetic#se#cret
+ENVEOF
+run_backup 0 "$DEFAULT_DUMP" 1
+if [ "$RC" -eq 0 ] && grep -q '^password=synthetic#se#cret$' "$work/stdin.log"; then
+  ok "a '#' without a preceding space stays literal"
+else
+  no "a '#' without a preceding space stays literal" \
+    "stdin=$(tr '\n' '|' < "$work/stdin.log")"
+fi
+
+# 9. Inside quotes a '#' is literal even when preceded by a space, and a
+#    comment-looking suffix is part of the value.
+cat > "$work/.env" <<'ENVEOF'
+LMS_DB_NAME=librarydb
+LMS_DB_BACKUP_USERNAME=synthetic_backup_user
+LMS_DB_BACKUP_PASSWORD="quoted # not a comment"
+ENVEOF
+run_backup 0 "$DEFAULT_DUMP" 1
+if [ "$RC" -eq 0 ] && grep -q '^password=quoted # not a comment$' "$work/stdin.log"; then
+  ok "a quoted value keeps its '#' and comment-like text"
+else
+  no "a quoted value keeps its '#' and comment-like text" \
+    "stdin=$(tr '\n' '|' < "$work/stdin.log")"
+fi
+
+# 10. The in-container defaults file must be unique per invocation, so that
+#     concurrent backups cannot overwrite each other's credentials.
+cat > "$work/.env" <<'ENVEOF'
+LMS_DB_NAME=librarydb
+LMS_DB_BACKUP_USERNAME=synthetic_backup_user
+LMS_DB_BACKUP_PASSWORD=synthetic_backup_password
+ENVEOF
+run_backup 0 "$DEFAULT_DUMP" 1
+if grep -q 'cnf=$(mktemp ' "$work/argv.log" &&
+  ! grep -q 'cnf=/tmp/.libris-backup-client.cnf' "$work/argv.log" &&
+  grep -q 'chmod 600 "\$cnf"' "$work/argv.log"; then
+  ok "in-container credentials file is unique and explicitly chmod 600"
+else
+  no "in-container credentials file is unique and explicitly chmod 600" \
+    "argv=$(tr '\n' '|' < "$work/argv.log")"
+fi
+
 # ---------------------------------------------------------------------------
 echo
 echo "failure handling"

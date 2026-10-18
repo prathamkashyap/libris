@@ -21,6 +21,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
   in the host process list, contradicting the script's own header comment. It
   now reaches `mysqldump` through the container's environment or a `0600`
   defaults-file fed on stdin.
+- The `.env` parser now matches Compose's inline-comment handling: in an
+  unquoted value a `#` preceded by a space starts a comment and is removed, so
+  `LMS_DB_BACKUP_PASSWORD=secret # comment` resolves to `secret`. A `#` with no
+  preceding space, and any `#` inside quotes, stays literal, so passwords
+  containing `#` are unaffected.
+- The in-container defaults-file is created with `mktemp` and explicitly
+  `chmod 600`. A fixed path let concurrent backups overwrite each other's
+  credentials, and `umask` alone does not tighten an already-existing file.
 
 ### Added
 
@@ -30,7 +38,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
   `docker`, so it needs no database; it runs in CI as the `backup-script` job.
 - `scripts/backup-mysql-restore-test.sh` — a restore drill that backs up a
   disposable database, restores it into a second one and compares the data. A
-  gzip integrity check cannot establish that a dump is restorable.
+  gzip integrity check cannot establish that a dump is restorable. Each run uses
+  unique container and network names derived from its own temporary directory,
+  and removes only the resources that run created, so it cannot delete an
+  unrelated container that happens to share a name.
 - Optional least-privilege backup account (`LMS_DB_BACKUP_USERNAME` /
   `LMS_DB_BACKUP_PASSWORD`) with the `GRANT` documented in `docs/DEPLOYMENT.md`,
   so routine dumps no longer require the MySQL root account.

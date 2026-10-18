@@ -23,10 +23,19 @@ repo_dir=$(CDPATH= cd -- "$script_dir/.." && pwd)
 backup_script="$repo_dir/scripts/backup-mysql.sh"
 
 work=$(mktemp -d "${TMPDIR:-/tmp}/libris-restore-drill.XXXXXX")
-src_db=libris_restore_drill_src
-dst_db=libris_restore_drill_dst
+
+# Every drill gets a unique identity derived from its private temporary
+# directory. Fixed container names would let cleanup remove a container that
+# belongs to something else if startup failed partway or a name collided.
+run_id=$(basename "$work" | tr -cd 'A-Za-z0-9')
+src_db="libris_drill_src_${run_id}"
+dst_db="libris_drill_dst_${run_id}"
 root_pw=synthetic-drill-root-pw
 app_pw=synthetic-drill-app-pw
+
+# Only resources this invocation actually created are ever removed.
+created_src=0
+created_dst=0
 network=""
 
 die() {
@@ -34,10 +43,19 @@ die() {
   exit 1
 }
 
+# Refuse to run if a name we intend to use is already taken, rather than
+# risking an interaction with a container we did not create.
+assert_name_free() {
+  if docker ps -a --format '{{.Names}}' | grep -qx "$1"; then
+    die "container name '$1' already exists; refusing to use or remove it"
+  fi
+}
+
 cleanup() {
   echo
-  echo "Cleaning up disposable containers..."
-  docker rm -f "$src_db" "$dst_db" >/dev/null 2>&1 || true
+  echo "Cleaning up this drill's disposable resources..."
+  [ "$created_src" -eq 1 ] && docker rm -f "$src_db" >/dev/null 2>&1 || true
+  [ "$created_dst" -eq 1 ] && docker rm -f "$dst_db" >/dev/null 2>&1 || true
   [ -n "$network" ] && docker network rm "$network" >/dev/null 2>&1 || true
   rm -rf "$work"
 }
@@ -51,6 +69,7 @@ echo "restore drill: temporary directory $work"
 # ---------------------------------------------------------------------------
 echo
 echo "1/5 starting a disposable source database"
+assert_name_free "$src_db"
 cat > "$work/docker-compose.yml" <<EOF
 services:
   mysql:
@@ -69,10 +88,10 @@ LMS_DB_PASSWORD=$app_pw
 JAVA_OPTS=-XX:MaxRAMPercentage=70.0 -XX:+ExitOnOutOfMemoryError -Djava.security.egd=file:/dev/./urandom
 EOF
 
-(cd "$work" && docker compose up -d >/dev/null)
+(cd "$work" && docker compose up -d >/dev/null) && created_src=1
 
-# Remember the generated network name so cleanup removes it too; the project
-# name is derived from the temporary directory, which is random per run.
+# The project name is derived from the temporary directory, which is unique
+# per run; remember it so cleanup removes it too.
 network=$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}' "$src_db" 2>/dev/null || echo "")
 
 ready=0
@@ -109,9 +128,12 @@ echo "   produced $(basename "$dump")"
 
 # ---------------------------------------------------------------------------
 echo "4/5 restoring into an independent database"
-docker run -d --name "$dst_db" \
+assert_name_free "$dst_db"
+if docker run -d --name "$dst_db" \
   -e MYSQL_ROOT_PASSWORD="$root_pw" -e MYSQL_DATABASE=drillrestore \
-  mysql:8.4 >/dev/null
+  mysql:8.4 >/dev/null; then
+  created_dst=1
+fi
 
 ready=0
 i=0

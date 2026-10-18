@@ -48,22 +48,44 @@ die() {
 # file. Only the exact literal key is matched, so no caller-supplied text is
 # ever interpreted as a pattern.
 #
-# Handles the forms Compose accepts that appear in practice:
-#   KEY=value                     (spaces preserved, inline '#' preserved)
-#   KEY="quoted value"            (quotes removed, \" and \\ unescaped)
-#   KEY='quoted value'            (quotes removed, literal)
+# Matches the Compose env-file semantics that compose-go implements:
+#
+#   KEY=value                     unquoted; an inline comment introduced by a
+#                                 space and '#' is stripped, trailing spaces
+#                                 are trimmed, and a '#' that is not preceded
+#                                 by a space stays literal
+#   KEY="quoted value"            quotes removed, \" and \\ unescaped; any '#'
+#                                 inside the quotes is literal
+#   KEY='quoted value'            quotes removed, contents literal
 #   export KEY=value
+#
 # A later assignment wins, matching Compose's own precedence.
 # ---------------------------------------------------------------------------
 dotenv_get() {
   [ -f "$1" ] || return 1
-  sed -n "s/^[[:space:]]*\(export[[:space:]]\{1,\}\)\{0,1\}$2[[:space:]]*=[[:space:]]*//p" "$1" |
-    tail -n 1 |
-    sed -e 's/[[:space:]]*$//' \
-        -e 's/^"\(.*\)"$/\1/' \
-        -e "s/^'\\(.*\\)'\$/\\1/" \
-        -e 's/\\"/"/g' \
-        -e 's/\\\\/\\/g'
+  _raw=$(sed -n \
+    "s/^[[:space:]]*\(export[[:space:]]\{1,\}\)\{0,1\}$2[[:space:]]*=[[:space:]]*//p" \
+    "$1" | tail -n 1)
+  case "$_raw" in
+    \"*\")
+      # Double-quoted: strip the surrounding quotes, then unescape. Inline
+      # comments do not apply inside quotes.
+      _v=${_raw#\"}
+      _v=${_v%\"}
+      printf '%s\n' "$_v" | sed -e 's/\\"/"/g' -e 's/\\\\/\\/g'
+      ;;
+    \'*\')
+      # Single-quoted: entirely literal.
+      _v=${_raw#\'}
+      _v=${_v%\'}
+      printf '%s\n' "$_v"
+      ;;
+    *)
+      # Unquoted: ' #' starts a comment; '#' not preceded by a space is
+      # literal, so passwords containing '#' survive.
+      printf '%s\n' "$_raw" | sed -e 's/ #.*$//' -e 's/[[:space:]]*$//'
+      ;;
+  esac
 }
 
 if [ ! -f "$env_file" ]; then
@@ -115,9 +137,13 @@ if [ -n "$backup_user" ]; then
   inner_script=$(cat <<'INNER_SCRIPT'
 set -eu
 umask 077
-cnf=/tmp/.libris-backup-client.cnf
+# A unique file per invocation: a fixed path would let concurrent backups
+# overwrite each other's credentials, and umask alone does not tighten the
+# permissions of a file that already exists.
+cnf=$(mktemp /tmp/.libris-backup-client.XXXXXX)
 trap 'rm -f "$cnf"' EXIT HUP INT TERM
 cat > "$cnf"
+chmod 600 "$cnf"
 mysqldump --defaults-extra-file="$cnf" \
   --single-transaction \
   --routines \
