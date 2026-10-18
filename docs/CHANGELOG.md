@@ -7,6 +7,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `scripts/backup-mysql.sh` no longer sources `.env` as shell code. Compose
+  env-file syntax is not shell syntax, so the unquoted, space-separated
+  `JAVA_OPTS` value shipped in `.env.example` aborted the script with
+  `-XX:+ExitOnOutOfMemoryError: command not found` (exit 127) before any dump
+  was taken. The file is now parsed, and values containing spaces and quoting
+  are handled. Sourcing it would also have executed any other command in the
+  file.
+- Backup credentials are no longer passed on a command line. The password used
+  to travel in `docker compose exec -e MYSQL_PWD=…` argv, where it was visible
+  in the host process list, contradicting the script's own header comment. It
+  now reaches `mysqldump` through the container's environment or a `0600`
+  defaults-file fed on stdin.
+
+### Added
+
+- `scripts/backup-mysql.test.sh` — regression suite covering the dotenv parsing
+  failure, spaces in values, quoting, missing and half-configured settings,
+  command failure, and the guarantee that no credential reaches argv. It stubs
+  `docker`, so it needs no database; it runs in CI as the `backup-script` job.
+- `scripts/backup-mysql-restore-test.sh` — a restore drill that backs up a
+  disposable database, restores it into a second one and compares the data. A
+  gzip integrity check cannot establish that a dump is restorable.
+- Optional least-privilege backup account (`LMS_DB_BACKUP_USERNAME` /
+  `LMS_DB_BACKUP_PASSWORD`) with the `GRANT` documented in `docs/DEPLOYMENT.md`,
+  so routine dumps no longer require the MySQL root account.
+
 ## [1.2.0] - 2026-10-17
 
 ### Added

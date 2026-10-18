@@ -2,13 +2,27 @@
 # Logical MySQL backup for the Libris stack.
 #
 # Dumps the schema and data from the running compose-managed MySQL container.
-# Credentials are read from the deployment .env file, never from argv, so they
-# do not appear in the process list.
+#
+# Credentials are never passed on any command line and are never printed.
+# By default the dump runs with the MySQL account that the container already
+# has in its own environment, so no secret crosses the host/container boundary
+# at all. An operator may instead nominate a dedicated least-privilege backup
+# account in .env (LMS_DB_BACKUP_USERNAME / LMS_DB_BACKUP_PASSWORD); its
+# credentials are then piped to the container on stdin and used through a
+# 0600 defaults-file, never through argv.
+#
+# The .env file is *parsed*, never executed: Compose env-file syntax is not
+# shell syntax, and sourcing it executes arbitrary commands (and fails outright
+# on unquoted values that contain spaces, such as JAVA_OPTS).
 #
 # Usage:
 #   scripts/backup-mysql.sh [output-directory]
 #
 # Default output directory: ./backups (git-ignored).
+#
+# Environment overrides:
+#   LMS_ENV_FILE         path to the env file (default: <repo>/.env)
+#   LMS_COMPOSE_SERVICE  compose service to dump from (default: mysql)
 #
 # On OCI this is intended to run from the host cron/service timer. A copy of
 # each dump should also leave the instance — see docs/DEPLOYMENT.md, "Backups".
@@ -18,52 +32,144 @@ set -eu
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 repo_dir=$(CDPATH= cd -- "$script_dir/.." && pwd)
 out_dir=${1:-"$repo_dir/backups"}
-env_file="$repo_dir/.env"
+env_file=${LMS_ENV_FILE:-"$repo_dir/.env"}
 service=${LMS_COMPOSE_SERVICE:-mysql}
 timestamp=$(date -u +%Y%m%dT%H%M%SZ)
-dump_file="$out_dir/libris-$timestamp.sql"
+
+die() {
+  echo "error: $*" >&2
+  exit 1
+}
+
+# ---------------------------------------------------------------------------
+# Safe dotenv reader.
+#
+# Prints the value of KEY from a Compose-style env file without executing the
+# file. Only the exact literal key is matched, so no caller-supplied text is
+# ever interpreted as a pattern.
+#
+# Handles the forms Compose accepts that appear in practice:
+#   KEY=value                     (spaces preserved, inline '#' preserved)
+#   KEY="quoted value"            (quotes removed, \" and \\ unescaped)
+#   KEY='quoted value'            (quotes removed, literal)
+#   export KEY=value
+# A later assignment wins, matching Compose's own precedence.
+# ---------------------------------------------------------------------------
+dotenv_get() {
+  [ -f "$1" ] || return 1
+  sed -n "s/^[[:space:]]*\(export[[:space:]]\{1,\}\)\{0,1\}$2[[:space:]]*=[[:space:]]*//p" "$1" |
+    tail -n 1 |
+    sed -e 's/[[:space:]]*$//' \
+        -e 's/^"\(.*\)"$/\1/' \
+        -e "s/^'\\(.*\\)'\$/\\1/" \
+        -e 's/\\"/"/g' \
+        -e 's/\\\\/\\/g'
+}
 
 if [ ! -f "$env_file" ]; then
-  echo "error: $env_file not found (copy .env.example to .env first)" >&2
-  exit 1
+  die "$env_file not found (copy .env.example to .env first)"
 fi
 
-# Load the secret without echoing it.
-set -a
-# shellcheck disable=SC1090
-. "$env_file"
-set +a
+db_name=$(dotenv_get "$env_file" LMS_DB_NAME || true)
+[ -n "$db_name" ] || db_name=librarydb
 
-if [ -z "${LMS_DB_ROOT_PASSWORD:-}" ]; then
-  echo "error: LMS_DB_ROOT_PASSWORD is empty in $env_file" >&2
-  exit 1
+backup_user=$(dotenv_get "$env_file" LMS_DB_BACKUP_USERNAME || true)
+backup_password=$(dotenv_get "$env_file" LMS_DB_BACKUP_PASSWORD || true)
+
+# Either both or neither: a half-configured account is a silent-failure trap.
+if [ -n "$backup_user" ] && [ -z "$backup_password" ]; then
+  die "LMS_DB_BACKUP_USERNAME is set but LMS_DB_BACKUP_PASSWORD is empty in $env_file"
+fi
+if [ -n "$backup_password" ] && [ -z "$backup_user" ]; then
+  die "LMS_DB_BACKUP_PASSWORD is set but LMS_DB_BACKUP_USERNAME is empty in $env_file"
 fi
 
+# Restrictive by default: dumps and the directory that holds them are not
+# world-readable, because a dump contains the whole database.
+umask 077
 mkdir -p "$out_dir"
+chmod 700 "$out_dir"
 
-echo "Dumping MySQL to $dump_file"
-docker compose --env-file "$env_file" exec -T \
-  -e MYSQL_PWD="$LMS_DB_ROOT_PASSWORD" \
-  "$service" \
-  mysqldump \
-    --user=root \
-    --single-transaction \
-    --routines \
-    --triggers \
-    --events \
-    --hex-blob \
-    --set-gtid-purged=OFF \
-    "${LMS_DB_NAME:-librarydb}" > "$dump_file"
+partial_sql="$out_dir/.libris-$timestamp.sql.partial"
+final_sql="$out_dir/libris-$timestamp.sql"
 
-gzip -9 "$dump_file"
+cleanup() {
+  rm -f "$partial_sql" "$partial_sql.gz"
+}
+trap cleanup EXIT HUP INT TERM
 
-size=$(wc -c < "$dump_file.gz" | tr -d ' ')
-if [ "$size" -lt 1024 ]; then
-  echo "error: dump is only $size bytes — treating as failed backup" >&2
-  exit 1
+# ---------------------------------------------------------------------------
+# Dump.
+#
+# Credentials reach mysqldump through one of two routes, neither of which
+# involves a command-line argument:
+#
+#  1. Dedicated backup account: the credentials are written to a 0600
+#     defaults-file *inside* the container, fed on stdin, and removed on exit.
+#  2. Default: the container's own MYSQL_USER / MYSQL_PASSWORD environment
+#     variables are used, so no secret is transmitted or printed at all.
+#
+# --no-tablespaces avoids requiring the global PROCESS privilege.
+# ---------------------------------------------------------------------------
+if [ -n "$backup_user" ]; then
+  inner_script=$(cat <<'INNER_SCRIPT'
+set -eu
+umask 077
+cnf=/tmp/.libris-backup-client.cnf
+trap 'rm -f "$cnf"' EXIT HUP INT TERM
+cat > "$cnf"
+mysqldump --defaults-extra-file="$cnf" \
+  --single-transaction \
+  --routines \
+  --triggers \
+  --events \
+  --hex-blob \
+  --set-gtid-purged=OFF \
+  --no-tablespaces \
+  "$1"
+INNER_SCRIPT
+)
+  echo "Dumping MySQL to $final_sql (account: $backup_user)"
+  printf '[client]\nuser=%s\npassword=%s\n' \
+    "$backup_user" "$backup_password" |
+    docker compose --env-file "$env_file" exec -T "$service" \
+      sh -c "$inner_script" _ "$db_name" > "$partial_sql"
+else
+  inner_script=$(cat <<'INNER_SCRIPT'
+set -eu
+export MYSQL_PWD="$MYSQL_PASSWORD"
+mysqldump --user="$MYSQL_USER" \
+  --single-transaction \
+  --routines \
+  --triggers \
+  --events \
+  --hex-blob \
+  --set-gtid-purged=OFF \
+  --no-tablespaces \
+  "$1"
+INNER_SCRIPT
+)
+  echo "Dumping MySQL to $final_sql (account: container MYSQL_USER)"
+  docker compose --env-file "$env_file" exec -T "$service" \
+    sh -c "$inner_script" _ "$db_name" > "$partial_sql"
 fi
 
-echo "Wrote $dump_file.gz ($size bytes)"
+# A failed dump can still leave a partial file on disk; refuse to publish one
+# as if it were a usable backup.
+[ -s "$partial_sql" ] || die "dump produced no output (mysqldump produced nothing)"
+
+gzip -9 "$partial_sql"
+gzip -t "$partial_sql.gz" || die "compressed dump failed its integrity check"
+
+size=$(wc -c < "$partial_sql.gz" | tr -d ' ')
+if [ "$size" -lt 1024 ]; then
+  die "dump is only $size bytes — refusing to publish an implausibly small backup"
+fi
+
+mv "$partial_sql.gz" "$final_sql.gz"
+chmod 600 "$final_sql.gz"
+
+echo "Wrote $final_sql.gz ($size bytes)"
 
 # Keep the 14 most recent local dumps.
 ls -1t "$out_dir"/libris-*.sql.gz 2>/dev/null | tail -n +15 | xargs -r rm -f
