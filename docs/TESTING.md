@@ -12,6 +12,7 @@ defined by the Maven wrapper, Node tests, Python test suite, and CI workflow.
 python3 -m unittest discover -s scripts/dev-seed -p 'test_phase5*.py'
 node --test scripts/catalog-seed/*.test.mjs
 sh scripts/backup-mysql.test.sh
+sh scripts/backup-mysql-restore-test.sh
 git diff --check
 ```
 

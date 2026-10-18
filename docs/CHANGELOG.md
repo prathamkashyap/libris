@@ -7,6 +7,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+
+- `LIBRIS_BACKUP_KEEP` makes local retention configurable (default 14). At a
+  six-hourly cadence, 14 files is only 3.5 days; a scheduled deployment keeps 112
+  (28 days). A non-numeric or zero value is rejected instead of silently
+  defaulting.
+- `scripts/backup-manifest.sh` emits JSON describing a dump: SHA-256, size,
+  table list, per-table row counts and the Flyway version. It reads the dump
+  artifact rather than the live database, so it records what would actually be
+  restored, and a restore drill can compare against it instead of a
+  hand-maintained list. Written for POSIX awk so it behaves identically under
+  BSD awk and gawk.
+
 ### Fixed
 
 - `scripts/backup-mysql.sh` no longer sources `.env` as shell code. Compose

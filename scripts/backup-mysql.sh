@@ -23,6 +23,7 @@
 # Environment overrides:
 #   LMS_ENV_FILE         path to the env file (default: <repo>/.env)
 #   LMS_COMPOSE_SERVICE  compose service to dump from (default: mysql)
+#   LIBRIS_BACKUP_KEEP   local dumps to keep, oldest pruned first (default: 14)
 #
 # On OCI this is intended to run from the host cron/service timer. A copy of
 # each dump should also leave the instance — see docs/DEPLOYMENT.md, "Backups".
@@ -87,6 +88,12 @@ dotenv_get() {
       ;;
   esac
 }
+
+keep=${LIBRIS_BACKUP_KEEP:-14}
+case "$keep" in
+  '' | *[!0-9]*) die "LIBRIS_BACKUP_KEEP must be a positive integer (got: $keep)" ;;
+esac
+[ "$keep" -ge 1 ] || die "LIBRIS_BACKUP_KEEP must be at least 1 (got: $keep)"
 
 if [ ! -f "$env_file" ]; then
   die "$env_file not found (copy .env.example to .env first)"
@@ -197,7 +204,8 @@ chmod 600 "$final_sql.gz"
 
 echo "Wrote $final_sql.gz ($size bytes)"
 
-# Keep the 14 most recent local dumps.
-ls -1t "$out_dir"/libris-*.sql.gz 2>/dev/null | tail -n +15 | xargs -r rm -f
+# Keep the newest $keep dumps; prune older ones. The newest dump was just
+# written, so it is never a candidate for removal.
+ls -1t "$out_dir"/libris-*.sql.gz 2>/dev/null | tail -n +$((keep + 1)) | xargs -r rm -f
 
 exit 0

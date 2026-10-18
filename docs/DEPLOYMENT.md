@@ -72,7 +72,12 @@ The root `docker-compose.yml` defines the persistent named volume `mysql-data` m
 ```sh
 scripts/backup-mysql.sh                 # writes ./backups, keeps the 14 newest
 scripts/backup-mysql.sh /secure/dumps  # explicit output directory
+LIBRIS_BACKUP_KEEP=112 scripts/backup-mysql.sh /secure/dumps   # 28 days at 6-hourly
 ```
+
+`LIBRIS_BACKUP_KEEP` sets how many local dumps survive; the oldest are pruned
+after each successful run. The default of 14 is about 3.5 days at a six-hourly
+cadence, which is rarely what a scheduled job wants.
 
 The script **parses** `.env`; it never sources or executes it. Compose env-file
 syntax is not shell syntax, and sourcing a `.env` that contains an unquoted,
@@ -117,6 +122,22 @@ sh scripts/backup-mysql-restore-test.sh
 It needs Docker, creates and destroys only its own throwaway containers, and
 never reads the repository `.env` or contacts a production database. Run it
 after changing the backup script, and periodically as an operational check.
+
+### Recording what a backup contains
+
+`gzip -t` proves an archive is not corrupt. It does not prove the dump is
+complete or restorable. `scripts/backup-manifest.sh` records what an artifact
+actually holds, so a later restore drill can compare the restored database
+against the backup it came from:
+
+```sh
+scripts/backup-manifest.sh backups/libris-<timestamp>.sql.gz backup.json
+```
+
+The manifest contains the file's SHA-256 and size, the table list, per-table
+row counts, and the applied Flyway version. It is derived from the dump file
+itself, not from the live database, so it describes the artifact that would
+actually be restored.
 
 For diagnostics, prefer `docker compose ps`, `docker compose logs --since=<window> --tail=<count> app`, `df -h`, and `free -h`. Inspect and redact logs before sharing. Do not query or print secret-bearing environment/configuration output.
 
