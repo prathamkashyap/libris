@@ -67,6 +67,19 @@ jobs:
       - name: Run Phase 5 demand forecasting tests
         run: python -m unittest discover -s scripts/dev-seed -p "test_phase5*.py"
 
+  backup-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The backup script parses .env rather than sourcing it, because Compose
+      # env-file syntax is not shell syntax. These tests stub `docker`, so they
+      # need neither a database nor any dependency, and they assert that no
+      # credential reaches a command line.
+      - name: Run backup script regression tests
+        run: sh scripts/backup-mysql.test.sh
+
   docker-build:
     runs-on: ubuntu-latest
 

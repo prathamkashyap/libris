@@ -67,6 +67,57 @@ Image rollback does **not** reverse Flyway migrations, application data changes,
 
 The root `docker-compose.yml` defines the persistent named volume `mysql-data` mounted at `/var/lib/mysql`. Never delete it to repair credentials or a failed migration. The repository includes `scripts/backup-mysql.sh`; inspect its current options and confirm an off-instance copy and restore procedure before relying on it. A backup on the same VM is not disaster recovery. Do not assume an untested dump can be restored.
 
+### Taking a backup
+
+```sh
+scripts/backup-mysql.sh                 # writes ./backups, keeps the 14 newest
+scripts/backup-mysql.sh /secure/dumps  # explicit output directory
+```
+
+The script **parses** `.env`; it never sources or executes it. Compose env-file
+syntax is not shell syntax, and sourcing a `.env` that contains an unquoted,
+space-separated value such as `JAVA_OPTS=-XX:MaxRAMPercentage=70.0 -XX:+ExitOnOutOfMemoryError`
+aborts the script. Reading the file as shell code would also execute anything
+else in it.
+
+Credentials never appear on a command line or in the script's output:
+
+- By default the dump runs with the MySQL account the container already has in
+  its own environment, so no secret crosses the host/container boundary.
+- For a dedicated read-only account, set `LMS_DB_BACKUP_USERNAME` and
+  `LMS_DB_BACKUP_PASSWORD` in `.env`. The credentials are piped to the container
+  on stdin and used through a `0600` defaults-file that is removed on exit.
+  Setting only one of the two is rejected rather than silently ignored.
+
+To provision the least-privilege account (read plus the metadata privileges
+`mysqldump` needs for `--routines`, `--triggers` and `--events`):
+
+```sql
+CREATE USER 'libris_backup'@'%' IDENTIFIED BY '<a generated secret>';
+GRANT SELECT, SHOW VIEW, TRIGGER, EVENT, LOCK TABLES ON librarydb.* TO 'libris_backup'@'%';
+GRANT SHOW_ROUTINE ON *.* TO 'libris_backup'@'%';
+FLUSH PRIVILEGES;
+```
+
+That account cannot insert, update or drop (`ERROR 1142`), which is the point.
+Dumps and the output directory are created `0600`/`0700`; the script refuses to
+publish a dump that failed, is implausibly small, or fails a gzip integrity
+check, and it removes partial files on failure.
+
+### Proving a backup can be restored
+
+A valid archive is not proof of a working restore. Run the drill, which builds a
+disposable database, backs it up, restores it into a second independent
+database, and compares the two:
+
+```sh
+sh scripts/backup-mysql-restore-test.sh
+```
+
+It needs Docker, creates and destroys only its own throwaway containers, and
+never reads the repository `.env` or contacts a production database. Run it
+after changing the backup script, and periodically as an operational check.
+
 For diagnostics, prefer `docker compose ps`, `docker compose logs --since=<window> --tail=<count> app`, `df -h`, and `free -h`. Inspect and redact logs before sharing. Do not query or print secret-bearing environment/configuration output.
 
 ## Caddy, DNS, and HTTPS
