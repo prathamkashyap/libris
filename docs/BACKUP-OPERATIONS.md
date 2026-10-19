@@ -62,11 +62,16 @@ be conflated:
 
 ## Credential scope
 
-The production B2 application key is deliberately least-privilege. It is
-restricted to a single bucket and a single filename prefix, and carries exactly
-four capabilities:
+There is currently **no valid B2 application key for this workflow**. All
+previous application keys have been deleted, and offsite delivery should be
+treated as unverified until a replacement is created and checked. See
+[Prerequisite before the next live upload](#prerequisite-before-the-next-live-upload).
 
-| Scope | Value |
+Any application key that is created for this workflow **must** be
+least-privilege. The uploader enforces the required scope and aborts on any
+mismatch, so a key that does not match the table below will not run:
+
+| Required scope | Value |
 |---|---|
 | Bucket | the project's offsite backup bucket |
 | Authorized prefix | `backups/` |
