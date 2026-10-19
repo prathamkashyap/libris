@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+# Run one Libris MySQL backup and record durable, persistent status.
+#
+# Invoked by libris-backup.service. Exists so the unit file stays declarative
+# and so success/failure state survives the reboot that clears the volatile
+# journal: a run writes last-run.status, and a failure additionally writes
+# LAST_FAILURE.
+#
+# Encryption and remote retrieval have been verified end to end: a synthetic
+# canary was encrypted with the configured recipient, uploaded, downloaded and
+# decrypted locally, and a real production dump has been restored into a
+# disposable MySQL instance and reconciled against its manifest. The off-site
+# stage below is therefore wired in, but it runs strictly after the local
+# result has been recorded, and it can never turn a successful local backup
+# into a failed one.
+
+# Exit codes:
+#   0   local backup succeeded and the off-site copy is verified
+#   1   the local dump itself failed
+#   20  the local backup is intact but the off-site transfer failed
+#   21  the local backup is intact but the off-site stage is not installed
+#
+# 21 exists so a missing off-site wrapper can never be mistaken for success. A
+# silent skip would let the local backup look healthy while nothing left the
+# instance, which is precisely the failure this workflow exists to prevent.
+
+set -uo pipefail
+
+# Overridable so the behaviour below can be exercised by tests without touching
+# production paths. The unit sets neither variable, so production keeps exactly
+# these defaults.
+BACKUP_DIR=${LIBRIS_BACKUP_DIR:-/var/lib/libris-backups}
+REPO=${LIBRIS_REPO_DIR:-/home/opc/libris}
+STATUS="$BACKUP_DIR/last-run.status"
+FAILURE="$BACKUP_DIR/LAST_FAILURE"
+KEEP=${LIBRIS_BACKUP_KEEP:-112}
+
+# Off-site paths are named explicitly. The uploader is the reviewed copy in
+# libexec and the credential file is stated rather than defaulted, so this
+# workflow cannot silently fall back to a different key or an unreviewed
+# uploader.
+#
+# GNUPGHOME is a dedicated public-key-only keyring under the backup directory,
+# not /root/.gnupg. A cold-start preflight proved an agent started from scratch
+# in this location works under ProtectSystem=strict and ProtectHome=read-only,
+# so the service no longer depends on an agent left running by an earlier
+# interactive session. The home name starts with a dot and holds no .sql.gz
+# file, so it can never be selected by the retention glob or by the uploader's
+# newest-dump lookup.
+LIBRIS_OFFSITE_UPLOADER=${LIBRIS_OFFSITE_UPLOADER:-/usr/local/libexec/libris-backup-offsite.py}
+LIBRIS_B2_CREDENTIALS=${LIBRIS_B2_CREDENTIALS:-/etc/libris-backup/b2.credentials}
+LIBRIS_GPG_HOME=${LIBRIS_GPG_HOME:-/var/lib/libris-backups/.libris-backup-gnupg}
+export LIBRIS_OFFSITE_UPLOADER LIBRIS_B2_CREDENTIALS LIBRIS_GPG_HOME
+
+log() {
+  logger -t libris-backup -- "$*" 2>/dev/null || true
+  printf '%s %s\n' "$(date -u +%FT%TZ)" "$*"
+}
+
+[ -d "$BACKUP_DIR" ] || { log "FATAL: $BACKUP_DIR missing"; exit 1; }
+[ -r "$REPO/scripts/backup-mysql.sh" ] || { log "FATAL: backup script unreadable"; exit 1; }
+
+started=$(date -u +%FT%TZ)
+
+# --- dump ------------------------------------------------------------------
+# backup-mysql.sh takes its output directory as $1 and its retention from
+# LIBRIS_BACKUP_KEEP; it has no second positional argument. Exporting the value
+# here keeps the retention recorded in last-run.status identical to the
+# retention the dump actually applied, even if the unit's Environment= line is
+# ever dropped.
+export LIBRIS_BACKUP_KEEP="$KEEP"
+sh "$REPO/scripts/backup-mysql.sh" "$BACKUP_DIR"
+rc=$?
+
+if [ "$rc" -ne 0 ]; then
+  log "backup FAILED (exit $rc)"
+  printf '{"status":"failed","started_utc":"%s","exit":%d}\n' "$started" "$rc" > "$FAILURE"
+  chmod 600 "$FAILURE"
+  exit "$rc"
+fi
+
+# --- manifest --------------------------------------------------------------
+newest=$(ls -1t "$BACKUP_DIR"/libris-*.sql.gz 2>/dev/null | head -1)
+if [ -z "$newest" ]; then
+  log "FATAL: the run reported success but no dump is present"
+  printf '{"status":"failed","started_utc":"%s","reason":"no dump after success"}\n' "$started" > "$FAILURE"
+  exit 1
+fi
+
+manifest="${newest}.manifest.json"
+if ! sh "$REPO/scripts/backup-manifest.sh" "$newest" "$manifest" >/dev/null; then
+  log "manifest generation failed for $(basename "$newest")"
+  printf '{"status":"degraded","started_utc":"%s","dump":"%s","reason":"manifest failed"}\n' \
+    "$started" "$(basename "$newest")" > "$STATUS"
+  chmod 600 "$STATUS"
+  exit 1
+fi
+
+sha=$(sha256sum "$newest" | awk '{print $1}')
+bytes=$(wc -c < "$newest" | tr -d ' ')
+kept=$(ls -1 "$BACKUP_DIR"/libris-*.sql.gz 2>/dev/null | wc -l | tr -d ' ')
+
+cat > "$STATUS" <<JSON
+{
+  "status": "ok",
+  "started_utc": "$started",
+  "finished_utc": "$(date -u +%FT%TZ)",
+  "dump": "$(basename "$newest")",
+  "sha256": "$sha",
+  "bytes": $bytes,
+  "local_dumps_kept": $kept,
+  "local_retention": $KEEP,
+  "manifest": "$(basename "$manifest")",
+  "offsite": "not_configured"
+}
+JSON
+chmod 600 "$STATUS"
+rm -f "$FAILURE"
+
+log "local backup OK: $(basename "$newest") sha=${sha:0:16} bytes=$bytes kept=$kept"
+
+# --- offsite ---------------------------------------------------------------
+# This runs *after* last-run.status has been written, because the uploader
+# merges its result into that file: a status written afterwards would discard
+# the off-site result.
+#
+# Exit 20 means the local dump is intact but did not leave the instance. It is
+# deliberately distinct from a dump failure, which has already exited above, so
+# that an operator can page on the second without reading it as the first.
+# A missing off-site wrapper is a deployment fault, not a reason to report
+# success. The local dump produced above stays on disk and last-run.status keeps
+# its accurate local result; the failure is recorded separately so the run is
+# still visibly not a clean success.
+if [ ! -r "$REPO/scripts/backup-offsite-run.sh" ]; then
+  log "FATAL: offsite stage not installed at $REPO/scripts/backup-offsite-run.sh"
+  printf '{"status":"failed","started_utc":"%s","reason":"offsite wrapper missing","dump":"%s"}\n' \
+    "$started" "$(basename "$newest")" > "$FAILURE"
+  chmod 600 "$FAILURE"
+  exit 21
+fi
+
+offsite_rc=0
+sh "$REPO/scripts/backup-offsite-run.sh" "$newest" || offsite_rc=$?
+
+case "$offsite_rc" in
+  0)
+    exit 0
+    ;;
+  20)
+    log "offsite transfer FAILED; the local backup is intact"
+    exit 20
+    ;;
+  *)
+    log "offsite stage aborted (exit $offsite_rc); the local backup is intact"
+    exit "$offsite_rc"
+    ;;
+esac
