@@ -1,0 +1,20 @@
+[Unit]
+Description=Run the Libris MySQL backup every six hours
+Documentation=file:///home/opc/libris/docs/DEPLOYMENT.md
+
+[Timer]
+# 00:15, 06:15, 12:15 and 18:15 UTC, plus up to 15 minutes of jitter so
+# concurrent hosts are not synchronised.
+OnCalendar=*-*-* 00/6:15:00
+RandomizedDelaySec=15m
+AccuracySec=1m
+
+# If the host was down at a scheduled time, run once after boot.
+Persistent=true
+
+# Overlap is impossible by construction: systemd will not start a second
+# instance of a unit that is already active.
+Unit=libris-backup.service
+
+[Install]
+WantedBy=timers.target
